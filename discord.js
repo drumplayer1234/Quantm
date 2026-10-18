@@ -8,7 +8,7 @@ const path = require('path');
 const os = require('os');
 
 // Public id of the "Quantm" application on discord.com/developers (not a secret)
-const CLIENT_ID = 'DISCORD_APPLICATION_ID';
+const CLIENT_ID = '1561269799105855583';
 
 const OP_HANDSHAKE = 0;
 const OP_FRAME = 1;
@@ -126,6 +126,8 @@ function update(state) {
   const now = Date.now();
   const activity = {
     type: 2, // "Listening to"
+    // what the short status (member list, profile corner) shows: 2 = details (the song)
+    status_display_type: 2,
     details: clip(state.title),
     state: clip('by ' + (state.artist || 'Unknown artist')),
     assets: {
