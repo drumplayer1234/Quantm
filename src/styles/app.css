@@ -630,3 +630,12 @@ a.stat:hover { color: var(--text); }
   --lq-bar: color-mix(in srgb, var(--surface) 32%, transparent);
   --lq-soft: color-mix(in srgb, var(--surface) 28%, transparent);
 }
+
+/* player bar visualizer: position and spacing (set live from Settings -> Playback) */
+.pb-visualizer.pos-left { margin: 0 0 0 4px; }
+.pb-visualizer.pos-right { margin: 0 8px 0 0; }
+.pb-center { position: relative; }
+/* beside the controls row: pb-center is 60px tall and the controls are its top 40px */
+.pb-visualizer.pos-center {
+  position: absolute; top: 20px; left: calc(50% + 128px); transform: translateY(-50%); margin: 0; z-index: 1;
+}

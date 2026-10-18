@@ -100,6 +100,24 @@ export const store = new Store();
 // ---------------------------------------------------------------------------
 
 const SETTINGS_KEY = 'quantm.settings';
+
+// everything the "Reset visualizer" button restores
+export const VISUALIZER_DEFAULTS = {
+  visualizer: true,
+  visualizerStyle: 'bars', // bars | mirror | wave | line | circle | dots
+  visualizerColor: 'theme', // theme | accent | rainbow | custom
+  visualizerColorA: '#ff5500',
+  visualizerColorB: '#8a2be2',
+  visualizerBars: 18, // 6-64
+  visualizerWidth: 120, // 60-280 px
+  visualizerHeight: 34, // 20-56 px
+  visualizerSensitivity: 1, // 0.5-2.5
+  visualizerSmoothing: 0.78, // 0-0.95
+  visualizerPeaks: false,
+  visualizerGlow: false,
+  visualizerPosition: 'right' // left | center | right
+};
+
 const defaults = {
   volume: 0.8,
   muted: false,
@@ -108,8 +126,7 @@ const defaults = {
   notifications: true,
   autoplayRelated: true,
   normalize: true,
-  visualizer: true,
-  visualizerStyle: 'bars' // bars | mirror | wave
+  ...VISUALIZER_DEFAULTS
 };
 
 export const settings = Object.assign({}, defaults, safeParse(localStorage.getItem(SETTINGS_KEY)));

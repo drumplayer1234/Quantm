@@ -3,7 +3,7 @@ import { h, clear, duration, coverOf } from './dom.js';
 import { icon } from './icons.js';
 import { player } from './player.js';
 import { createVisualizer } from './visualizer.js';
-import { store } from './store.js';
+import { store, settings } from './store.js';
 import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, toast } from './ui.js';
 
 export function mountPlayerBar(root) {
@@ -31,9 +31,10 @@ export function mountPlayerBar(root) {
   const volFill = h('div.pb-fill');
   const volume = h('div.pb-volume', h('div.pb-track', volFill));
 
-  const bar = h('footer.playerbar.idle',
-    h('div.pb-left', art, h('div.pb-text', title, artist), likeSlot, addBtn),
-    h('div.pb-center',
+  const visualizer = createVisualizer();
+  const pbText = h('div.pb-text', title, artist);
+  const pbLeft = h('div.pb-left', art, pbText, likeSlot, addBtn);
+  const pbCenter = h('div.pb-center',
       h('div.pb-controls',
         shuffleBtn,
         iconButton('prev', 'Previous (Ctrl+←)', () => player.prev(), 'pb-skip'),
@@ -42,10 +43,20 @@ export function mountPlayerBar(root) {
         repeatBtn
       ),
       h('div.pb-progress-row', current, progress, total)
-    ),
-    h('div.pb-right', createVisualizer(), moreBtn, queueBtn, volIcon, volume)
   );
+  const pbRight = h('div.pb-right', moreBtn, queueBtn, volIcon, volume);
+  const bar = h('footer.playerbar.idle', pbLeft, pbCenter, pbRight);
   root.append(bar);
+
+  // the visualizer can live on the left, in the center beside the controls, or on the right
+  const placeVisualizer = () => {
+    const spot = settings.visualizerPosition;
+    if (spot === 'left') { if (visualizer.parentElement !== pbLeft) pbLeft.insertBefore(visualizer, likeSlot); }
+    else if (spot === 'center') { if (visualizer.parentElement !== pbCenter) pbCenter.append(visualizer); }
+    else if (visualizer.parentElement !== pbRight) pbRight.insertBefore(visualizer, moreBtn);
+  };
+  placeVisualizer();
+  store.on('settings', placeVisualizer);
 
   // --- progress / seeking -----------------------------------------------------
   let dragging = false;

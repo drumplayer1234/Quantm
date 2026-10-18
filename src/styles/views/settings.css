@@ -188,3 +188,8 @@
   background: var(--surface-2) center / cover no-repeat; display: flex; align-items: center; justify-content: center; text-align: center;
 }
 .settings-bg-preview .small { font-size: 10px; padding: 4px; }
+
+/* visualizer custom colors */
+.settings-viz-pickers { display: flex; align-items: center; gap: 16px; }
+.settings-viz-color { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.settings-viz-color .settings-color { width: 36px; height: 36px; }

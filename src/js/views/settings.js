@@ -2,9 +2,9 @@
 // Theme edits apply live (CSS variables are global) and are saved with a short debounce.
 import { h, debounce } from '../dom.js';
 import { icon } from '../icons.js';
-import { store, settings, saveSettings } from '../store.js';
+import { store, settings, saveSettings, VISUALIZER_DEFAULTS } from '../store.js';
 import { player } from '../player.js';
-import { VISUALIZER_STYLES } from '../visualizer.js';
+import { VISUALIZER_STYLES, VISUALIZER_COLORS, VISUALIZER_POSITIONS, VISUALIZER_LIMITS } from '../visualizer.js';
 import * as theme from '../theme.js';
 import * as look from '../appearance.js';
 import { pageHeader, button, toast, avatar, confirmDialog, promptDialog } from '../ui.js';
@@ -548,22 +548,7 @@ async function playbackTab(cleanups) {
       toggleRow('Normalize volume', 'Even out loud and quiet tracks so every song plays at a similar level.', settings.normalize !== false,
         (on) => player.setNormalize(on))
     ),
-    card('Visualizer', 'A small animated spectrum in the player bar, drawn in your theme colors.',
-      toggleRow('Show visualizer', 'Animate the player bar along with the music.', settings.visualizer !== false,
-        (on) => saveSettings({ visualizer: on })),
-      h('div.settings-row',
-        h('div.settings-row-text', h('span.settings-row-title', 'Style'), h('span.settings-row-desc', 'How the visualizer is drawn')),
-        h('div.chips', VISUALIZER_STYLES.map((style) => {
-          const chip = h('button.chip' + (settings.visualizerStyle === style.id ? '.active' : ''), {
-            onclick: () => {
-              saveSettings({ visualizerStyle: style.id });
-              chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === chip));
-            }
-          }, style.label);
-          return chip;
-        }))
-      )
-    ),
+    visualizerCard(),
     card('Volume', 'The level Quantm plays at. You can also change it from the player bar.',
       h('div.settings-radius',
         h('div.settings-row-text', h('span.settings-row-title', 'Default volume'), h('span.settings-row-desc', 'Applies right now and next time you open the app')),
@@ -571,6 +556,51 @@ async function playbackTab(cleanups) {
       )
     )
   );
+}
+
+/** The player bar visualizer: every option applies live and is saved immediately */
+function visualizerCard() {
+  const set = (patch) => saveSettings(patch);
+  const d = VISUALIZER_DEFAULTS;
+  const val = (key) => (settings[key] === undefined ? d[key] : settings[key]);
+  const limit = (key) => ({ min: VISUALIZER_LIMITS[key][0], max: VISUALIZER_LIMITS[key][1] });
+
+  const picker = (key, label) => {
+    const input = h('input.settings-color', { type: 'color', value: val(key), title: label, 'aria-label': label,
+      oninput: () => set({ [key]: input.value }) });
+    return h('label.settings-viz-color', input, h('span.muted.small', label));
+  };
+  const colorsRow = h('div.settings-row.settings-viz-colors' + (val('visualizerColor') === 'custom' ? '' : '.hidden'),
+    h('span.settings-row-text', h('span.settings-row-title', 'Custom colors'), h('span.settings-row-desc', 'A gradient from the bottom to the top of the visualizer')),
+    h('div.settings-viz-pickers', picker('visualizerColorA', 'Bottom'), picker('visualizerColorB', 'Top'))
+  );
+
+  const el = card('Visualizer', 'A small animated spectrum in the player bar. Every change applies right away.',
+    toggleRow('Show visualizer', 'Animate the player bar along with the music.', settings.visualizer !== false,
+      (on) => set({ visualizer: on })),
+    chipRow('Style', 'How the visualizer is drawn', VISUALIZER_STYLES, val('visualizerStyle'), (v) => set({ visualizerStyle: v })),
+    chipRow('Color', 'Theme colors, your accent, a moving rainbow, or your own pair', VISUALIZER_COLORS, val('visualizerColor'), (v) => {
+      colorsRow.classList.toggle('hidden', v !== 'custom');
+      set({ visualizerColor: v });
+    }),
+    colorsRow,
+    sliderRow('Bars', 'How many columns (bars, mirrored, dots and circle)', { ...limit('bars'), value: val('visualizerBars') }, (v) => set({ visualizerBars: v })),
+    sliderRow('Width', null, { ...limit('width'), step: 2, value: val('visualizerWidth'), unit: 'px' }, (v) => set({ visualizerWidth: v })),
+    sliderRow('Height', 'The player bar is 76px tall', { ...limit('height'), value: val('visualizerHeight'), unit: 'px' }, (v) => set({ visualizerHeight: v })),
+    sliderRow('Sensitivity', 'How strongly it reacts to the music', { min: 50, max: 250, step: 5, value: Math.round(val('visualizerSensitivity') * 100), unit: '%' }, (v) => set({ visualizerSensitivity: v / 100 })),
+    sliderRow('Smoothness', 'Higher is slower and smoother, lower is snappier', { min: 0, max: 95, step: 1, value: Math.round(val('visualizerSmoothing') * 100), unit: '%' }, (v) => set({ visualizerSmoothing: v / 100 })),
+    toggleRow('Falling peaks', "Small caps that hold at each bar's high point, then drop (bars, mirrored, dots).", !!val('visualizerPeaks'), (on) => set({ visualizerPeaks: on })),
+    toggleRow('Glow', 'A soft glow around the visualizer.', !!val('visualizerGlow'), (on) => set({ visualizerGlow: on })),
+    chipRow('Position', 'Where it sits in the player bar', VISUALIZER_POSITIONS, val('visualizerPosition'), (v) => set({ visualizerPosition: v })),
+    h('div.settings-actions',
+      button('Reset visualizer', () => {
+        saveSettings(Object.assign({}, VISUALIZER_DEFAULTS));
+        el.replaceWith(visualizerCard());
+        toast('Visualizer reset to default');
+      }, 'btn-outline', 'history')
+    )
+  );
+  return el;
 }
 
 // ---------------------------------------------------------------------------
