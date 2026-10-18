@@ -1,7 +1,7 @@
 {
   "name": "quantm",
   "productName": "Quantm",
-  "version": "8.0.0",
+  "version": "1.0.0",
   "description": "A sleek, themeable SoundCloud desktop client",
   "main": "main.js",
   "scripts": {
