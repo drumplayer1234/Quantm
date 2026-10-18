@@ -120,7 +120,7 @@ export function mountPlayerBar(root) {
     clear(artist).append(track.user ? link(userHref(track.user), track.user.username) : '');
     clear(likeSlot).append(likeButton(track));
     total.textContent = duration(track.duration);
-    document.title = `${track.title} · ${track.user ? track.user.username : ''} — Soundnode`;
+    document.title = `${track.title} · ${track.user ? track.user.username : ''} — Quantm`;
   });
   const renderState = () => {
     clear(playBtn).append(icon(player.playing ? 'pause' : 'play', 22));

@@ -73,7 +73,7 @@ function showLogin(message) {
     h('div.login-drag'),
     h('div.login-card',
       h('div.login-logo', icon('logo', 64)),
-      h('h1', 'Soundnode'),
+      h('h1', 'Quantm'),
       h('p.muted', 'A desktop app for SoundCloud.'),
       message ? h('div.login-error', message) : null,
       button('Sign in with SoundCloud', async () => {
@@ -119,7 +119,7 @@ function mountShell() {
 
   const topbar = h('header.topbar',
     h('div.topbar-left',
-      h('a.logo', { href: '#/home', title: 'Soundnode' }, icon('logo', 28)),
+      h('a.logo', { href: '#/home', title: 'Quantm' }, icon('logo', 28)),
       iconButton('back', 'Back', () => history.back(), 'nav-arrow'),
       iconButton('forward', 'Forward', () => history.forward(), 'nav-arrow'),
       h('nav.nav', navLinks)

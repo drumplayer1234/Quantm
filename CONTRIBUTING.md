@@ -1,4 +1,4 @@
-# Contributing to Soundnode
+# Contributing to Quantm
 
 Thanks for helping out! This guide covers how to run the app, how the code is laid out, and how to send changes.
 
@@ -29,7 +29,7 @@ There is no build step for day-to-day work. The renderer is plain vanilla JavaSc
 
 ## Reporting bugs and suggesting features
 
-Open an issue on the repository's GitHub page. For bugs, include your operating system, the Soundnode version (from `package.json`), and the steps to reproduce the problem. Screenshots help too.
+Open an issue on the repository's GitHub page. For bugs, include your operating system, the Quantm version (from `package.json`), and the steps to reproduce the problem. Screenshots help too.
 
 ## Sending a pull request
 

@@ -27,7 +27,7 @@ export async function render(page, params) {
   const content = h('div.settings-content' + (active === 'theme' ? '.wide' : ''), await builders[active](cleanups));
 
   page.append(
-    pageHeader('Settings', { subtitle: 'Make Soundnode yours' }),
+    pageHeader('Settings', { subtitle: 'Make Quantm yours' }),
     h('div.settings-layout', nav, content)
   );
   return () => cleanups.forEach(fn => fn());
@@ -275,7 +275,7 @@ async function themeTab(cleanups) {
       commit(theme.importTheme(text));
       toast('Theme imported');
     } catch (e) {
-      toast("That isn't a valid Soundnode theme", 'error');
+      toast("That isn't a valid Quantm theme", 'error');
     }
   };
 
@@ -371,7 +371,7 @@ async function playbackTab(cleanups) {
       if (result !== 'granted') {
         input.checked = false;
         saveSettings({ notifications: false });
-        toast('Notifications are blocked for Soundnode in system settings', 'error');
+        toast('Notifications are blocked for Quantm in system settings', 'error');
         return;
       }
     }
@@ -384,7 +384,7 @@ async function playbackTab(cleanups) {
         (on) => saveSettings({ autoplayRelated: on })),
       toggleRow('Desktop notifications', 'Show a notification when a new track starts playing.', settings.notifications, onNotifications)
     ),
-    card('Volume', 'The level Soundnode plays at. You can also change it from the player bar.',
+    card('Volume', 'The level Quantm plays at. You can also change it from the player bar.',
       h('div.settings-radius',
         h('div.settings-row-text', h('span.settings-row-title', 'Default volume'), h('span.settings-row-desc', 'Applies right now and next time you open the app')),
         h('div.settings-range-wrap', slider, valueLabel)
@@ -402,7 +402,7 @@ async function accountTab() {
   const plan = me && me.consumer_subscription && me.consumer_subscription.product && me.consumer_subscription.product.name;
 
   const signOut = async () => {
-    if (!await confirmDialog('Sign out?', 'You will need to sign in with SoundCloud again to use Soundnode.', 'Sign out', true)) return;
+    if (!await confirmDialog('Sign out?', 'You will need to sign in with SoundCloud again to use Quantm.', 'Sign out', true)) return;
     player.pause();
     await window.native.auth.logout();
     location.hash = '';
@@ -504,11 +504,11 @@ async function aboutTab() {
       h('div.settings-about',
         h('div.settings-about-logo', icon('cloud', 44)),
         h('div',
-          h('div.settings-about-name', 'Soundnode'),
+          h('div.settings-about-name', 'Quantm'),
           h('div.muted', version || 'A desktop app for SoundCloud')
         )
       ),
-      h('p.settings-about-text', 'Soundnode is open source (GPL-3.0).'),
+      h('p.settings-about-text', 'Quantm is open source (GPL-3.0), a successor to Soundnode.'),
       h('div.settings-actions',
         button('View on GitHub', () => window.native.openExternal('https://github.com/'), 'btn-outline', 'external')
       )

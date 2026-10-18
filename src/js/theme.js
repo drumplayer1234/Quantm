@@ -1,7 +1,7 @@
 // Theme engine: every color in the UI comes from these CSS variables.
 import { safeParse } from './store.js';
 
-const THEME_KEY = 'soundnode.theme';
+const THEME_KEY = 'quantm.theme';
 
 /** Editable color slots, in the order the theme editor shows them */
 export const THEME_FIELDS = [
@@ -109,7 +109,7 @@ export function exportTheme(theme = getTheme()) {
 /** Parse a shared theme; throws if it isn't valid */
 export function importTheme(text) {
   const data = JSON.parse(text);
-  if (!data || typeof data.colors !== 'object') throw new Error('Not a Soundnode theme');
+  if (!data || typeof data.colors !== 'object') throw new Error('Not a Quantm theme');
   const colors = Object.assign({}, DEFAULT_THEME.colors);
   THEME_FIELDS.forEach(({ key }) => {
     if (/^#[0-9a-f]{6}$/i.test(data.colors[key] || '')) colors[key] = data.colors[key];

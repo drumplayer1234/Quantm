@@ -1,4 +1,6 @@
-# Soundnode
+# Quantm
+
+> A successor to [Soundnode](https://github.com/Soundnode/soundnode-app), rebuilt from scratch.
 
 A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
@@ -34,7 +36,7 @@ Grab the latest build from the **Releases** page of this repository on GitHub:
 
 1. Click **Sign in with SoundCloud**.
 2. Log in the way you normally would, including with Google, Apple or Facebook if you use those.
-3. Soundnode closes the sign-in window once it's connected.
+3. Quantm closes the sign-in window once it's connected.
 
 Your login token is stored on your computer, encrypted with Electron's `safeStorage` where your operating system supports it. It is only ever sent to SoundCloud.
 
@@ -49,7 +51,7 @@ You'll need [Node.js](https://nodejs.org/) 18 or newer (Node 20 is what the rele
 
 ```bash
 npm install        # install dependencies
-npm start          # run Soundnode from source
+npm start          # run Quantm from source
 ```
 
 To create installers:
@@ -90,9 +92,9 @@ src/
 
 ## Disclaimer
 
-Soundnode is an unofficial project. It is not affiliated with, endorsed by, or sponsored by SoundCloud.
+Quantm is an unofficial project. It is not affiliated with, endorsed by, or sponsored by SoundCloud.
 
-Soundnode uses SoundCloud's web API, which SoundCloud can change or restrict at any time. If that happens, parts of the app may stop working until it's updated.
+Quantm uses SoundCloud's web API, which SoundCloud can change or restrict at any time. If that happens, parts of the app may stop working until it's updated.
 
 Please respect the artists whose music you listen to, and follow SoundCloud's terms of use.
 
@@ -108,4 +110,4 @@ Bug reports, feature ideas and pull requests are welcome. See [CONTRIBUTING.md](
 
 ## License
 
-Soundnode is free software licensed under the [GNU General Public License v3.0](LICENSE). You can redistribute it and/or modify it under the terms of that license.
+Quantm is free software licensed under the [GNU General Public License v3.0](LICENSE). You can redistribute it and/or modify it under the terms of that license.

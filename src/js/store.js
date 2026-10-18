@@ -99,7 +99,7 @@ export const store = new Store();
 // Persistent settings (localStorage)
 // ---------------------------------------------------------------------------
 
-const SETTINGS_KEY = 'soundnode.settings';
+const SETTINGS_KEY = 'quantm.settings';
 const defaults = {
   volume: 0.8,
   muted: false,

@@ -1,6 +1,6 @@
 {
-  "name": "soundnode",
-  "productName": "Soundnode",
+  "name": "quantm",
+  "productName": "Quantm",
   "version": "8.0.0",
   "description": "A sleek, themeable SoundCloud desktop client",
   "main": "main.js",
@@ -13,8 +13,8 @@
   },
   "license": "GPL-3.0",
   "build": {
-    "appId": "app.soundnode.desktop",
-    "productName": "Soundnode",
+    "appId": "app.quantm.desktop",
+    "productName": "Quantm",
     "files": [
       "main.js",
       "preload.js",

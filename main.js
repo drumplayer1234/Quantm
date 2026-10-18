@@ -241,7 +241,7 @@ function createMainWindow() {
     minHeight: 640,
     show: false,
     backgroundColor: '#121212',
-    title: 'Soundnode',
+    title: 'Quantm',
     icon: path.join(__dirname, 'build', 'icon.png'),
     titleBarStyle: 'hidden',
     titleBarOverlay: process.platform === 'darwin' ? true : { color: '#00000000', symbolColor: '#ffffff', height: TITLEBAR_HEIGHT },
