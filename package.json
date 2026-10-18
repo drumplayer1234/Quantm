@@ -28,7 +28,8 @@
     },
     "publish": [
       {
-        "provider": "github"
+        "provider": "github",
+        "releaseType": "release"
       }
     ],
     "win": {
@@ -58,9 +59,16 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
-    "copyright": "Copyright \u00a9 2026 Quantm contributors. GPL-3.0."
+    "copyright": "Copyright © 2026 Quantm contributors. GPL-3.0.",
+    "portable": {
+      "artifactName": "${productName}-${version}-Portable.${ext}"
+    },
+    "releaseInfo": {
+      "releaseNotes": "## Which file should I download?\n\n- **Windows:** `Quantm-Setup-<version>.exe` ⭐ **recommended** — installs Quantm with shortcuts and an uninstaller.\n  - `Quantm-<version>-Portable.exe` — runs without installing (starts a little slower).\n- **macOS:** the `.dmg`\n- **Linux:** the `.AppImage` (runs anywhere) or the `.deb` (Debian/Ubuntu)\n\nWindows may show \"Windows protected your PC\" because the installer isn't signed yet: click **More info → Run anyway**."
+    }
   },
   "devDependencies": {
     "electron": "^33.2.1",
