@@ -9,7 +9,17 @@ npm install
 npm start
 ```
 
+To run a second copy next to an installed Quantm, with its own settings and login, set `QUANTM_PROFILE` to an empty folder first (for example `QUANTM_PROFILE=./.dev-profile npm start`).
+
 There is no build step for day-to-day work. The renderer is plain vanilla JavaScript loaded directly by Electron, so edit a file and restart with `npm start` if a change doesn't show up.
+
+## Tests and lint
+
+```bash
+npm run check
+```
+
+This runs ESLint and the tests in `test/` (Node's built-in test runner, no extra tools). It needs Node 20 or newer. Releases only build when it passes.
 
 ## Code layout
 
@@ -34,7 +44,7 @@ Open an issue on the repository's GitHub page. For bugs, include your operating 
 ## Sending a pull request
 
 1. Fork the repository and create a branch for your change.
-2. Make your change and check that `npm start` runs and the affected pages work, in both the default theme and a custom one.
+2. Make your change, run `npm run check`, and check that `npm start` runs and the affected pages work, in both the default theme and a custom one.
 3. Open a pull request that describes what changed and why. Link any related issue.
 
 By contributing, you agree that your changes are released under the project's [GPL-3.0](LICENSE) license.

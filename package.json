@@ -9,7 +9,10 @@
     "dist": "electron-builder",
     "dist:win": "electron-builder --win",
     "dist:mac": "electron-builder --mac",
-    "dist:linux": "electron-builder --linux"
+    "dist:linux": "electron-builder --linux",
+    "test": "node --test test/",
+    "lint": "eslint .",
+    "check": "npm run lint && npm test"
   },
   "license": "GPL-3.0",
   "build": {
@@ -72,7 +75,9 @@
   },
   "devDependencies": {
     "electron": "^33.2.1",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "eslint": "9.17.0",
+    "globals": "15.14.0"
   },
   "dependencies": {
     "koffi": "^2.9.0"

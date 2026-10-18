@@ -49,9 +49,28 @@ async function boot() {
     await store.init();
   } catch (error) {
     if (error.status === 401 || error.status === 403) return showLogin('Your SoundCloud login expired. Please sign in again.');
-    return showLogin("Couldn't reach SoundCloud. Check your connection and try again.");
+    // offline is not a logged-out state: keep the login and retry when the connection is back
+    return showOffline();
   }
   mountShell();
+}
+
+function showOffline() {
+  clear(app);
+  const retry = () => {
+    window.removeEventListener('online', retry);
+    boot();
+  };
+  window.addEventListener('online', retry);
+  app.append(h('div.login',
+    h('div.login-drag'),
+    h('div.login-card',
+      h('div.login-logo', icon('logo', 64)),
+      h('h1', "You're offline"),
+      h('p.muted', "Quantm couldn't reach SoundCloud. It will reconnect on its own when your connection is back."),
+      button('Try again', retry, 'btn-primary.btn-lg')
+    )
+  ));
 }
 
 // ---------------------------------------------------------------------------

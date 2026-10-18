@@ -54,19 +54,33 @@ export class Pager {
 // ---------------------------------------------------------------------------
 
 const trackCache = new Map();
+const TRACK_CACHE_LIMIT = 2000;
 
 export function cacheTrack(track) {
-  if (track && track.id && track.title) trackCache.set(track.id, track);
+  if (track && track.id && track.title) {
+    trackCache.delete(track.id);
+    trackCache.set(track.id, track);
+    if (trackCache.size > TRACK_CACHE_LIMIT) trackCache.delete(trackCache.keys().next().value);
+  }
   return track;
 }
 
 export async function tracksByIds(ids) {
-  const missing = ids.filter(id => !trackCache.has(id));
+  // Hold this request's results separately: a large playlist can exceed the cache.
+  const found = new Map();
+  for (const id of ids) {
+    const track = trackCache.get(id);
+    if (track) found.set(id, cacheTrack(track));
+  }
+  const missing = [...new Set(ids.filter(id => !found.has(id)))];
   for (let i = 0; i < missing.length; i += 50) {
     const tracks = await get('tracks', { ids: missing.slice(i, i + 50).join(',') });
-    tracks.forEach(cacheTrack);
+    tracks.forEach(track => {
+      cacheTrack(track);
+      if (track && track.id && track.title) found.set(track.id, track);
+    });
   }
-  return ids.map(id => trackCache.get(id)).filter(Boolean);
+  return ids.map(id => found.get(id)).filter(Boolean);
 }
 
 /** Replace stub tracks ({ id, kind }) with full objects, keeping order */

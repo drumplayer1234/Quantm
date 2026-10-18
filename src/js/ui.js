@@ -8,6 +8,31 @@ const store = () => _store;
 const player = () => _player;
 export function bindServices(s, p, a) { _store = s; _player = p; _api = a; }
 
+// One observer releases external subscriptions for removed components, even while
+// playback is paused. Weak keys do not retain elements; moves within the DOM survive.
+const removalCleanups = new WeakMap();
+let removalObserver;
+function onRemoved(el, cleanup) {
+  if (!removalObserver) {
+    const visit = (node) => {
+      if (node.isConnected) return;
+      const callbacks = removalCleanups.get(node);
+      if (callbacks) {
+        removalCleanups.delete(node);
+        callbacks.forEach(fn => fn());
+      }
+      node.childNodes.forEach(visit);
+    };
+    removalObserver = new MutationObserver(records => {
+      records.forEach(record => record.removedNodes.forEach(visit));
+    });
+    removalObserver.observe(document, { childList: true, subtree: true });
+  }
+  const callbacks = removalCleanups.get(el) || [];
+  callbacks.push(cleanup);
+  removalCleanups.set(el, callbacks);
+}
+
 // ---------------------------------------------------------------------------
 // Navigation helpers
 // ---------------------------------------------------------------------------
@@ -114,10 +139,7 @@ export function followButton(user) {
 
 /** Re-render el when store sets change; stops once el leaves the DOM */
 function watchStore(el, render) {
-  const off = store().on('change', () => {
-    if (!el.isConnected) return setTimeout(() => { if (!el.isConnected) off(); }, 0);
-    render();
-  });
+  onRemoved(el, store().on('change', render));
 }
 
 /** Play/pause button bound to a list of tracks */
@@ -140,8 +162,7 @@ export function playButton(getTracks, index = 0, context = null, cls = 'play-btn
     else if (tracks.length) player().playList(tracks, index, context);
   });
   const offs = [player().on('state', render), player().on('track', render)];
-  const tidy = () => { if (!btn.isConnected) offs.forEach(off => off()); };
-  player().on('track', tidy);
+  onRemoved(btn, () => offs.forEach(off => off()));
   render();
   return btn;
 }
@@ -272,13 +293,19 @@ export function waveform(track, { height = 60, onPlay, comments = null } = {}) {
   const observer = new ResizeObserver(draw);
   observer.observe(wrap);
   const onTime = () => {
-    if (!wrap.isConnected) { observer.disconnect(); offTime(); return; }
+    if (!wrap.isConnected) return;
     if (document.documentElement.hasAttribute('data-hidden')) return;
     if (player().current && player().current.id === track.id) draw();
   };
   const offTime = player().on('time', onTime);
   document.addEventListener('themechange', draw);
   document.addEventListener('wavestylechange', draw);
+  onRemoved(wrap, () => {
+    observer.disconnect();
+    offTime();
+    document.removeEventListener('themechange', draw);
+    document.removeEventListener('wavestylechange', draw);
+  });
   return wrap;
 }
 
@@ -341,8 +368,7 @@ export function trackRow(tracks, index, opts = {}) {
   };
   sync();
   const offs = [p.on('track', sync), p.on('state', sync)];
-  const cleanup = () => { if (!row.isConnected) offs.forEach(off => off()); };
-  p.on('queue', cleanup);
+  onRemoved(row, () => offs.forEach(off => off()));
   return row;
 }
 

@@ -11,7 +11,26 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint and test
+        run: npm run check
+
   release:
+    needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -33,5 +52,44 @@ jobs:
 
       - name: Build and publish
         run: npx electron-builder --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate and upload installer checksums
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_OS: ${{ matrix.os }}
+        run: |
+          node <<'NODE'
+          const { createHash } = require('node:crypto');
+          const { createReadStream, readdirSync, writeFileSync } = require('node:fs');
+          (async () => {
+            const files = readdirSync('dist').filter(name => /\.(exe|dmg|AppImage|deb)$/.test(name)).sort();
+            if (!files.length) throw new Error('No installers found in dist');
+            const lines = [];
+            for (const name of files) {
+              const hash = createHash('sha256');
+              for await (const chunk of createReadStream(`dist/${name}`)) hash.update(chunk);
+              lines.push(`${hash.digest('hex')}  ${name}`);
+            }
+            writeFileSync(`dist/SHA256SUMS-${process.env.RELEASE_OS}.txt`, lines.join('\n') + '\n');
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
+          gh release upload "$GITHUB_REF_NAME" "dist/SHA256SUMS-${RELEASE_OS}.txt" --clobber
+
+  # electron-builder doesn't write notes when it publishes straight away, so add them afterwards
+  notes:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add release notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed "s/VERSION/${VERSION}/g" .github/RELEASE_NOTES.md > notes.md
+          gh release edit "$GITHUB_REF_NAME" --notes-file notes.md
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

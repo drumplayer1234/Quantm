@@ -11,6 +11,10 @@ const LOGIN_PARTITION = 'persist:soundcloud-login';
 const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
 const TITLEBAR_HEIGHT = 56;
 
+// Development: QUANTM_PROFILE=<folder> runs a second copy with its own settings and login,
+// next to the installed app (which keeps its single-instance lock on the normal profile)
+if (process.env.QUANTM_PROFILE && !app.isPackaged) app.setPath('userData', path.resolve(process.env.QUANTM_PROFILE));
+
 // SoundCloud rejects requests whose user agent mentions Electron
 app.userAgentFallback = CHROME_UA;
 
@@ -56,9 +60,12 @@ const authFile = () => path.join(app.getPath('userData'), 'auth.json');
 function loadAuth() {
   try {
     const saved = JSON.parse(fs.readFileSync(authFile(), 'utf8'));
-    const token = saved.encrypted && safeStorage.isEncryptionAvailable()
-      ? safeStorage.decryptString(Buffer.from(saved.token, 'base64'))
-      : saved.token;
+    let token = saved.token;
+    if (saved.encrypted) {
+      // the keychain is unavailable (or changed): the stored value is ciphertext, not a token
+      if (!safeStorage.isEncryptionAvailable()) return null;
+      token = safeStorage.decryptString(Buffer.from(saved.token, 'base64'));
+    }
     if (token && saved.clientId) {
       return { token, clientId: saved.clientId };
     }
@@ -87,26 +94,52 @@ function saveAuth(value) {
   }
   const encrypted = safeStorage.isEncryptionAvailable();
   fs.mkdirSync(path.dirname(authFile()), { recursive: true });
+  if (!encrypted) console.warn('OS keychain unavailable: the login is stored unencrypted, readable only by this user');
   fs.writeFileSync(authFile(), JSON.stringify({
     encrypted,
     token: encrypted ? safeStorage.encryptString(value.token).toString('base64') : value.token,
     clientId: value.clientId
-  }));
+  }), { mode: 0o600 });
 }
 
 // ---------------------------------------------------------------------------
 // client_id discovery: soundcloud.com embeds it in its JS bundles and rotates it
 // ---------------------------------------------------------------------------
 
-async function scrapeClientId() {
-  const html = await (await net.fetch('https://soundcloud.com/', { headers: { 'User-Agent': CHROME_UA } })).text();
-  const scripts = [...html.matchAll(/<script[^>]+src="(https:\/\/a-v2\.sndcdn\.com\/assets\/[^"]+\.js)"/g)].map(m => m[1]);
-  for (const src of scripts.reverse()) {
-    const js = await (await net.fetch(src)).text();
-    const match = js.match(/client_id\s*[:=]\s*"([a-zA-Z0-9]{32})"/);
-    if (match) return match[1];
+const SCRAPE_TIMEOUT = 10000;
+let scraping = null;
+
+async function fetchText(url, options = {}) {
+  const response = await net.fetch(url, Object.assign({ signal: AbortSignal.timeout(SCRAPE_TIMEOUT) }, options));
+  if (!response.ok) throw new Error(`${url} answered ${response.status}`);
+  return response.text();
+}
+
+async function findClientId() {
+  const html = await fetchText('https://soundcloud.com/', { headers: { 'User-Agent': CHROME_UA } });
+  // the asset host has changed before (a-v2, a-v3...): accept any sndcdn script
+  const scripts = [...html.matchAll(/<script[^>]+src="(https:\/\/[a-z0-9-]+\.sndcdn\.com\/[^"]+\.js)"/g)].map(m => m[1]);
+  // the id is usually in one of the last bundles: check those first, a few at a time
+  const ordered = scripts.reverse();
+  for (let i = 0; i < ordered.length; i += 4) {
+    const found = await Promise.all(ordered.slice(i, i + 4).map(async (src) => {
+      try {
+        const match = (await fetchText(src)).match(/client_id\s*[:=]\s*"([a-zA-Z0-9]{32})"/);
+        return match ? match[1] : null;
+      } catch (e) {
+        return null;
+      }
+    }));
+    const id = found.find(Boolean);
+    if (id) return id;
   }
   throw new Error('Could not find a SoundCloud client_id');
+}
+
+/** Concurrent callers share one lookup, so a burst of 401s scrapes soundcloud.com once */
+function scrapeClientId() {
+  if (!scraping) scraping = findClientId().finally(() => { scraping = null; });
+  return scraping;
 }
 
 // ---------------------------------------------------------------------------
@@ -114,8 +147,12 @@ async function scrapeClientId() {
 // the renderer and api-v2's CORS rules (soundcloud.com only) don't apply
 // ---------------------------------------------------------------------------
 
+const API_METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE']);
+const SAFE_METHODS = new Set(['GET']);
+const API_TIMEOUT = 30000;
+
 function buildUrl(resource, params, clientId) {
-  const url = new URL(/^https?:/.test(resource) ? resource : API + resource.replace(/^\//, ''));
+  const url = new URL(/^https:/.test(resource) ? resource : API + resource.replace(/^\//, ''));
   Object.entries(params || {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value);
   });
@@ -123,11 +160,22 @@ function buildUrl(resource, params, clientId) {
   return url;
 }
 
+function validApiRequest(request) {
+  if (!request || typeof request !== 'object') return false;
+  const { method = 'GET', resource, params, body } = request;
+  if (!API_METHODS.has(method)) return false;
+  if (typeof resource !== 'string' || !resource || resource.length > 4096) return false;
+  if (params !== undefined && params !== null && (typeof params !== 'object' || Array.isArray(params))) return false;
+  if (body !== undefined && JSON.stringify(body).length > 256 * 1024) return false;
+  return true;
+}
+
 async function apiRequest({ method = 'GET', resource, params, body }, retried = false) {
   if (!auth) return { ok: false, status: 401, data: { error: 'not_logged_in' } };
 
-  const url = buildUrl(resource, params, auth.clientId);
-  if (url.hostname !== 'api-v2.soundcloud.com') {
+  let url;
+  try { url = buildUrl(resource, params, auth.clientId); } catch (e) { url = null; }
+  if (!url || url.protocol !== 'https:' || url.hostname !== 'api-v2.soundcloud.com') {
     return { ok: false, status: 400, data: { error: 'blocked_host' } };
   }
 
@@ -141,12 +189,14 @@ async function apiRequest({ method = 'GET', resource, params, body }, retried = 
         Origin: 'https://soundcloud.com',
         Referer: 'https://soundcloud.com/'
       }, body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      body: body !== undefined ? JSON.stringify(body) : undefined
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(API_TIMEOUT)
     });
   } catch (error) {
-    // transient connection resets happen; retry once before giving up
-    if (!retried) return apiRequest({ method, resource, params, body }, true);
-    return { ok: false, status: 0, data: { error: 'network', message: error.message } };
+    // transient connection resets happen; retry reads once. Writes are never retried blindly:
+    // the first attempt may have reached SoundCloud (a duplicate comment or playlist).
+    if (!retried && SAFE_METHODS.has(method)) return apiRequest({ method, resource, params, body }, true);
+    return { ok: false, status: 0, data: { error: 'network', message: error.message, uncertain: !SAFE_METHODS.has(method) } };
   }
 
   // a stale client_id gives 401/403 even with a valid token: refresh it once
@@ -272,7 +322,8 @@ function applyBlurBehind(win) {
     const koffi = require('koffi');
     const user32 = koffi.load('user32.dll');
     const AccentPolicy = koffi.struct('ACCENT_POLICY', { AccentState: 'int', AccentFlags: 'int', GradientColor: 'uint32', AnimationId: 'int' });
-    const AttribData = koffi.struct('WINDOWCOMPOSITIONATTRIBDATA', { Attrib: 'int', pvData: 'void *', cbData: 'size_t' });
+    // registered by name for the signature below
+    koffi.struct('WINDOWCOMPOSITIONATTRIBDATA', { Attrib: 'int', pvData: 'void *', cbData: 'size_t' });
     const setAttribute = user32.func('bool __stdcall SetWindowCompositionAttribute(void *hwnd, WINDOWCOMPOSITIONATTRIBDATA *data)');
     const hwnd = koffi.decode(win.getNativeWindowHandle(), 'void *');
     const policy = Buffer.alloc(koffi.sizeof(AccentPolicy));
@@ -369,27 +420,55 @@ function createMainWindow() {
 // IPC
 // ---------------------------------------------------------------------------
 
-ipcMain.handle('auth:status', () => ({ loggedIn: !!auth }));
-ipcMain.handle('auth:login', () => openLogin());
-ipcMain.handle('auth:logout', async () => {
+/** Only Quantm's own page (file://, in the main window) may use the bridge */
+function fromApp(event) {
+  const frame = event.senderFrame;
+  return !!(mainWindow && event.sender === mainWindow.webContents && frame && frame === mainWindow.webContents.mainFrame && frame.url.startsWith('file://'));
+}
+
+function handle(channel, listener) {
+  ipcMain.handle(channel, (event, ...args) => {
+    if (!fromApp(event)) throw new Error('Blocked IPC from ' + (event.senderFrame ? event.senderFrame.url : 'unknown'));
+    return listener(event, ...args);
+  });
+}
+
+/** sndcdn.com over https only (artwork, waveforms) */
+function sndcdnUrl(value) {
+  try {
+    const url = new URL(String(value));
+    return url.protocol === 'https:' && /(^|\.)sndcdn\.com$/.test(url.hostname) ? url : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+handle('auth:status', () => ({ loggedIn: !!auth }));
+handle('auth:login', () => openLogin());
+handle('auth:logout', async () => {
   saveAuth(null);
   await session.fromPartition(LOGIN_PARTITION).clearStorageData();
   return true;
 });
-ipcMain.handle('auth:setManual', (event, { token, clientId }) => {
-  if (!token || !/^[a-zA-Z0-9]{32}$/.test(clientId || '')) return false;
+handle('auth:setManual', (event, { token, clientId } = {}) => {
+  if (typeof token !== 'string' || !token.trim() || token.length > 512 || !/^[a-zA-Z0-9]{32}$/.test((clientId || '').trim())) return false;
   saveAuth({ token: token.trim(), clientId: clientId.trim() });
   return true;
 });
 
-ipcMain.handle('api:request', (event, request) => apiRequest(request));
+handle('api:request', (event, request) => {
+  if (!validApiRequest(request)) return { ok: false, status: 400, data: { error: 'bad_request' } };
+  return apiRequest(request);
+});
 
 // waveform data lives on wave.sndcdn.com, which has no CORS headers
-ipcMain.handle('net:json', async (event, url) => {
-  const parsed = new URL(url);
-  if (!/(^|\.)sndcdn\.com$/.test(parsed.hostname)) return null;
+handle('net:json', async (event, url) => {
+  const parsed = sndcdnUrl(url);
+  if (!parsed) return null;
   try {
-    const response = await net.fetch(url);
+    const response = await net.fetch(parsed.toString(), { signal: AbortSignal.timeout(API_TIMEOUT) });
     return response.ok ? response.json() : null;
   } catch (e) {
     return null;
@@ -397,25 +476,28 @@ ipcMain.handle('net:json', async (event, url) => {
 });
 
 // artwork as a data URL, so the page can read its pixels (sndcdn images have no CORS headers)
-ipcMain.handle('net:image', async (event, url) => {
-  const parsed = new URL(url);
-  if (!/(^|\.)sndcdn\.com$/.test(parsed.hostname)) return null;
+handle('net:image', async (event, url) => {
+  const parsed = sndcdnUrl(url);
+  if (!parsed) return null;
   try {
-    const response = await net.fetch(url);
+    const response = await net.fetch(parsed.toString(), { signal: AbortSignal.timeout(API_TIMEOUT) });
     if (!response.ok) return null;
     const type = response.headers.get('content-type') || 'image/jpeg';
-    return `data:${type};base64,${Buffer.from(await response.arrayBuffer()).toString('base64')}`;
+    if (!/^image\//.test(type)) return null;
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length > MAX_IMAGE_BYTES) return null;
+    return `data:${type};base64,${bytes.toString('base64')}`;
   } catch (e) {
     return null;
   }
 });
 
-ipcMain.handle('window:zoom', (event, factor) => {
+handle('window:zoom', (event, factor) => {
   const value = Number(factor);
   if (mainWindow && value >= 0.5 && value <= 2) mainWindow.webContents.setZoomFactor(value);
 });
 
-ipcMain.handle('window:mode', () => ({
+handle('window:mode', () => ({
   seeThrough: !!(mainWindow && mainWindow.seeThrough),
   supported: seeThroughSupported(),
   customControls: !!(mainWindow && mainWindow.seeThrough && process.platform !== 'darwin'),
@@ -424,7 +506,7 @@ ipcMain.handle('window:mode', () => ({
 }));
 
 // saving the choice restarts the app, since a window can't become transparent later
-ipcMain.handle('window:setSeeThrough', async (event, on) => {
+handle('window:setSeeThrough', async (event, on) => {
   const prefs = loadWindowPrefs();
   prefs.seeThrough = !!on;
   fs.writeFileSync(windowPrefsFile(), JSON.stringify(prefs));
@@ -434,7 +516,7 @@ ipcMain.handle('window:setSeeThrough', async (event, on) => {
   app.quit();
 });
 
-ipcMain.handle('app:setHardwareAcceleration', async (event, on) => {
+handle('app:setHardwareAcceleration', async (event, on) => {
   const prefs = loadWindowPrefs();
   prefs.hardwareAcceleration = !!on;
   fs.writeFileSync(windowPrefsFile(), JSON.stringify(prefs));
@@ -443,11 +525,11 @@ ipcMain.handle('app:setHardwareAcceleration', async (event, on) => {
   app.quit();
 });
 
-ipcMain.handle('app:performanceInfo', () => ({
+handle('app:performanceInfo', () => ({
   hardwareAcceleration: loadWindowPrefs().hardwareAcceleration !== false
 }));
 
-ipcMain.handle('window:control', (event, action) => {
+handle('window:control', (event, action) => {
   if (!mainWindow) return;
   if (action === 'minimize') mainWindow.minimize();
   if (action === 'maximize') mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
@@ -455,26 +537,28 @@ ipcMain.handle('window:control', (event, action) => {
 });
 
 // Discord "Listening to Quantm" status
-ipcMain.handle('discord:update', (event, state) => discord.update(state));
-ipcMain.handle('discord:setEnabled', (event, on) => discord.setEnabled(on));
-ipcMain.handle('discord:status', () => discord.status());
+handle('discord:update', (event, state) => discord.update(state));
+handle('discord:setEnabled', (event, on) => discord.setEnabled(on));
+handle('discord:status', () => discord.status());
 
-ipcMain.handle('window:titlebar', (event, { color, symbolColor }) => {
+handle('window:titlebar', (event, { color, symbolColor } = {}) => {
+  const hex = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+  if (!hex.test(color || '') || !hex.test(symbolColor || '')) return;
   if (mainWindow && !mainWindow.seeThrough && process.platform !== 'darwin' && mainWindow.setTitleBarOverlay) {
     mainWindow.setTitleBarOverlay({ color, symbolColor, height: TITLEBAR_HEIGHT });
   }
 });
 
-ipcMain.handle('shell:open', (event, url) => {
-  if (/^https:\/\//.test(url)) shell.openExternal(url);
+handle('shell:open', (event, url) => {
+  if (typeof url === 'string' && url.length < 4096 && /^https:\/\//.test(url)) shell.openExternal(url);
 });
 
-ipcMain.handle('clipboard:write', (event, text) => clipboard.writeText(String(text)));
+handle('clipboard:write', (event, text) => clipboard.writeText(String(text).slice(0, 100000)));
 
-ipcMain.handle('app:info', () => ({ version: app.getVersion(), platform: process.platform }));
+handle('app:info', () => ({ version: app.getVersion(), platform: process.platform }));
 
 // resource usage of all Quantm processes (Settings → Performance shows it)
-ipcMain.handle('app:metrics', () => {
+handle('app:metrics', () => {
   const metrics = app.getAppMetrics();
   return {
     processes: metrics.length,

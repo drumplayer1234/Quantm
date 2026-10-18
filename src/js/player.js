@@ -209,8 +209,13 @@ class Player extends Emitter {
 
   removeFromQueue(position) {
     if (position === this.index) return;
-    this.queue.splice(position, 1);
+    const [track] = this.queue.splice(position, 1);
     if (position < this.index) this.index--;
+    // keep the un-shuffled copy in sync, or the track comes back when shuffle is turned off
+    if (this.original) {
+      const at = this.original.indexOf(track);
+      if (at !== -1) this.original.splice(at, 1);
+    }
     this.emit('queue');
   }
 
@@ -224,8 +229,9 @@ class Player extends Emitter {
   }
 
   clearQueue() {
-    this.queue = this.current ? [this.current] : [];
-    this.index = this.current ? 0 : -1;
+    const current = this.current;
+    this.queue = current ? [current] : [];
+    this.index = current ? 0 : -1;
     this.original = null;
     this.emit('queue');
   }

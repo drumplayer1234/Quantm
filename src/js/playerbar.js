@@ -4,7 +4,7 @@ import { icon } from './icons.js';
 import { player } from './player.js';
 import { createVisualizer } from './visualizer.js';
 import { store, settings } from './store.js';
-import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, toast, menu } from './ui.js';
+import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, menu } from './ui.js';
 
 export function mountPlayerBar(root) {
   const art = h('a.pb-art', { href: '#' });

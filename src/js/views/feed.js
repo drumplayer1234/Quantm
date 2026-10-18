@@ -7,7 +7,7 @@ import { store } from '../store.js';
 import { player } from '../player.js';
 import {
   pageHeader, feedItem, spinner, emptyState, errorState, link, userHref, playlistHref,
-  likeButton, repostButton, playButton, staticTrackList, button, avatar, applyPlaylistCover } from '../ui.js';
+  likeButton, repostButton, playButton, staticTrackList, button, applyPlaylistCover } from '../ui.js';
 
 const context = { label: 'Feed', href: '#/feed' };
 
