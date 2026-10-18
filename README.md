@@ -1,11 +1,15 @@
-# Quantm
+# Quantm | SoundCloud Desktop Client
 
 > A successor to [Soundnode](https://github.com/Soundnode/soundnode-app), rebuilt from scratch.
 
 A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 **🚫 No ads.** No audio ads between songs, no banners, and no promoted tracks in your feed. Free and open source.
-
+
+
+[**Download Quantm**](https://github.com/drumplayer1234/Quantm/releases/latest)
+
+![Quantm SoundCloud desktop client showing the glass theme, music library, and playback controls](docs/images/quantm-home.png)
 
 ## Features
 
