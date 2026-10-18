@@ -47,6 +47,9 @@ const paths = {
   lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   grip: '<circle cx="9" cy="6" r="1.2" fill="currentColor"/><circle cx="15" cy="6" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="18" r="1.2" fill="currentColor"/><circle cx="15" cy="18" r="1.2" fill="currentColor"/>',
   verified: '<path d="M12 2l2.4 2.2 3.2-.4.6 3.2 2.8 1.6-1.4 2.9 1.4 2.9-2.8 1.6-.6 3.2-3.2-.4L12 22l-2.4-2.2-3.2.4-.6-3.2-2.8-1.6L4.4 12 3 9.1l2.8-1.6.6-3.2 3.2.4z" fill="currentColor" stroke="none"/><path d="m8.5 12 2.5 2.5 4.5-5" stroke="var(--bg)" stroke-width="2"/>',
+  winMin: '<path d="M5 12h14"/>',
+  winMax: '<rect x="5" y="5" width="14" height="14" rx="1.5"/>',
+  winRestore: '<rect x="5" y="8" width="11" height="11" rx="1.5"/><path d="M8 8V6.5A1.5 1.5 0 0 1 9.5 5H17.5A1.5 1.5 0 0 1 19 6.5V14.5A1.5 1.5 0 0 1 17.5 16H16"/>',
   cloud: '<path d="M18 10h-1.3A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
   logo: '<path d="M12.9 16.9A6.4 6.4 0 1 1 17.1 12.5" stroke-width="2.2"/><path d="M14 15.8h1.7l1-2.4 1.2 5.5 1-3.4.8 1h1.6" stroke-width="1.8"/>'
 };

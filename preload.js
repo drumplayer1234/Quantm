@@ -15,6 +15,10 @@ contextBridge.exposeInMainWorld('native', {
   image: (url) => ipcRenderer.invoke('net:image', url),
   setZoom: (factor) => ipcRenderer.invoke('window:zoom', factor),
   setTitleBar: (color, symbolColor) => ipcRenderer.invoke('window:titlebar', { color, symbolColor }),
+  windowMode: () => ipcRenderer.invoke('window:mode'),
+  setSeeThrough: (on) => ipcRenderer.invoke('window:setSeeThrough', on),
+  windowControl: (action) => ipcRenderer.invoke('window:control', action),
+  onMaximized: (fn) => ipcRenderer.on('window:maximized', (event, value) => fn(value)),
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   copy: (text) => ipcRenderer.invoke('clipboard:write', text),
   info: () => ipcRenderer.invoke('app:info')

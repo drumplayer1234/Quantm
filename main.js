@@ -241,6 +241,41 @@ function openLogin() {
 }
 
 // ---------------------------------------------------------------------------
+// See-through window (Liquid Glass). The window is created transparent and Windows
+// blurs whatever is behind it. Changing it needs a restart, so it's stored in a file.
+// ---------------------------------------------------------------------------
+
+const windowPrefsFile = () => path.join(app.getPath('userData'), 'window-prefs.json');
+
+function loadWindowPrefs() {
+  try { return JSON.parse(fs.readFileSync(windowPrefsFile(), 'utf8')); } catch (e) { return {}; }
+}
+
+function seeThroughSupported() {
+  return process.platform === 'win32' || process.platform === 'darwin';
+}
+
+/** Windows 10/11: ask the compositor to blur behind the window (SetWindowCompositionAttribute) */
+function applyBlurBehind(win) {
+  if (process.platform !== 'win32') return false;
+  try {
+    const koffi = require('koffi');
+    const user32 = koffi.load('user32.dll');
+    const AccentPolicy = koffi.struct('ACCENT_POLICY', { AccentState: 'int', AccentFlags: 'int', GradientColor: 'uint32', AnimationId: 'int' });
+    const AttribData = koffi.struct('WINDOWCOMPOSITIONATTRIBDATA', { Attrib: 'int', pvData: 'void *', cbData: 'size_t' });
+    const setAttribute = user32.func('bool __stdcall SetWindowCompositionAttribute(void *hwnd, WINDOWCOMPOSITIONATTRIBDATA *data)');
+    const hwnd = koffi.decode(win.getNativeWindowHandle(), 'void *');
+    const policy = Buffer.alloc(koffi.sizeof(AccentPolicy));
+    // 3 = ACCENT_ENABLE_BLURBEHIND (smooth when dragging, unlike acrylic on Windows 10)
+    koffi.encode(policy, AccentPolicy, { AccentState: 3, AccentFlags: 2, GradientColor: 0x10000000, AnimationId: 0 });
+    return setAttribute(hwnd, { Attrib: 19, pvData: policy, cbData: policy.length });
+  } catch (error) {
+    console.error('Blur-behind unavailable', error);
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main window
 // ---------------------------------------------------------------------------
 
@@ -252,7 +287,20 @@ function createMainWindow() {
   let state = { width: 1280, height: 820 };
   try { state = Object.assign(state, JSON.parse(fs.readFileSync(windowStateFile(), 'utf8'))); } catch (e) { /* defaults */ }
 
-  mainWindow = new BrowserWindow({
+  const seeThrough = seeThroughSupported() && !!loadWindowPrefs().seeThrough;
+  const chrome = seeThrough
+    // transparent windows can't use the native title bar buttons: the page draws its own
+    ? (process.platform === 'darwin'
+      ? { titleBarStyle: 'hidden', trafficLightPosition: { x: 16, y: 20 }, vibrancy: 'under-window', visualEffectState: 'active', backgroundColor: '#00000000' }
+      : { frame: false, transparent: true, backgroundColor: '#00000000' })
+    : {
+      backgroundColor: '#121212',
+      titleBarStyle: 'hidden',
+      titleBarOverlay: process.platform === 'darwin' ? true : { color: '#00000000', symbolColor: '#ffffff', height: TITLEBAR_HEIGHT },
+      trafficLightPosition: { x: 16, y: 20 }
+    };
+
+  mainWindow = new BrowserWindow(Object.assign({
     x: state.x,
     y: state.y,
     width: state.width,
@@ -260,12 +308,8 @@ function createMainWindow() {
     minWidth: 960,
     minHeight: 640,
     show: false,
-    backgroundColor: '#121212',
     title: 'Quantm',
     icon: path.join(__dirname, 'build', 'icon.png'),
-    titleBarStyle: 'hidden',
-    titleBarOverlay: process.platform === 'darwin' ? true : { color: '#00000000', symbolColor: '#ffffff', height: TITLEBAR_HEIGHT },
-    trafficLightPosition: { x: 16, y: 20 },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -273,10 +317,17 @@ function createMainWindow() {
       sandbox: true,
       backgroundThrottling: false
     }
-  });
+  }, chrome));
+  mainWindow.seeThrough = seeThrough;
 
   if (state.maximized) mainWindow.maximize();
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.once('ready-to-show', () => {
+    if (seeThrough) applyBlurBehind(mainWindow);
+    mainWindow.show();
+  });
+  const sendMaximized = () => mainWindow && mainWindow.webContents.send('window:maximized', mainWindow.isMaximized());
+  mainWindow.on('maximize', sendMaximized);
+  mainWindow.on('unmaximize', sendMaximized);
 
   const saveState = () => {
     if (!mainWindow || mainWindow.isMinimized()) return;
@@ -348,8 +399,32 @@ ipcMain.handle('window:zoom', (event, factor) => {
   if (mainWindow && value >= 0.5 && value <= 2) mainWindow.webContents.setZoomFactor(value);
 });
 
+ipcMain.handle('window:mode', () => ({
+  seeThrough: !!(mainWindow && mainWindow.seeThrough),
+  supported: seeThroughSupported(),
+  customControls: !!(mainWindow && mainWindow.seeThrough && process.platform !== 'darwin'),
+  maximized: !!(mainWindow && mainWindow.isMaximized()),
+  platform: process.platform
+}));
+
+// saving the choice restarts the app, since a window can't become transparent later
+ipcMain.handle('window:setSeeThrough', (event, on) => {
+  const prefs = loadWindowPrefs();
+  prefs.seeThrough = !!on;
+  fs.writeFileSync(windowPrefsFile(), JSON.stringify(prefs));
+  app.relaunch();
+  app.exit(0);
+});
+
+ipcMain.handle('window:control', (event, action) => {
+  if (!mainWindow) return;
+  if (action === 'minimize') mainWindow.minimize();
+  if (action === 'maximize') mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
+  if (action === 'close') mainWindow.close();
+});
+
 ipcMain.handle('window:titlebar', (event, { color, symbolColor }) => {
-  if (mainWindow && process.platform !== 'darwin' && mainWindow.setTitleBarOverlay) {
+  if (mainWindow && !mainWindow.seeThrough && process.platform !== 'darwin' && mainWindow.setTitleBarOverlay) {
     mainWindow.setTitleBarOverlay({ color, symbolColor, height: TITLEBAR_HEIGHT });
   }
 });

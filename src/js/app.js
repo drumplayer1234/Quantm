@@ -136,6 +136,7 @@ function mountShell() {
 
   const view = h('main#view');
   app.append(topbar, view);
+  setupWindowMode(topbar);
   mountPlayerBar(app);
   initAppearance();
 
@@ -199,6 +200,25 @@ function mountShell() {
   setupShortcuts(searchInput);
   if (!location.hash) location.hash = '#/home';
   startRouter();
+}
+
+/** See-through windows have no native title bar buttons, so draw our own */
+async function setupWindowMode(topbar) {
+  const mode = await window.native.windowMode();
+  const root = document.documentElement;
+  if (mode.seeThrough) root.setAttribute('data-see-through', '');
+  if (!mode.customControls) return;
+  root.setAttribute('data-frameless', '');
+  const maxBtn = h('button.win-btn', { title: 'Maximize', onclick: () => window.native.windowControl('maximize') });
+  const setMax = (maximized) => { clear(maxBtn).append(icon(maximized ? 'winRestore' : 'winMax', 16)); maxBtn.title = maximized ? 'Restore' : 'Maximize'; };
+  setMax(mode.maximized);
+  window.native.onMaximized(setMax);
+  topbar.append(h('div.win-controls',
+    h('button.win-btn', { title: 'Minimize', onclick: () => window.native.windowControl('minimize') }, icon('winMin', 16)),
+    maxBtn,
+    h('button.win-btn.win-close', { title: 'Close', onclick: () => window.native.windowControl('close') }, icon('close', 16))
+  ));
+  topbar.addEventListener('dblclick', (e) => { if (e.target === topbar) window.native.windowControl('maximize'); });
 }
 
 async function signOut() {

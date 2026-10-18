@@ -251,7 +251,10 @@ async function themeTab(cleanups) {
   // --- preset gallery ----------------------------------------------------------
   const gallery = h('div.settings-presets', Object.entries(theme.PRESETS).map(([name, colors]) => {
     const el = h('button.settings-preset', { type: 'button', title: 'Use ' + name,
-      onclick: () => commit({ preset: name, colors: Object.assign({}, colors), radius: name in theme.PRESET_RADIUS ? theme.PRESET_RADIUS[name] : draft.radius, style: theme.PRESET_STYLES[name] || '' }) },
+      onclick: () => {
+        if (theme.PRESET_STYLES[name] === 'liquid') offerSeeThrough();
+        commit({ preset: name, colors: Object.assign({}, colors), radius: name in theme.PRESET_RADIUS ? theme.PRESET_RADIUS[name] : draft.radius, style: theme.PRESET_STYLES[name] || '' });
+      } },
       presetMock(colors),
       h('span.settings-preset-name', h('span', name), icon('check', 14))
     );
@@ -390,6 +393,27 @@ function selectRow(title, desc, options, value, onChange) {
   );
 }
 
+/** Picking Liquid Glass with an opaque window: offer the real see-through effect once */
+async function offerSeeThrough() {
+  const mode = await window.native.windowMode();
+  if (!mode.supported || mode.seeThrough || localStorage.getItem('quantm.offeredSeeThrough')) return;
+  localStorage.setItem('quantm.offeredSeeThrough', '1');
+  const ok = await confirmDialog('Make the window see-through?', 'Liquid Glass looks best when your desktop shows through it. Quantm will restart to turn this on. You can change it later in Settings → Appearance → Window.', 'Restart & turn on');
+  if (ok) window.native.setSeeThrough(true);
+}
+
+/** See-through window: needs a restart because a window can't become transparent later */
+function windowCard(mode) {
+  if (!mode.supported) return null;
+  return card('Window', 'Let your desktop and other windows show through Liquid Glass themes, blurred like real glass. Quantm restarts to apply this.',
+    toggleRow('See-through window', mode.seeThrough ? 'On. Pick a Liquid Glass theme to see the effect.' : 'Off', mode.seeThrough, async (on, input) => {
+      const ok = await confirmDialog(on ? 'Make the window see-through?' : 'Turn off see-through?', 'Quantm will restart to apply this. Music stops for a moment.', 'Restart now');
+      if (!ok) { input.checked = !on; return; }
+      window.native.setSeeThrough(on);
+    })
+  );
+}
+
 async function appearanceTab() {
   const a = look.getAppearance();
   const save = (patch) => {
@@ -469,6 +493,7 @@ async function appearanceTab() {
       chipRow('Style', 'How track waveforms are drawn', look.WAVE_STYLES, a.waveStyle, (v) => save({ waveStyle: v })),
       sliderRow('Bar thickness', null, { min: 1, max: 6, value: a.waveThickness, unit: 'px' }, (v) => saveSoon({ waveThickness: v }))
     ),
+    windowCard(await window.native.windowMode()),
     card('Theme schedule', 'Switch between two themes automatically, like a light theme by day and a dark one at night.',
       toggleRow('Switch themes automatically', "Uses your computer's clock", schedule.enabled, (on) => setSchedule({ enabled: on })),
       selectRow('Day theme', null, presetNames, schedule.day, (v) => setSchedule({ day: v })),
