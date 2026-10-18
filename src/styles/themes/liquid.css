@@ -1,0 +1,230 @@
+/* Liquid theme: Apple "Liquid Glass" (2025) - floating translucent capsules over a drifting color wallpaper.
+   Active when <html data-style="liquid">. Works for light and dark presets: tints come from the theme
+   variables via color-mix, [data-scheme] only tweaks highlights and shadows. */
+
+[data-style="liquid"] {
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --radius: 22px;
+  --lq-blur: blur(28px) saturate(180%);
+  --lq-edge: rgba(255, 255, 255, .5);
+  --lq-hi: inset 0 1px 0 rgba(255, 255, 255, .7), inset 0 -1px 0 rgba(255, 255, 255, .15);
+  --lq-drop: 0 8px 32px rgba(31, 38, 80, .14);
+  --lq-sheen: linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.06) 45%, rgba(255,255,255,.12));
+  --lq-tint: color-mix(in srgb, var(--surface) 55%, transparent);
+  --lq-bar: color-mix(in srgb, var(--surface) 50%, transparent);
+  --lq-soft: color-mix(in srgb, var(--surface) 42%, transparent);
+  --lq-bubble: color-mix(in srgb, var(--text) 8%, transparent);
+  --lq-pill: color-mix(in srgb, var(--surface) 78%, transparent);
+  --lq-glow: color-mix(in srgb, var(--accent) 45%, transparent);
+  --shadow: var(--lq-drop);
+}
+[data-style="liquid"][data-scheme="dark"] {
+  --lq-edge: rgba(255, 255, 255, .14);
+  --lq-hi: inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 -1px 0 rgba(255, 255, 255, .05);
+  --lq-drop: 0 10px 36px rgba(0, 0, 0, .45);
+  --lq-sheen: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02) 45%, rgba(255,255,255,.04));
+  --lq-tint: color-mix(in srgb, var(--surface) 48%, transparent);
+  --lq-bar: color-mix(in srgb, var(--surface) 44%, transparent);
+  --lq-soft: color-mix(in srgb, var(--surface) 38%, transparent);
+  --lq-bubble: color-mix(in srgb, var(--text) 12%, transparent);
+  --lq-pill: color-mix(in srgb, var(--surface) 80%, transparent);
+}
+
+/* ---------------------------------------------------------------- drifting wallpaper */
+
+[data-style="liquid"] body { background: var(--bg); }
+[data-style="liquid"] body::before {
+  content: ""; position: fixed; inset: -20%; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(34% 38% at 20% 25%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%),
+    radial-gradient(30% 34% at 80% 20%, rgba(255, 140, 200, .5), transparent 70%),
+    radial-gradient(34% 36% at 70% 80%, rgba(120, 220, 190, .45), transparent 70%),
+    radial-gradient(28% 32% at 25% 85%, rgba(255, 200, 120, .4), transparent 70%);
+  filter: blur(40px) saturate(130%); animation: lq-drift 36s ease-in-out infinite alternate;
+}
+[data-style="liquid"][data-scheme="dark"] body::before {
+  background:
+    radial-gradient(34% 38% at 20% 25%, color-mix(in srgb, var(--accent) 60%, transparent), transparent 70%),
+    radial-gradient(30% 34% at 80% 20%, rgba(150, 40, 190, .6), transparent 70%),
+    radial-gradient(34% 36% at 70% 80%, rgba(10, 120, 130, .55), transparent 70%),
+    radial-gradient(28% 32% at 25% 85%, rgba(190, 60, 90, .45), transparent 70%);
+}
+@keyframes lq-drift {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate(4%, -3%) rotate(6deg) scale(1.08); }
+  100% { transform: translate(-4%, 3%) rotate(-5deg) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) { [data-style="liquid"] body::before { animation: none; } }
+[data-style="liquid"][data-bg] body::before { display: none; }
+[data-style="liquid"] #app { position: relative; z-index: 1; }
+[data-style="liquid"] #view { background: transparent; }
+
+/* ---------------------------------------------------------------- glass material */
+
+[data-style="liquid"] .topbar,
+[data-style="liquid"] .playerbar,
+[data-style="liquid"] .card,
+[data-style="liquid"] .track-list,
+[data-style="liquid"] .feed-card,
+[data-style="liquid"] .menu,
+[data-style="liquid"] .modal,
+[data-style="liquid"] .queue-panel,
+[data-style="liquid"] .search-suggest,
+[data-style="liquid"] .toast,
+[data-style="liquid"] .login-card,
+[data-style="liquid"][data-nav="sidebar"] .nav {
+  background: var(--lq-sheen), var(--lq-tint);
+  -webkit-backdrop-filter: var(--lq-blur); backdrop-filter: var(--lq-blur);
+  border: 1px solid var(--lq-edge); box-shadow: var(--lq-hi), var(--lq-drop);
+}
+[data-style="liquid"] .topbar,
+[data-style="liquid"] .playerbar,
+[data-style="liquid"][data-nav="sidebar"] .nav { background: var(--lq-sheen), var(--lq-bar); }
+[data-style="liquid"] .toast { color: var(--text); }
+[data-style="liquid"] .toast-error { background: color-mix(in srgb, #ff453a 62%, transparent); color: #fff; }
+
+/* ---------------------------------------------------------------- floating capsules */
+
+[data-style="liquid"] .topbar {
+  margin: 10px 12px 0; border-radius: 999px; min-height: var(--topbar-h);
+  padding-left: calc(env(titlebar-area-x, 0px) + 22px); -webkit-app-region: drag;
+}
+[data-style="liquid"] .playerbar {
+  margin: 0 12px 12px; border-radius: 28px; min-height: var(--player-h); padding: 0 22px; border-top: 1px solid var(--lq-edge);
+}
+[data-style="liquid"][data-player="top"] .playerbar { margin: 10px 12px 0; border-bottom: 1px solid var(--lq-edge); }
+[data-style="liquid"][data-nav="sidebar"] .nav {
+  left: 10px; width: calc(var(--nav-w) - 10px); padding: 12px 10px; border-radius: 26px;
+  top: calc(var(--topbar-h) + 20px); bottom: calc(var(--player-h) + 22px);
+}
+[data-style="liquid"][data-nav="sidebar"][data-player="top"] .nav {
+  top: calc(var(--topbar-h) + var(--player-h) + 30px); bottom: 10px;
+}
+[data-style="liquid"][data-nav="sidebar"] #view { margin-left: calc(var(--nav-w) + 6px); }
+[data-style="liquid"] .page { padding-top: 28px; }
+
+/* ---------------------------------------------------------------- nav, search, tabs, chips */
+
+[data-style="liquid"] .nav-link,
+[data-style="liquid"] .chip,
+[data-style="liquid"] .tag-pill,
+[data-style="liquid"] .tab { border-radius: 999px; transition: transform .25s ease, background .25s ease, box-shadow .25s ease, color .25s; }
+[data-style="liquid"] .nav-link:hover { background: var(--lq-bubble); }
+[data-style="liquid"] .nav-link.active {
+  background: var(--lq-sheen), var(--lq-pill); border: 1px solid var(--lq-edge);
+  box-shadow: var(--lq-hi), 0 2px 12px rgba(0, 0, 0, .12); padding: 6px 13px;
+}
+[data-style="liquid"][data-nav="sidebar"] .nav-link.active { padding: 9px 13px; }
+[data-style="liquid"] .search-input,
+[data-style="liquid"] .input, [data-style="liquid"] textarea.input, [data-style="liquid"] select.input {
+  border-radius: 999px; background: var(--lq-soft); border: 1px solid var(--lq-edge);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .08), inset 0 1px 0 rgba(255, 255, 255, .25); transition: box-shadow .25s, background .25s, border-color .25s;
+}
+[data-style="liquid"] textarea.input { border-radius: 22px; }
+[data-style="liquid"] .search-input:focus, [data-style="liquid"] .input:focus {
+  background: var(--lq-tint); border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+[data-style="liquid"] .search-suggest { border-radius: 24px; padding: 6px; }
+[data-style="liquid"] .suggest-item, [data-style="liquid"] .menu-item, [data-style="liquid"] .queue-row, [data-style="liquid"] .atp-row { border-radius: 14px; }
+[data-style="liquid"] .suggest-item:hover, [data-style="liquid"] .suggest-item.active,
+[data-style="liquid"] .menu-item:hover, [data-style="liquid"] .atp-row:hover { background: var(--lq-bubble); }
+
+[data-style="liquid"] .tabs {
+  display: inline-flex; max-width: 100%; gap: 4px; padding: 5px; border: 1px solid var(--lq-edge); border-radius: 999px;
+  background: var(--lq-sheen), var(--lq-soft); -webkit-backdrop-filter: var(--lq-blur); backdrop-filter: var(--lq-blur);
+  box-shadow: var(--lq-hi), var(--lq-drop);
+}
+[data-style="liquid"] .tab { padding: 8px 18px; margin-bottom: 0; border-bottom: 0; }
+[data-style="liquid"] .tab:hover { background: var(--lq-bubble); }
+[data-style="liquid"] .tab.active { background: var(--lq-sheen), var(--lq-pill); box-shadow: var(--lq-hi), 0 2px 10px rgba(0, 0, 0, .12); }
+[data-style="liquid"] .chip, [data-style="liquid"] .tag-pill {
+  background: var(--lq-sheen), var(--lq-soft); border: 1px solid var(--lq-edge); box-shadow: var(--lq-hi);
+  -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+}
+[data-style="liquid"] .chip:hover { background: var(--lq-sheen), var(--lq-tint); transform: translateY(-1px); }
+[data-style="liquid"] .chip.active {
+  background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 55%), color-mix(in srgb, var(--accent) 80%, transparent);
+  color: var(--accent-text); box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 4px 16px var(--lq-glow);
+}
+
+/* ---------------------------------------------------------------- buttons */
+
+[data-style="liquid"] .btn {
+  border-radius: 999px; background: var(--lq-sheen), var(--lq-soft); border: 1px solid var(--lq-edge); box-shadow: var(--lq-hi);
+  -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+  transition: transform .25s ease, background .25s ease, box-shadow .25s ease, filter .25s;
+}
+[data-style="liquid"] .btn:hover { background: var(--lq-sheen), var(--lq-tint); transform: translateY(-1px); }
+[data-style="liquid"] .btn:active, [data-style="liquid"] .icon-btn:active { transform: scale(.95); }
+[data-style="liquid"] .btn-primary, [data-style="liquid"] .play-btn, [data-style="liquid"] .card-play, [data-style="liquid"] .pb-play {
+  background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.05) 50%, rgba(255,255,255,.14)), color-mix(in srgb, var(--accent) 82%, transparent);
+  color: var(--accent-text); border: 1px solid rgba(255, 255, 255, .45);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(255,255,255,.2), 0 6px 22px var(--lq-glow);
+}
+[data-style="liquid"] .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 10px 30px var(--lq-glow); }
+[data-style="liquid"] .play-btn:hover, [data-style="liquid"] .card-play:hover, [data-style="liquid"] .pb-play:hover { filter: brightness(1.08); }
+[data-style="liquid"] .btn-outline, [data-style="liquid"] .btn-ghost { background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-style="liquid"] .btn-outline:hover, [data-style="liquid"] .btn-ghost:hover { background: var(--lq-bubble); }
+[data-style="liquid"] .btn-danger { background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 55%), rgba(255, 69, 58, .82); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 6px 20px rgba(255, 69, 58, .35); }
+[data-style="liquid"] .icon-btn { border-radius: 999px; transition: background .25s ease, color .25s, transform .25s ease, box-shadow .25s; }
+[data-style="liquid"] .icon-btn:hover { background: var(--lq-sheen), var(--lq-bubble); box-shadow: var(--lq-hi); }
+
+/* ---------------------------------------------------------------- cards, lists, hero */
+
+[data-style="liquid"] .card { border-radius: 22px; transition: transform .25s ease, box-shadow .25s ease, background .25s ease; }
+[data-style="liquid"] .card:hover { transform: translateY(-3px); box-shadow: var(--lq-hi), 0 16px 40px rgba(31, 38, 80, .2); background: var(--lq-sheen), var(--lq-pill); }
+[data-style="liquid"] .card-art, [data-style="liquid"] .feed-art, [data-style="liquid"] .track-art, [data-style="liquid"] .hero-art, [data-style="liquid"] .pb-art {
+  border-radius: 14px; border: 1px solid var(--lq-edge); box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+}
+[data-style="liquid"] .card-art.round, [data-style="liquid"] .hero-art.round { border-radius: 50%; }
+[data-style="liquid"] .track-art { border-radius: 12px; box-shadow: none; }
+[data-style="liquid"] .shelf-row { padding: 14px; margin: -14px; }
+[data-style="liquid"] .feed-card { border-radius: 24px; padding: 18px; transition: transform .25s ease, box-shadow .25s ease; }
+[data-style="liquid"] .feed-card:hover { transform: translateY(-2px); }
+[data-style="liquid"] .track-list { border-radius: 26px; padding: 8px; }
+[data-style="liquid"] .track-row { border-radius: 18px; background: transparent !important; transition: background .25s ease, transform .25s ease, box-shadow .25s ease; }
+[data-style="liquid"] .track-row:hover { background: var(--lq-bubble) !important; }
+[data-style="liquid"] .track-row.current {
+  background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0)), color-mix(in srgb, var(--accent) 24%, transparent) !important;
+  box-shadow: var(--lq-hi);
+}
+[data-style="liquid"] .page-title { letter-spacing: -.03em; font-weight: 800; }
+[data-style="liquid"] .hero { border-radius: 30px; border: 1px solid var(--lq-edge); box-shadow: var(--lq-hi), var(--lq-drop); }
+[data-style="liquid"] .hero-bg { filter: blur(34px) saturate(1.8) brightness(.75); }
+
+/* ---------------------------------------------------------------- progress & volume */
+
+[data-style="liquid"] .pb-track { height: 6px; border-radius: 999px; background: var(--lq-bubble); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .15); }
+[data-style="liquid"] .pb-buffer { background: color-mix(in srgb, var(--text) 10%, transparent); border-radius: 999px; }
+[data-style="liquid"] .pb-fill,
+[data-style="liquid"] .pb-progress:hover .pb-fill, [data-style="liquid"] .pb-progress.dragging .pb-fill, [data-style="liquid"] .pb-volume:hover .pb-fill {
+  background: linear-gradient(180deg, rgba(255,255,255,.4), rgba(255,255,255,0)), var(--accent); border-radius: 999px; box-shadow: 0 0 12px var(--lq-glow);
+}
+[data-style="liquid"] .pb-knob {
+  width: 16px; height: 16px; margin: -8px 0 0 -8px; background: linear-gradient(180deg, #fff, #e8ecf5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .35), 0 0 0 4px var(--lq-glow); transition: opacity .25s, transform .25s;
+}
+[data-style="liquid"] .pb-progress:hover .pb-knob, [data-style="liquid"] .pb-progress.dragging .pb-knob,
+[data-style="liquid"] .pb-volume:hover .pb-knob { opacity: 1; }
+[data-style="liquid"] .pb-hovertime {
+  background: var(--lq-sheen), var(--lq-pill); -webkit-backdrop-filter: var(--lq-blur); backdrop-filter: var(--lq-blur);
+  border: 1px solid var(--lq-edge); border-radius: 999px; padding: 3px 10px;
+}
+
+/* ---------------------------------------------------------------- menus, modals, queue */
+
+[data-style="liquid"] .menu { border-radius: 22px; padding: 6px; }
+[data-style="liquid"] .modal-overlay { background: rgba(20, 24, 50, .28); -webkit-backdrop-filter: blur(14px) saturate(150%); backdrop-filter: blur(14px) saturate(150%); }
+[data-style="liquid"][data-scheme="dark"] .modal-overlay { background: rgba(0, 0, 0, .4); }
+[data-style="liquid"] .modal, [data-style="liquid"] .login-card { border-radius: 28px; }
+[data-style="liquid"] .queue-panel { border-radius: 28px; overflow: hidden; }
+[data-style="liquid"] .atp-track { background: var(--lq-soft); border: 1px solid var(--lq-edge); border-radius: 18px; }
+[data-style="liquid"] .toast { border-radius: 999px; }
+
+/* ---------------------------------------------------------------- scrollbars & misc */
+
+[data-style="liquid"] ::-webkit-scrollbar { width: 10px; height: 10px; }
+[data-style="liquid"] ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text) 22%, transparent); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+[data-style="liquid"] ::-webkit-scrollbar-thumb:hover { background-color: color-mix(in srgb, var(--text) 38%, transparent); }
+[data-style="liquid"] .spinner { border-color: var(--lq-bubble); border-top-color: var(--accent); filter: drop-shadow(0 0 6px var(--lq-glow)); }

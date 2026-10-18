@@ -380,7 +380,7 @@ a.stat:hover { color: var(--text); }
   align-items: center; gap: 16px; padding: 0 16px; background: var(--bar); border-top: 1px solid var(--border);
   position: relative; z-index: 30; transition: transform .25s;
 }
-.playerbar.empty .pb-left, .playerbar.empty .pb-right .icon-btn:not(.pb-queue-btn) { opacity: .35; pointer-events: none; }
+.playerbar.idle .pb-left, .playerbar.idle .pb-right .icon-btn:not(.pb-queue-btn) { opacity: .35; pointer-events: none; }
 .pb-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .pb-art { width: 52px; height: 52px; flex: none; border-radius: 6px; background: var(--surface-2) center/cover no-repeat; box-shadow: 0 2px 10px rgba(0,0,0,.3); }
 .pb-text { min-width: 0; display: flex; flex-direction: column; }
@@ -533,5 +533,76 @@ a.stat:hover { color: var(--text); }
 
 /* player bar visualizer */
 .pb-visualizer { flex: none; margin-right: 8px; opacity: .9; }
-.playerbar.empty .pb-visualizer { opacity: .25; }
+.playerbar.idle .pb-visualizer { opacity: .25; }
 @media (max-width: 1100px) { .pb-visualizer { display: none; } }
+
+/* =================================================================== appearance options
+   Set by appearance.js on <html>: data-density, data-player, data-nav, data-bg,
+   data-hide-plays, data-hide-genres. They combine with every theme and style layer. */
+
+/* --- nav icons only appear in sidebar mode --- */
+.nav-link .icon { display: none; }
+
+/* --- compact density --- */
+[data-density="compact"] .page { padding: 18px 24px 36px; }
+[data-density="compact"] .page-title { font-size: 26px; }
+[data-density="compact"] .page-header { margin-bottom: 16px; }
+[data-density="compact"] .track-row { padding: 4px 8px; gap: 10px; grid-template-columns: 36px minmax(0, 1fr) auto 50px auto; }
+[data-density="compact"] .track-row:has(.track-num) { grid-template-columns: auto 36px minmax(0, 1fr) auto 50px auto; }
+[data-density="compact"] .track-art { width: 36px; height: 36px; }
+[data-density="compact"] .track-sub { font-size: 12px; }
+[data-density="compact"] .card-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 18px 14px; }
+[data-density="compact"] .shelf-row { grid-auto-columns: 148px; gap: 14px; }
+[data-density="compact"] .shelf { margin-bottom: 28px; }
+[data-density="compact"] .shelf-title { font-size: 19px; }
+[data-density="compact"] .feed { gap: 18px; }
+[data-density="compact"] .feed-art { width: 116px; height: 116px; }
+[data-density="compact"] .hero-inner { padding: 22px; gap: 20px; }
+[data-density="compact"] .hero-art { width: 160px; height: 160px; }
+[data-density="compact"] .section { margin-bottom: 28px; }
+
+/* --- hide track details --- */
+[data-hide-plays] .track-stats .stat,
+[data-hide-plays] .feed-actions .stat { display: none; }
+[data-hide-genres] .track-stats .tag-pill,
+[data-hide-genres] .feed-right .tag-pill { display: none; }
+
+/* --- player bar on top --- */
+#view { order: 2; }
+.topbar { order: 0; }
+.playerbar { order: 3; }
+[data-player="top"] .playerbar { order: 1; border-top: 0; border-bottom: 1px solid var(--border); }
+[data-player="top"] .queue-panel { top: calc(var(--topbar-h) + var(--player-h) + 12px); bottom: 12px; }
+[data-player="top"] #toasts { bottom: 24px; }
+
+/* --- sidebar navigation --- */
+[data-nav="sidebar"] { --nav-w: 210px; }
+[data-nav="sidebar"] .nav {
+  position: fixed; left: 0; width: var(--nav-w); margin: 0; padding: 14px 10px;
+  top: var(--topbar-h); bottom: var(--player-h);
+  flex-direction: column; gap: 2px; z-index: 15;
+  background: var(--bar); border-right: 1px solid var(--border);
+}
+[data-nav="sidebar"][data-player="top"] .nav { top: calc(var(--topbar-h) + var(--player-h)); bottom: 0; }
+[data-nav="sidebar"] .nav-link { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+[data-nav="sidebar"] .nav-link .icon { display: inline-flex; }
+[data-nav="sidebar"] #view { margin-left: var(--nav-w); }
+
+/* --- custom background picture --- */
+#app-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none; overflow: hidden; }
+[data-bg] #app-bg { display: block; }
+.app-bg-image {
+  position: absolute; inset: calc(var(--bg-blur, 0px) * -2);
+  background: center / cover no-repeat;
+  filter: blur(var(--bg-blur, 0px)) saturate(1.2);
+  transition: background-image .6s ease;
+}
+.app-bg-dim { position: absolute; inset: 0; background: var(--bg); opacity: var(--bg-dim, .7); }
+[data-bg] #app { position: relative; z-index: 1; }
+[data-bg] body { background: var(--bg); }
+[data-bg] .topbar,
+[data-bg] .playerbar,
+[data-bg][data-nav="sidebar"] .nav {
+  background: color-mix(in srgb, var(--bar) 78%, transparent);
+  backdrop-filter: blur(20px) saturate(1.3);
+}

@@ -41,6 +41,30 @@ export const PRESETS = {
     accent: '#2f6fe0', accentText: '#ffffff', bg: '#ece9d8', surface: '#ffffff', bar: '#245edb',
     text: '#000000', muted: '#4d4d4d', wave: '#a9c3ef', wavePlayed: '#2f6fe0'
   },
+  'Glass': {
+    accent: '#7c9cff', accentText: '#0b0f1e', bg: '#0b1020', surface: '#18203a', bar: '#121a30',
+    text: '#eef2ff', muted: '#9aa6c8', wave: '#2e3a63', wavePlayed: '#7c9cff'
+  },
+  'Neon': {
+    accent: '#00f0ff', accentText: '#001014', bg: '#07020f', surface: '#120821', bar: '#0c0418',
+    text: '#f5e9ff', muted: '#9a7fbf', wave: '#2a1745', wavePlayed: '#ff2bd6'
+  },
+  'Pixel': {
+    accent: '#ffcc00', accentText: '#1a1200', bg: '#1d1b2e', surface: '#2b2840', bar: '#151325',
+    text: '#f4f1de', muted: '#a8a3c7', wave: '#3d3957', wavePlayed: '#ffcc00'
+  },
+  'Minimal': {
+    accent: '#111111', accentText: '#ffffff', bg: '#ffffff', surface: '#f7f7f7', bar: '#ffffff',
+    text: '#111111', muted: '#8a8a8a', wave: '#e2e2e2', wavePlayed: '#111111'
+  },
+  'Liquid Glass': {
+    accent: '#0a84ff', accentText: '#ffffff', bg: '#e9eef6', surface: '#ffffff', bar: '#ffffff',
+    text: '#0b0b0f', muted: '#5d6472', wave: '#c3cad6', wavePlayed: '#0a84ff'
+  },
+  'Liquid Glass Dark': {
+    accent: '#0a84ff', accentText: '#ffffff', bg: '#0a0a0f', surface: '#1c1c22', bar: '#16161c',
+    text: '#f5f5f7', muted: '#9a9aa5', wave: '#3a3a44', wavePlayed: '#0a84ff'
+  },
   'Mono': {
     accent: '#ffffff', accentText: '#000000', bg: '#000000', surface: '#111111', bar: '#0a0a0a',
     text: '#ffffff', muted: '#8a8a8a', wave: '#333333', wavePlayed: '#ffffff'
@@ -52,8 +76,17 @@ export const PRESETS = {
  * The style name becomes <html data-style="..."> and styles/themes/<name>.css does the rest.
  */
 export const PRESET_STYLES = {
-  'Y2K': 'y2k'
+  'Y2K': 'y2k',
+  'Glass': 'glass',
+  'Neon': 'neon',
+  'Pixel': 'pixel',
+  'Minimal': 'minimal',
+  'Liquid Glass': 'liquid',
+  'Liquid Glass Dark': 'liquid'
 };
+
+/** Corner roundness each style preset looks best with (others keep the user's value) */
+export const PRESET_RADIUS = { 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22 };
 
 export const DEFAULT_THEME = { preset: 'SoundCloud Dark', colors: Object.assign({}, PRESETS['SoundCloud Dark']), radius: 10 };
 

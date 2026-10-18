@@ -175,3 +175,16 @@
   .settings-nav { position: static; flex-direction: row; overflow-x: auto; }
   .settings-nav-link { white-space: nowrap; }
 }
+
+/* --- appearance tab --- */
+.settings-row-wrap { flex-wrap: wrap; cursor: default; }
+.settings-row-wrap .chips { justify-content: flex-end; }
+.settings-select { width: 220px; height: 34px; }
+.settings-time { width: 120px; height: 34px; }
+.settings-times { display: flex; align-items: center; gap: 8px; }
+.settings-bg-actions { display: flex; align-items: center; gap: 8px; }
+.settings-bg-preview {
+  width: 96px; height: 54px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface-2) center / cover no-repeat; display: flex; align-items: center; justify-content: center; text-align: center;
+}
+.settings-bg-preview .small { font-size: 10px; padding: 4px; }

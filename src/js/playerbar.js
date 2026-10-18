@@ -31,7 +31,7 @@ export function mountPlayerBar(root) {
   const volFill = h('div.pb-fill');
   const volume = h('div.pb-volume', h('div.pb-track', volFill));
 
-  const bar = h('footer.playerbar.empty',
+  const bar = h('footer.playerbar.idle',
     h('div.pb-left', art, h('div.pb-text', title, artist), likeSlot, addBtn),
     h('div.pb-center',
       h('div.pb-controls',
@@ -111,7 +111,7 @@ export function mountPlayerBar(root) {
 
   // --- track / state ------------------------------------------------------------
   player.on('track', (track) => {
-    bar.classList.remove('empty');
+    bar.classList.remove('idle');
     const cover = coverOf(track, 't300x300');
     art.style.backgroundImage = cover ? `url("${cover}")` : '';
     art.href = trackHref(track);

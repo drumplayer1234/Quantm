@@ -6,10 +6,12 @@ import { store, settings, saveSettings } from '../store.js';
 import { player } from '../player.js';
 import { VISUALIZER_STYLES } from '../visualizer.js';
 import * as theme from '../theme.js';
+import * as look from '../appearance.js';
 import { pageHeader, button, toast, avatar, confirmDialog, promptDialog } from '../ui.js';
 
 const TABS = [
   { id: 'theme', label: 'Theme & colors', icon: 'palette' },
+  { id: 'appearance', label: 'Appearance', icon: 'edit' },
   { id: 'playback', label: 'Playback', icon: 'play' },
   { id: 'account', label: 'Account', icon: 'user' },
   { id: 'shortcuts', label: 'Shortcuts', icon: 'queue' },
@@ -24,7 +26,7 @@ export async function render(page, params) {
     h('a.settings-nav-link' + (t.id === active ? '.active' : ''), { href: '#/settings/' + t.id }, icon(t.icon, 18), h('span', t.label))
   ));
 
-  const builders = { theme: themeTab, playback: playbackTab, account: accountTab, shortcuts: shortcutsTab, about: aboutTab };
+  const builders = { theme: themeTab, appearance: appearanceTab, playback: playbackTab, account: accountTab, shortcuts: shortcutsTab, about: aboutTab };
   const content = h('div.settings-content' + (active === 'theme' ? '.wide' : ''), await builders[active](cleanups));
 
   page.append(
@@ -249,7 +251,7 @@ async function themeTab(cleanups) {
   // --- preset gallery ----------------------------------------------------------
   const gallery = h('div.settings-presets', Object.entries(theme.PRESETS).map(([name, colors]) => {
     const el = h('button.settings-preset', { type: 'button', title: 'Use ' + name,
-      onclick: () => commit({ preset: name, colors: Object.assign({}, colors), radius: name === 'Y2K' ? 3 : draft.radius, style: theme.PRESET_STYLES[name] || '' }) },
+      onclick: () => commit({ preset: name, colors: Object.assign({}, colors), radius: name in theme.PRESET_RADIUS ? theme.PRESET_RADIUS[name] : draft.radius, style: theme.PRESET_STYLES[name] || '' }) },
       presetMock(colors),
       h('span.settings-preset-name', h('span', name), icon('check', 14))
     );
@@ -340,6 +342,140 @@ function previewPanel() {
         h('span.pb-time', '1:12'),
         h('div.pb-progress', h('div.pb-track', h('div.pb-fill', { style: { width: '38%' } }))),
         h('span.pb-time', '3:42')
+      )
+    )
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Appearance tab: layout, background, artwork colors, fonts, waveform, schedule
+// ---------------------------------------------------------------------------
+
+/** Row with a set of chips; the clicked chip becomes active */
+function chipRow(title, desc, options, value, onPick) {
+  const chips = h('div.chips');
+  options.forEach((option) => {
+    const chip = h('button.chip' + (option.id === value ? '.active' : ''), {
+      onclick: (e) => {
+        e.preventDefault();
+        chips.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === chip));
+        onPick(option.id);
+      }
+    }, option.label);
+    chips.append(chip);
+  });
+  return h('div.settings-row.settings-row-wrap',
+    h('span.settings-row-text', h('span.settings-row-title', title), desc ? h('span.settings-row-desc', desc) : null),
+    chips
+  );
+}
+
+/** Row with a range slider and a live value label */
+function sliderRow(title, desc, { min, max, step = 1, value, unit = '' }, onInput) {
+  const label = h('span.settings-range-value', value + unit);
+  const slider = h('input.settings-range', { type: 'range', min, max, step, value,
+    oninput: () => { label.textContent = slider.value + unit; onInput(Number(slider.value)); } });
+  return h('div.settings-row',
+    h('span.settings-row-text', h('span.settings-row-title', title), desc ? h('span.settings-row-desc', desc) : null),
+    h('div.settings-range-wrap', slider, label)
+  );
+}
+
+function selectRow(title, desc, options, value, onChange) {
+  const select = h('select.input.settings-select', { onchange: () => onChange(select.value) },
+    options.map(o => h('option', { value: o.id, selected: o.id === value }, o.label)));
+  return h('div.settings-row',
+    h('span.settings-row-text', h('span.settings-row-title', title), desc ? h('span.settings-row-desc', desc) : null),
+    select
+  );
+}
+
+async function appearanceTab() {
+  const a = look.getAppearance();
+  const save = (patch) => {
+    try { return look.saveAppearance(patch); } catch (e) { toast(e.message, 'error'); }
+  };
+  const saveSoon = debounce(save, 150);
+
+  // --- background picture picker ---
+  const preview = h('div.settings-bg-preview', { style: { backgroundImage: a.bgImage ? `url("${a.bgImage}")` : '' } },
+    a.bgImage ? null : h('span.muted.small', 'No picture chosen'));
+  const bgModes = [{ id: 'none', label: 'None' }, { id: 'artwork', label: 'Song artwork' }, { id: 'image', label: 'My picture' }];
+  const markMode = (mode) => bgRow.querySelectorAll('.chip').forEach((c, i) => c.classList.toggle('active', bgModes[i].id === mode));
+  const fileInput = h('input', { type: 'file', accept: 'image/*', style: { display: 'none' },
+    onchange: async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await look.imageFileToDataUrl(file);
+        save({ bgImage: dataUrl, background: 'image' });
+        preview.style.backgroundImage = `url("${dataUrl}")`;
+        preview.textContent = '';
+        markMode('image');
+        toast('Background updated');
+      } catch (e) { toast(e.message, 'error'); }
+      fileInput.value = '';
+    } });
+  const bgRow = chipRow('Background', 'Show a picture behind the app', bgModes, a.background, (mode) => {
+    if (mode === 'image' && !look.getAppearance().bgImage) {
+      markMode(look.getAppearance().background);
+      return fileInput.click();
+    }
+    save({ background: mode });
+  });
+
+  const presetNames = Object.keys(theme.PRESETS).map(name => ({ id: name, label: name }));
+  const schedule = a.schedule;
+  const setSchedule = (patch) => save({ schedule: Object.assign({}, look.getAppearance().schedule, patch) });
+  const timeInput = (key) => h('input.input.settings-time', { type: 'time', value: schedule[key], onchange: (e) => setSchedule({ [key]: e.target.value }) });
+
+  return h('div',
+    card('Layout', 'Arrange Quantm the way you like it.',
+      chipRow('Navigation', 'Links in the top bar, or in a sidebar on the left', [{ id: 'top', label: 'Top bar' }, { id: 'sidebar', label: 'Sidebar' }], a.nav, (v) => save({ nav: v })),
+      chipRow('Player bar', 'Where the playback controls sit', [{ id: 'bottom', label: 'Bottom' }, { id: 'top', label: 'Top' }], a.playerPosition, (v) => save({ playerPosition: v })),
+      chipRow('Density', 'Compact fits more on screen', [{ id: 'comfortable', label: 'Comfortable' }, { id: 'compact', label: 'Compact' }], a.density, (v) => save({ density: v })),
+      toggleRow('Show play counts', 'On track rows and feed cards', a.showPlays, (on) => save({ showPlays: on })),
+      toggleRow('Show genre tags', 'On track rows and feed cards', a.showGenres, (on) => save({ showGenres: on }))
+    ),
+    card('Background', "Use the playing song's artwork or your own picture as the app background.",
+      bgRow,
+      h('div.settings-row',
+        h('span.settings-row-text', h('span.settings-row-title', 'Your picture'), h('span.settings-row-desc', 'JPG, PNG or WebP. Large images are resized.')),
+        h('div.settings-bg-actions', preview,
+          button('Choose…', () => fileInput.click(), 'btn-sm', 'upload'),
+          button('Remove', () => {
+            const current = look.getAppearance().background;
+            save({ bgImage: '', background: current === 'image' ? 'none' : current });
+            if (current === 'image') markMode('none');
+            preview.style.backgroundImage = '';
+            preview.textContent = 'No picture chosen';
+          }, 'btn-ghost.btn-sm'),
+          fileInput)
+      ),
+      sliderRow('Dim', 'How much the theme color covers the picture', { min: 0, max: 95, value: a.bgDim, unit: '%' }, (v) => saveSoon({ bgDim: v })),
+      sliderRow('Blur', 'Soften the picture', { min: 0, max: 60, value: a.bgBlur, unit: 'px' }, (v) => saveSoon({ bgBlur: v }))
+    ),
+    card('Colors', null,
+      toggleRow('Match the playing song', "The accent color changes to fit each track's artwork", a.artworkColors, (on) => {
+        save({ artworkColors: on });
+        if (on) look.refreshArtworkAccent();
+      })
+    ),
+    card('Text', null,
+      selectRow('Font', 'Used everywhere in the app', look.FONTS, a.font, (v) => save({ font: v })),
+      sliderRow('Zoom', 'Make everything bigger or smaller', { min: 70, max: 150, step: 5, value: a.zoom, unit: '%' }, (v) => saveSoon({ zoom: v }))
+    ),
+    card('Waveforms', null,
+      chipRow('Style', 'How track waveforms are drawn', look.WAVE_STYLES, a.waveStyle, (v) => save({ waveStyle: v })),
+      sliderRow('Bar thickness', null, { min: 1, max: 6, value: a.waveThickness, unit: 'px' }, (v) => saveSoon({ waveThickness: v }))
+    ),
+    card('Theme schedule', 'Switch between two themes automatically, like a light theme by day and a dark one at night.',
+      toggleRow('Switch themes automatically', "Uses your computer's clock", schedule.enabled, (on) => setSchedule({ enabled: on })),
+      selectRow('Day theme', null, presetNames, schedule.day, (v) => setSchedule({ day: v })),
+      selectRow('Night theme', null, presetNames, schedule.night, (v) => setSchedule({ night: v })),
+      h('div.settings-row',
+        h('span.settings-row-text', h('span.settings-row-title', 'Day starts / night starts')),
+        h('div.settings-times', timeInput('dayStart'), h('span.muted', 'to'), timeInput('nightStart'))
       )
     )
   );

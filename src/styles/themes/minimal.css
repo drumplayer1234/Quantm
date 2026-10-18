@@ -1,0 +1,167 @@
+/* Minimal theme: ultra clean and light.
+   Active when <html data-style="minimal">. Colors still come from the theme variables,
+   this file removes shadows, gradients and blur, leaving hairlines and whitespace. */
+
+[data-style="minimal"] {
+  --radius: 4px;
+  --shadow: none;
+  --hair: 1px solid var(--border);
+}
+
+[data-style="minimal"] body { background: var(--bg); }
+[data-style="minimal"] .page { padding: 40px 40px 64px; }
+[data-style="minimal"] .page-title { font-size: 40px; font-weight: 300; letter-spacing: -.02em; }
+[data-style="minimal"] .shelf-title, [data-style="minimal"] .section-title { font-size: 24px; font-weight: 300; letter-spacing: -.01em; }
+[data-style="minimal"] .hero-title { font-weight: 300; letter-spacing: -.02em; }
+[data-style="minimal"] .shelf, [data-style="minimal"] .section { margin-bottom: 56px; }
+[data-style="minimal"] .page-header { margin-bottom: 32px; }
+[data-style="minimal"] .sidebar-title, [data-style="minimal"] .field-label, [data-style="minimal"] .queue-label { font-weight: 500; letter-spacing: .1em; }
+[data-style="minimal"] .icon { stroke-width: 1.5; }
+
+/* ---------------------------------------------------------------- top bar & nav */
+
+[data-style="minimal"] .topbar { background: var(--bg); border-bottom: var(--hair); box-shadow: none; }
+[data-style="minimal"] .logo, [data-style="minimal"] .logo:hover { color: var(--text); filter: none; }
+[data-style="minimal"] .nav-link { border-radius: 0; font-weight: 400; background: transparent; padding: 7px 12px; border-bottom: 1px solid transparent; }
+[data-style="minimal"] .nav-link:hover { background: transparent; color: var(--text); }
+[data-style="minimal"] .nav-link.active { background: transparent; border-bottom-color: var(--text); font-weight: 500; }
+[data-style="minimal"] .search-input { border-radius: 2px; background: transparent; border: var(--hair); }
+[data-style="minimal"] .search-input:focus { background: transparent; border-color: var(--text); }
+[data-style="minimal"] .search-suggest { border-radius: 2px; box-shadow: none; background: var(--bg); }
+[data-style="minimal"] .suggest-item { border-radius: 0; }
+[data-style="minimal"] .me-btn .avatar { box-shadow: none; }
+
+/* ---------------------------------------------------------------- buttons */
+
+[data-style="minimal"] .btn {
+  border-radius: 2px; background: transparent; border: var(--hair); font-weight: 400; height: 38px; padding: 0 20px;
+  box-shadow: none; filter: none;
+}
+[data-style="minimal"] .btn:hover { background: transparent; border-color: var(--text); }
+[data-style="minimal"] .btn:active { transform: none; }
+[data-style="minimal"] .btn-primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 500; }
+[data-style="minimal"] .btn-primary:hover { background: var(--accent); filter: none; opacity: .85; }
+[data-style="minimal"] .btn-ghost { border-color: transparent; color: var(--muted); }
+[data-style="minimal"] .btn-ghost:hover { border-color: transparent; color: var(--text); }
+[data-style="minimal"] .btn-danger { background: transparent; color: #c0392b; border-color: #c0392b; }
+[data-style="minimal"] .btn-danger:hover { background: transparent; filter: none; opacity: .7; }
+
+[data-style="minimal"] .icon-btn { border-radius: 2px; }
+[data-style="minimal"] .icon-btn:hover { background: transparent; color: var(--text); }
+[data-style="minimal"] .icon-btn.active { color: var(--text); }
+[data-style="minimal"] .icon-btn:active { transform: none; }
+
+/* play buttons: simple outlined circles */
+[data-style="minimal"] .play-btn,
+[data-style="minimal"] .card-play {
+  background: var(--bg); color: var(--text); border: 1px solid var(--text); box-shadow: none; filter: none;
+}
+[data-style="minimal"] .play-btn:hover { transform: none; background: var(--text); color: var(--bg); filter: none; }
+[data-style="minimal"] .card-play:hover { background: var(--text); color: var(--bg); filter: none; }
+
+/* ---------------------------------------------------------------- panels & lists */
+
+[data-style="minimal"] .tabs { border-bottom: var(--hair); gap: 12px; }
+[data-style="minimal"] .tab { font-weight: 400; padding: 14px 4px; }
+[data-style="minimal"] .tab.active { font-weight: 500; border-bottom-color: var(--text); }
+
+[data-style="minimal"] .card { background: transparent; border-radius: 0; transition: none; }
+[data-style="minimal"] .card:hover { background: transparent; }
+[data-style="minimal"] .card:hover .card-title { text-decoration: underline; }
+[data-style="minimal"] .card-art, [data-style="minimal"] .feed-art, [data-style="minimal"] .hero-art { border-radius: 2px; box-shadow: none; border: var(--hair); }
+[data-style="minimal"] .card-art.round, [data-style="minimal"] .hero-art.round { border-radius: 50%; }
+[data-style="minimal"] .card-title { font-weight: 500; }
+[data-style="minimal"] .card-title .icon, [data-style="minimal"] .user-row-name .icon { color: var(--muted); }
+[data-style="minimal"] .card-grid { gap: 32px 24px; }
+
+[data-style="minimal"] .track-list { background: transparent; border-top: var(--hair); }
+[data-style="minimal"] .track-row { border-radius: 0; padding: 12px 8px; border-bottom: var(--hair); transition: none; }
+[data-style="minimal"] .track-row:hover { background: var(--surface); }
+[data-style="minimal"] .track-row.current { background: var(--surface); box-shadow: inset 2px 0 0 var(--text); }
+[data-style="minimal"] .track-row.current .track-title { color: var(--text); font-weight: 700; }
+[data-style="minimal"] .track-title { font-weight: 500; }
+[data-style="minimal"] .track-art { border-radius: 2px; }
+[data-style="minimal"] .track-art-overlay { background: rgba(255,255,255,.7); color: var(--text); }
+
+[data-style="minimal"] .feed-card { background: transparent; border: 0; border-bottom: var(--hair); border-radius: 0; padding: 0 0 28px; box-shadow: none; }
+[data-style="minimal"] .feed-title { font-weight: 500; }
+[data-style="minimal"] .feed-playlist-tracks { border-top-color: var(--border); }
+
+/* tag pills as plain text */
+[data-style="minimal"] .tag-pill { background: transparent; border-radius: 0; padding: 0; height: auto; font-weight: 400; color: var(--muted); }
+[data-style="minimal"] .tag-pill::before { content: "#"; }
+[data-style="minimal"] a.tag-pill:hover { background: transparent; color: var(--text); text-decoration: underline; }
+[data-style="minimal"] .chip { background: transparent; border: var(--hair); border-radius: 2px; font-weight: 400; transition: none; }
+[data-style="minimal"] .chip:hover { background: transparent; border-color: var(--text); }
+[data-style="minimal"] .chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+[data-style="minimal"] .input, [data-style="minimal"] textarea.input, [data-style="minimal"] select.input {
+  border-radius: 2px; background: transparent; border: var(--hair);
+}
+[data-style="minimal"] .input:focus { background: transparent; border-color: var(--text); }
+[data-style="minimal"] .user-row, [data-style="minimal"] .comment { border-radius: 0; }
+
+/* hero: flat surface instead of the blurred artwork backdrop */
+[data-style="minimal"] .hero { border-radius: 2px; border: var(--hair); box-shadow: none; background: var(--surface); }
+[data-style="minimal"] .hero-bg { display: none; }
+[data-style="minimal"] .hero-inner { color: var(--text); padding: 40px; }
+[data-style="minimal"] .hero .icon-btn, [data-style="minimal"] .hero .stat { color: var(--muted); }
+[data-style="minimal"] .hero .icon-btn:hover { background: transparent; color: var(--text); }
+[data-style="minimal"] .hero .icon-btn.active { color: var(--text); }
+[data-style="minimal"] .hero .btn { background: transparent; color: var(--text); border: var(--hair); }
+[data-style="minimal"] .hero .btn:hover { background: transparent; border-color: var(--text); }
+[data-style="minimal"] .hero .btn-primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+[data-style="minimal"] .hero .btn-outline { border-color: var(--border); }
+
+/* ---------------------------------------------------------------- player bar */
+
+[data-style="minimal"] .playerbar { background: var(--bg); border-top: var(--hair); box-shadow: none; }
+[data-style="minimal"] .pb-art { border-radius: 2px; box-shadow: none; }
+[data-style="minimal"] .pb-play { background: transparent; color: var(--text); border: 1px solid var(--text); }
+[data-style="minimal"] .pb-play:hover { transform: none; background: var(--text); color: var(--bg); }
+[data-style="minimal"] .pb-mode.active::after { background: var(--text); }
+[data-style="minimal"] .pb-mode.active, [data-style="minimal"] .pb-queue-btn.active { color: var(--text); }
+[data-style="minimal"] .pb-track { height: 1px; border-radius: 0; background: var(--border); }
+[data-style="minimal"] .pb-fill, [data-style="minimal"] .pb-progress:hover .pb-fill, [data-style="minimal"] .pb-progress.dragging .pb-fill, [data-style="minimal"] .pb-volume:hover .pb-fill {
+  border-radius: 0; background: var(--text); top: -1px; bottom: -1px;
+}
+[data-style="minimal"] .pb-buffer { background: transparent; }
+[data-style="minimal"] .pb-knob { background: var(--text); width: 9px; height: 9px; margin: -4px 0 0 -4px; }
+[data-style="minimal"] .pb-hovertime { box-shadow: none; border: var(--hair); border-radius: 2px; background: var(--bg); }
+
+/* ---------------------------------------------------------------- menus, modals, queue, toasts */
+
+[data-style="minimal"] .menu { border-radius: 2px; box-shadow: none; background: var(--bg); animation: none; }
+[data-style="minimal"] .menu-item { border-radius: 0; font-weight: 400; }
+[data-style="minimal"] .menu-item:hover { background: var(--surface); }
+
+[data-style="minimal"] .modal-overlay { backdrop-filter: none; background: rgba(255,255,255,.8); }
+[data-style="minimal"] .modal, [data-style="minimal"] .queue-panel { border-radius: 2px; box-shadow: none; background: var(--bg); border: 1px solid var(--text); }
+[data-style="minimal"] .modal-head h2, [data-style="minimal"] .queue-head h2 { font-weight: 300; font-size: 22px; }
+[data-style="minimal"] .modal-head { padding: 28px 28px 12px; }
+[data-style="minimal"] .modal-body { padding: 8px 28px 28px; }
+[data-style="minimal"] .queue-row { border-radius: 0; }
+[data-style="minimal"] .queue-row.current { background: var(--surface); }
+[data-style="minimal"] .queue-row.current .queue-title { color: var(--text); font-weight: 700; }
+[data-style="minimal"] .queue-art, [data-style="minimal"] .atp-art { border-radius: 2px; }
+[data-style="minimal"] .atp-track { background: var(--surface); border-radius: 2px; }
+[data-style="minimal"] .atp-row { border-radius: 0; }
+[data-style="minimal"] .atp-row:hover { background: var(--surface); }
+[data-style="minimal"] .atp-state { background: transparent; }
+
+[data-style="minimal"] .toast { box-shadow: none; border-radius: 2px; background: var(--text); color: var(--bg); font-weight: 400; }
+[data-style="minimal"] .toast-error { background: #c0392b; color: #fff; }
+
+/* ---------------------------------------------------------------- scrollbars & misc */
+
+[data-style="minimal"] ::-webkit-scrollbar { width: 10px; height: 10px; }
+[data-style="minimal"] ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; border-width: 3px; }
+[data-style="minimal"] ::-webkit-scrollbar-thumb:hover { background-color: var(--muted); }
+
+[data-style="minimal"] .spinner { border-width: 1px; border-color: var(--border); border-top-color: var(--text); }
+[data-style="minimal"] .skeleton { background: var(--surface); animation: none; border-radius: 2px; }
+[data-style="minimal"] .login { background: var(--bg); }
+[data-style="minimal"] .login-card { background: var(--bg); backdrop-filter: none; box-shadow: none; border-radius: 2px; border: var(--hair); }
+[data-style="minimal"] .login-card h1 { font-weight: 300; }
+[data-style="minimal"] .login-logo { color: var(--text); }
+[data-style="minimal"] .login-error { border-radius: 2px; }

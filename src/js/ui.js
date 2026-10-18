@@ -179,19 +179,55 @@ export function waveform(track, { height = 60, onPlay, comments = null } = {}) {
     const p = player();
     const progress = p.current && p.current.id === track.id && p.duration ? p.audio.currentTime / p.duration : 0;
 
-    const bar = 2, gap = 1, count = Math.floor(rect.width / (bar + gap));
+    // style and bar thickness come from Settings → Appearance
+    const style = document.documentElement.dataset.wave || 'bars';
+    const bar = Math.max(1, Number(styles.getPropertyValue('--wave-bar')) || 2);
+    const gap = style === 'blocks' ? 2 : 1;
+    const count = Math.floor(rect.width / (bar + gap));
     const data = samples || new Array(count).fill(0.15);
-    const mid = height * 0.7;
+    const sampleAt = (i) => data[Math.floor((i / count) * data.length)] || 0;
+    const colorAt = (fraction) => fraction < progress ? played : (hover > -1 && fraction < hover ? played : unplayed);
+
+    if (style === 'line') {
+      // smooth filled outline, split into played / unplayed halves
+      const path = new Path2D();
+      path.moveTo(0, height);
+      for (let i = 0; i <= count; i++) path.lineTo((i / count) * rect.width, height - Math.max(1, sampleAt(i) * (height - 2)));
+      path.lineTo(rect.width, height);
+      path.closePath();
+      const split = (hover > -1 ? Math.max(progress, hover) : progress) * rect.width;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0, 0, split, height); ctx.clip();
+      ctx.fillStyle = played; ctx.fill(path);
+      ctx.restore();
+      ctx.save();
+      ctx.beginPath(); ctx.rect(split, 0, rect.width - split, height); ctx.clip();
+      ctx.fillStyle = unplayed; ctx.fill(path);
+      ctx.restore();
+      return;
+    }
+
+    const mid = style === 'mirror' ? height / 2 : height * 0.7;
     for (let i = 0; i < count; i++) {
-      const sample = data[Math.floor((i / count) * data.length)] || 0;
+      const sample = sampleAt(i);
       const x = i * (bar + gap);
       const fraction = i / count;
-      ctx.fillStyle = fraction < progress ? played : (hover > -1 && fraction < hover ? played : unplayed);
+      ctx.fillStyle = colorAt(fraction);
       ctx.globalAlpha = fraction >= progress && hover > -1 && fraction < hover ? 0.6 : 1;
-      const top = Math.max(1, sample * mid);
-      ctx.fillRect(x, mid - top, bar, top);
-      ctx.globalAlpha *= 0.35;
-      ctx.fillRect(x, mid + 1, bar, Math.max(1, sample * (height - mid)));
+      if (style === 'mirror') {
+        const half = Math.max(1, sample * (height / 2 - 1));
+        ctx.fillRect(x, mid - half, bar, half * 2);
+      } else if (style === 'blocks') {
+        // stacked square blocks, like an LED meter
+        const block = bar + 1;
+        const blocks = Math.max(1, Math.round((sample * height) / block));
+        for (let b = 0; b < blocks; b++) ctx.fillRect(x, height - (b + 1) * block, bar, block - 1);
+      } else {
+        const top = Math.max(1, sample * mid);
+        ctx.fillRect(x, mid - top, bar, top);
+        ctx.globalAlpha *= 0.35;
+        ctx.fillRect(x, mid + 1, bar, Math.max(1, sample * (height - mid)));
+      }
       ctx.globalAlpha = 1;
     }
   };
@@ -241,6 +277,7 @@ export function waveform(track, { height = 60, onPlay, comments = null } = {}) {
   };
   const offTime = player().on('time', onTime);
   document.addEventListener('themechange', draw);
+  document.addEventListener('wavestylechange', draw);
   return wrap;
 }
 

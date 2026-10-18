@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld('native', {
   },
   api: (request) => ipcRenderer.invoke('api:request', request),
   json: (url) => ipcRenderer.invoke('net:json', url),
+  image: (url) => ipcRenderer.invoke('net:image', url),
+  setZoom: (factor) => ipcRenderer.invoke('window:zoom', factor),
   setTitleBar: (color, symbolColor) => ipcRenderer.invoke('window:titlebar', { color, symbolColor }),
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   copy: (text) => ipcRenderer.invoke('clipboard:write', text),

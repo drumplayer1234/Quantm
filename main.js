@@ -329,6 +329,25 @@ ipcMain.handle('net:json', async (event, url) => {
   }
 });
 
+// artwork as a data URL, so the page can read its pixels (sndcdn images have no CORS headers)
+ipcMain.handle('net:image', async (event, url) => {
+  const parsed = new URL(url);
+  if (!/(^|\.)sndcdn\.com$/.test(parsed.hostname)) return null;
+  try {
+    const response = await net.fetch(url);
+    if (!response.ok) return null;
+    const type = response.headers.get('content-type') || 'image/jpeg';
+    return `data:${type};base64,${Buffer.from(await response.arrayBuffer()).toString('base64')}`;
+  } catch (e) {
+    return null;
+  }
+});
+
+ipcMain.handle('window:zoom', (event, factor) => {
+  const value = Number(factor);
+  if (mainWindow && value >= 0.5 && value <= 2) mainWindow.webContents.setZoomFactor(value);
+});
+
 ipcMain.handle('window:titlebar', (event, { color, symbolColor }) => {
   if (mainWindow && process.platform !== 'darwin' && mainWindow.setTitleBarOverlay) {
     mainWindow.setTitleBarOverlay({ color, symbolColor, height: TITLEBAR_HEIGHT });

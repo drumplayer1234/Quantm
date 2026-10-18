@@ -5,6 +5,7 @@ import { icon } from './icons.js';
 import { store } from './store.js';
 import { player } from './player.js';
 import { applyTheme } from './theme.js';
+import { initAppearance } from './appearance.js';
 import { route, startRouter } from './router.js';
 import { mountPlayerBar } from './playerbar.js';
 import { bindServices, iconButton, button, menu, toast, avatar, go, playlistHref } from './ui.js';
@@ -93,12 +94,13 @@ function showLogin(message) {
 function mountShell() {
   clear(app);
   const nav = [
-    { id: 'home', label: 'Home', href: '#/home' },
-    { id: 'feed', label: 'Feed', href: '#/feed' },
-    { id: 'library', label: 'Library', href: '#/library' },
-    { id: 'trending', label: 'Trending', href: '#/trending' }
+    { id: 'home', label: 'Home', href: '#/home', icon: 'home' },
+    { id: 'feed', label: 'Feed', href: '#/feed', icon: 'feed' },
+    { id: 'library', label: 'Library', href: '#/library', icon: 'library' },
+    { id: 'trending', label: 'Trending', href: '#/trending', icon: 'trending' }
   ];
-  const navLinks = nav.map(n => h('a.nav-link', { href: n.href, dataset: { id: n.id } }, n.label));
+  // icons only show when the navigation is a sidebar (Settings → Appearance)
+  const navLinks = nav.map(n => h('a.nav-link', { href: n.href, dataset: { id: n.id } }, icon(n.icon, 18), h('span', n.label)));
 
   const searchInput = h('input.search-input', { type: 'search', placeholder: 'Search for artists, tracks, playlists, or paste a link', spellcheck: false });
   const suggestions = h('div.search-suggest');
@@ -135,6 +137,7 @@ function mountShell() {
   const view = h('main#view');
   app.append(topbar, view);
   mountPlayerBar(app);
+  initAppearance();
 
   document.addEventListener('routechange', (e) => {
     const section = e.detail.path.split('/')[1];
