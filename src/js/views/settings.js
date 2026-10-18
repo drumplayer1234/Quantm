@@ -227,13 +227,10 @@ async function themeTab(cleanups) {
   };
 
   // --- radius ------------------------------------------------------------------
-  const radiusValue = h('span.settings-range-value', draft.radius + 'px');
-  const radius = h('input.settings-range', { type: 'range', min: 0, max: 20, step: 1, value: draft.radius, 'aria-label': 'Corner roundness',
-    oninput: () => {
-      draft.radius = Number(radius.value);
-      radiusValue.textContent = draft.radius + 'px';
-      live();
-    } });
+  const radius = rangeControl({ min: 0, max: 30, value: draft.radius, unit: 'px', label: 'Corner roundness' }, (v) => {
+    draft.radius = v;
+    live();
+  });
 
   // --- sync every control with `draft` after a bulk change -----------------------
   function syncAll() {
@@ -242,8 +239,7 @@ async function themeTab(cleanups) {
       rows[key].text.value = draft.colors[key];
       rows[key].text.classList.remove('invalid');
     }
-    radius.value = draft.radius;
-    radiusValue.textContent = draft.radius + 'px';
+    radius.setValue(draft.radius);
     updateWarnings();
     updatePresetMarks();
   }
@@ -296,7 +292,7 @@ async function themeTab(cleanups) {
       h('div.settings-colors', theme.THEME_FIELDS.map(colorRow)),
       h('div.settings-radius',
         h('div.settings-row-text', h('span.settings-row-title', 'Corner roundness'), h('span.settings-row-desc', 'Cards, inputs and artwork')),
-        h('div.settings-range-wrap', radius, radiusValue)
+        radius
       )
     ),
     card('Tools', null,
@@ -373,15 +369,55 @@ function chipRow(title, desc, options, value, onPick) {
   );
 }
 
-/** Row with a range slider and a live value label */
-function sliderRow(title, desc, { min, max, step = 1, value, unit = '' }, onInput) {
-  const label = h('span.settings-range-value', value + unit);
-  const slider = h('input.settings-range', { type: 'range', min, max, step, value,
-    oninput: () => { label.textContent = slider.value + unit; onInput(Number(slider.value)); } });
-  return h('div.settings-row',
+/**
+ * Slider plus a number box you can type into. Both stay in sync; typed values are
+ * clamped to the range and rounded to the step when you press Enter or leave the box.
+ * Returns { row, wrap, setValue } via the row element (row.setValue(v) updates both).
+ */
+function rangeControl({ min, max, step = 1, value, unit = '', label }, onInput) {
+  const decimals = (String(step).split('.')[1] || '').length;
+  const tidy = (v) => {
+    const clamped = Math.min(max, Math.max(min, v));
+    return Number((Math.round((clamped - min) / step) * step + min).toFixed(decimals));
+  };
+  const slider = h('input.settings-range', { type: 'range', min, max, step, value, 'aria-label': label });
+  const number = h('input.input.settings-number', { type: 'number', min, max, step, value, 'aria-label': label + ' value' });
+  const wrap = h('div.settings-range-wrap', slider, h('span.settings-number-wrap', number, unit ? h('span.settings-unit', unit) : null));
+
+  const apply = (v, fromSlider) => {
+    if (!fromSlider) slider.value = v;
+    if (document.activeElement !== number) number.value = v;
+    onInput(v);
+  };
+  slider.addEventListener('input', () => { number.value = slider.value; apply(Number(slider.value), true); });
+  // apply while typing when the value is already valid, tidy up on Enter / blur
+  number.addEventListener('input', () => {
+    const v = Number(number.value);
+    if (number.value !== '' && Number.isFinite(v) && v >= min && v <= max) { slider.value = v; onInput(v); }
+  });
+  const commit = () => {
+    const v = Number(number.value);
+    const next = number.value === '' || !Number.isFinite(v) ? Number(slider.value) : tidy(v);
+    number.value = next;
+    slider.value = next;
+    onInput(next);
+  };
+  number.addEventListener('change', commit);
+  number.addEventListener('keydown', (e) => { if (e.key === 'Enter') { commit(); number.blur(); } });
+
+  wrap.setValue = (v) => { slider.value = v; if (document.activeElement !== number) number.value = v; };
+  return wrap;
+}
+
+/** Row with a title / description and a slider + number box */
+function sliderRow(title, desc, options, onInput) {
+  const wrap = rangeControl(Object.assign({ label: title }, options), onInput);
+  const row = h('div.settings-row',
     h('span.settings-row-text', h('span.settings-row-title', title), desc ? h('span.settings-row-desc', desc) : null),
-    h('div.settings-range-wrap', slider, label)
+    wrap
   );
+  row.setValue = wrap.setValue;
+  return row;
 }
 
 function selectRow(title, desc, options, value, onChange) {
@@ -512,20 +548,10 @@ async function appearanceTab() {
 
 async function playbackTab(cleanups) {
   const pct = () => Math.round(settings.volume * 100);
-  const valueLabel = h('span.settings-range-value', pct() + '%');
-  const slider = h('input.settings-range', { type: 'range', min: 0, max: 100, step: 1, value: pct(), 'aria-label': 'Default volume',
-    oninput: () => {
-      valueLabel.textContent = slider.value + '%';
-      player.setVolume(Number(slider.value) / 100);
-    } });
+  const volume = rangeControl({ min: 0, max: 100, value: pct(), unit: '%', label: 'Default volume' }, (v) => player.setVolume(v / 100));
 
-  // keep the slider honest if volume changes from the player bar or keyboard
-  cleanups.push(store.on('settings', () => {
-    if (Math.abs(Number(slider.value) - pct()) > 0.5) {
-      slider.value = pct();
-      valueLabel.textContent = pct() + '%';
-    }
-  }));
+  // keep the control honest if volume changes from the player bar or keyboard
+  cleanups.push(store.on('settings', () => volume.setValue(pct())));
 
   const onNotifications = async (on, input) => {
     if (on && 'Notification' in window && Notification.permission !== 'granted') {
@@ -552,7 +578,7 @@ async function playbackTab(cleanups) {
     card('Volume', 'The level Quantm plays at. You can also change it from the player bar.',
       h('div.settings-radius',
         h('div.settings-row-text', h('span.settings-row-title', 'Default volume'), h('span.settings-row-desc', 'Applies right now and next time you open the app')),
-        h('div.settings-range-wrap', slider, valueLabel)
+        volume
       )
     )
   );

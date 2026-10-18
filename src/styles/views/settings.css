@@ -193,3 +193,9 @@
 .settings-viz-pickers { display: flex; align-items: center; gap: 16px; }
 .settings-viz-color { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .settings-viz-color .settings-color { width: 36px; height: 36px; }
+
+/* --- slider number boxes --- */
+.settings-number-wrap { display: inline-flex; align-items: center; gap: 4px; flex: none; }
+.settings-number { width: 64px; height: 30px; padding: 0 6px; text-align: right; font-variant-numeric: tabular-nums; }
+.settings-number::-webkit-inner-spin-button { opacity: .6; }
+.settings-unit { color: var(--muted); font-size: 12px; min-width: 16px; }
