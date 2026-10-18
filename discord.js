@@ -126,8 +126,8 @@ function update(state) {
   const now = Date.now();
   const activity = {
     type: 2, // "Listening to"
-    // what the short status (member list, profile corner) shows: 2 = details (the song)
-    status_display_type: 2,
+    // the short status (member list, profile corner) shows the app name: 0 = "Quantm"
+    status_display_type: 0,
     details: clip(state.title),
     state: clip('by ' + (state.artist || 'Unknown artist')),
     assets: {
