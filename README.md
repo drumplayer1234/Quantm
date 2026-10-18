@@ -32,6 +32,15 @@ Grab the latest build from the **Releases** page of this repository on GitHub:
 - **macOS:** the `.dmg` disk image.
 - **Linux:** the `AppImage` (runs anywhere) or the `.deb` package (Debian and Ubuntu).
 
+### "Windows protected your PC"?
+
+Quantm's installer isn't digitally signed yet, so Windows SmartScreen may warn you the first time you run it. This is normal for new open-source apps. To continue:
+
+1. Click **More info** in the blue window.
+2. Click **Run anyway**.
+
+You only need to do this once. On macOS, if you see "Quantm can't be opened because it is from an unidentified developer", right-click the app, choose **Open**, then click **Open** again.
+
 ## Signing in
 
 1. Click **Sign in with SoundCloud**.
