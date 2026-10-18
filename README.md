@@ -16,7 +16,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 **Listening**
 
 - **No ads, ever.** No audio ads, banners or promoted posts. Just your music.
-- **Sign in inside the app.** Log in with your SoundCloud account in a built-in sign-in window, or enter a token manually. Your token is stored encrypted on your computer.
+- **Sign in inside the app.** Log in with your SoundCloud account in a built-in sign-in window, or enter a token manually if that doesn't work. Your token is stored encrypted on your computer.
 - **Home with personalized shelves.** Recently played, mixes, "more of what you like", stations and trending picks, all picked for you.
 - **Feed.** New posts and reposts from the people you follow.
 - **Library.** Your likes, playlists, albums, stations, listening history and who you follow.
@@ -24,7 +24,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Full search.** Find tracks, people, albums and playlists, with suggestions as you type. Paste any soundcloud.com link to jump straight to it.
 - **Artist profiles.** Popular tracks, tracks, albums, playlists, reposts, likes, followers and following, plus the artist's bio.
 - **Track pages.** Full waveform, timed comments (post and delete your own), related tracks, and who liked or reposted.
-- **Playlists and albums.** Create, rename, make private or public, delete, drag to reorder, and remove tracks.
+- **Playlist editing.** Create, rename, make private or public, delete, drag to reorder, and remove tracks.
 - **Stations.** Start a station based on any track.
 - **Notifications.** Likes, reposts, comments and new followers.
 - **Like, repost and follow from anywhere.** No need to visit the artist's page first.
@@ -37,16 +37,16 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Shuffle and repeat.** Shuffle covers your whole collection, not just what's loaded. Repeat all or repeat one.
 - **Autoplay.** Related tracks keep playing when your queue runs out.
 - **Crossfade.** Blend from one song into the next, from 0 to 12 seconds.
-- **Playback speed.** Nightcore and Slowed modes, or a custom speed with optional pitch keeping.
+- **Playback speed.** Nightcore and Slowed modes, or a custom speed with optional pitch keeping. Change it with the speed button in the player bar.
 - **Volume normalization.** Loud and quiet tracks play at a similar level.
 - **Resume where you left off.** Reopen the app to your last song, queue and position, paused.
-- **Media keys and system controls.** Use your keyboard's media keys and the Windows and macOS media controls. Desktop notifications keep you posted.
-- **Keyboard shortcuts.** Space and arrows for playback, Ctrl+arrows to skip, L to like, S to shuffle, R to repeat, Ctrl+F or Ctrl+K to search, and `Shift+<` / `Shift+>` for speed.
+- **Media keys and system controls.** Use your keyboard's media keys and the Windows and macOS media controls. Desktop notifications show when a new track starts.
+- **Keyboard shortcuts.** Space to play or pause, arrows to seek, Ctrl+arrows to skip or change volume, M to mute, L to like, S to shuffle, R to repeat, Ctrl+F or Ctrl+K to search, Alt+arrows to go back and forward, and `Shift+<` / `Shift+>` for speed.
 
 **Make it yours**
 
-- **Theme presets.** SoundCloud Dark and Light, Midnight, Synthwave, Forest, Mono, Y2K (Windows XP and early iTunes), Glass, Neon, Pixel, Minimal, and Liquid Glass (light and dark).
-- **Custom themes.** Edit every color and corner roundness, import and export themes to share them, or try the random theme generator.
+- **Theme presets.** Color-only themes: SoundCloud Dark, SoundCloud Light, Midnight, Synthwave, Forest and Mono. Full style makeovers that also change shapes, fonts and textures: Y2K (Windows XP and early iTunes), Glass, Neon, Pixel, Minimal, Liquid Glass, Liquid Glass Dark, Hextech, OLED (pure black), E-ink, Industrial and Album Match (the whole palette follows the playing song's artwork).
+- **Custom themes.** Edit every color and the corner roundness, copy a theme to share it or import one, or try the random theme generator.
 - **Day and night schedule.** Switch between a day theme and a night theme automatically.
 - **See-through window.** With Liquid Glass, your desktop shows through the app, blurred, on Windows and macOS.
 - **Layout.** Top bar or sidebar navigation, player bar at the top or bottom, compact density, and the option to hide play counts and genre tags.
@@ -54,15 +54,15 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Matching accent color.** The accent color follows the artwork of the song that's playing.
 - **Font and zoom.** Pick a font and zoom the app from 70% to 150%.
 - **Waveform styles.** Bars, mirrored, smooth line or blocks, with adjustable thickness.
-- **Player-bar visualizer.** Bars, mirrored, wave, line, circle or dots, in theme, accent, rainbow or custom colors, with adjustable bar count, size, sensitivity, smoothness, falling peaks, glow and left, center or right position.
+- **Player-bar visualizer.** Six styles: bars, mirrored bars, wave, line, circle and dots. Colors can come from the theme, your accent, a rainbow or your own pair. Adjust the bar count, size, sensitivity, smoothness, falling peaks, glow and left, center or right position.
 - **Exact values.** Every slider has a number box, so you can type in the precise value you want.
 
 **Extras**
 
-- **Discord status.** Show "Listening to Quantm" with the song, artist, artwork and a progress bar, plus a "Listen on SoundCloud" button. You can turn it off.
+- **Discord status.** Show "Listening to Quantm" with the song, artist, artwork and a progress bar, plus a "Listen on SoundCloud" button. Needs the Discord desktop app, and you can turn it off.
 - **Performance page.** Live CPU and memory readouts, Performance mode (no blur or animations), visuals paused while minimized, and a hardware acceleration switch. Light enough to leave running while you game.
 - **Remembers your setup.** Your themes and settings carry over every time you restart.
-- **Installers for every platform.** A Windows installer and portable version, plus macOS and Linux builds.
+- **Installers for every platform.** Windows Setup (recommended) and a portable version, plus macOS `.dmg` and Linux AppImage and `.deb` packages.
 
 ## Download
 
@@ -147,6 +147,8 @@ Quantm is an unofficial project. It is not affiliated with, endorsed by, or spon
 Quantm uses SoundCloud's web API, which SoundCloud can change or restrict at any time. If that happens, parts of the app may stop working until it's updated.
 
 Please respect the artists whose music you listen to, and follow SoundCloud's terms of use.
+
+The Hextech theme is fan-made and inspired by League of Legends. It is not endorsed by Riot Games. League of Legends and Riot Games are trademarks of Riot Games, Inc.
 
 ## Credits
 

@@ -1,0 +1,177 @@
+/* OLED theme: unlit black panels, hairline borders and restrained accent controls.
+   Active when <html data-style="oled">. Preset colors remain editable through theme variables.
+   Surface is intentionally painted with --bg to keep large areas completely black. */
+
+[data-style="oled"] {
+  --bg: #000000; --surface: #0a0a0a; --bar: #000000;
+  --text: #f5f5f5; --muted: #8a8a8a; --accent: #3d9bff; --accent-text: #000000;
+  --wave: #262626; --wave-played: #3d9bff;
+  --radius: 3px; --shadow: none;
+  --border: #1a1a1a; --hover: #0f0f0f; --hover-strong: #1a1a1a;
+  --surface-2: var(--bg); --accent-soft: var(--hover);
+  --oled-outline: #2a2a2a;
+  --oled-ink: color-mix(in srgb, var(--text) 94%, #000);
+}
+
+/* ---------------------------------------------------------------- unlit canvas */
+
+[data-style="oled"] body { --text: var(--oled-ink); background: var(--bg); color: var(--text); }
+[data-style="oled"] *, [data-style="oled"] *::before, [data-style="oled"] *::after {
+  box-shadow: none !important; text-shadow: none !important; backdrop-filter: none !important;
+  animation: none !important;
+}
+[data-style="oled"][data-bg] #app-bg { display: none; }
+[data-style="oled"] #app, [data-style="oled"] #view { background: var(--bg); }
+[data-style="oled"] ::selection { background: var(--accent); color: var(--accent-text); }
+[data-style="oled"] :focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+[data-style="oled"] .page-title, [data-style="oled"] .shelf-title,
+[data-style="oled"] .hero-title { letter-spacing: -.015em; font-weight: 600; }
+
+/* ---------------------------------------------------------------- top bar & nav */
+
+[data-style="oled"] .topbar, [data-style="oled"][data-bg] .topbar {
+  background: var(--bg); border-bottom: 1px solid var(--border);
+}
+[data-style="oled"][data-nav="sidebar"] .nav {
+  background: var(--bg); border-right: 1px solid var(--border);
+}
+[data-style="oled"] .nav-link { border-radius: var(--radius); color: var(--muted); }
+[data-style="oled"] .nav-link:hover { background: var(--hover); color: var(--text); }
+[data-style="oled"] .nav-link.active { background: var(--bg); color: var(--accent); }
+[data-style="oled"] .logo, [data-style="oled"] .logo:hover { color: var(--accent); filter: none; }
+[data-style="oled"] .search-input, [data-style="oled"] .input {
+  background: var(--bg); color: var(--text); border: 1px solid var(--oled-outline); border-radius: var(--radius);
+}
+[data-style="oled"] .search-input:focus, [data-style="oled"] .input:focus {
+  background: var(--bg); border-color: var(--accent);
+}
+[data-style="oled"] .search-input::placeholder, [data-style="oled"] .input::placeholder { color: var(--muted); }
+[data-style="oled"] .search > .icon { color: var(--muted); }
+[data-style="oled"] .search-suggest { background: var(--bg); border: 1px solid var(--border); }
+[data-style="oled"] .suggest-item:hover, [data-style="oled"] .suggest-item.active {
+  background: var(--hover); color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- outlined controls */
+
+[data-style="oled"] .btn, [data-style="oled"] .hero .btn {
+  background: var(--bg); color: var(--accent); border: 1px solid var(--oled-outline); border-radius: var(--radius);
+}
+[data-style="oled"] .btn:hover, [data-style="oled"] .hero .btn:hover {
+  background: var(--hover); color: var(--accent); border-color: var(--accent); filter: none;
+}
+[data-style="oled"] .btn-primary, [data-style="oled"] .btn-primary:hover,
+[data-style="oled"] .hero .btn-primary, [data-style="oled"] .hero .btn-primary:hover {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+}
+[data-style="oled"] .icon-btn, [data-style="oled"] .hero .icon-btn {
+  border: 1px solid var(--oled-outline); border-radius: var(--radius); color: var(--accent);
+}
+[data-style="oled"] .icon-btn:hover, [data-style="oled"] .hero .icon-btn:hover,
+[data-style="oled"] .win-btn:hover { background: var(--hover); color: var(--accent); }
+[data-style="oled"] .icon-btn.active { border-color: var(--accent); }
+[data-style="oled"] .play-btn, [data-style="oled"] .card-play, [data-style="oled"] .pb-play {
+  background: var(--accent); color: var(--accent-text); border: 1px solid var(--accent);
+}
+[data-style="oled"] .play-btn:hover, [data-style="oled"] .card-play:hover,
+[data-style="oled"] .pb-play:hover { filter: none; }
+
+/* ---------------------------------------------------------------- cards, shelves & rows */
+
+[data-style="oled"] .page-header, [data-style="oled"] .shelf-head {
+  border-bottom: 1px solid var(--border); padding-bottom: 8px;
+}
+[data-style="oled"] .card, [data-style="oled"] .feed-card, [data-style="oled"] .track-list {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+}
+[data-style="oled"] .card:hover { background: var(--hover); border-color: var(--oled-outline); }
+[data-style="oled"] .card-art, [data-style="oled"] .feed-art, [data-style="oled"] .track-art,
+[data-style="oled"] .hero-art, [data-style="oled"] .pb-art, [data-style="oled"] .queue-art,
+[data-style="oled"] .atp-art { background-color: var(--bg); border: 1px solid var(--border); }
+[data-style="oled"] .shelf-row { background: var(--bg); }
+[data-style="oled"] .track-row, [data-style="oled"] .queue-row {
+  border-radius: 0; border-left: 1px solid transparent;
+}
+[data-style="oled"] .track-row { border-bottom: 1px solid var(--border); }
+[data-style="oled"] .track-row:hover, [data-style="oled"] .queue-row:hover { background: var(--hover); }
+[data-style="oled"] .track-row.current, [data-style="oled"] .queue-row.current {
+  background: var(--bg); border-left-color: var(--accent); color: var(--accent);
+}
+[data-style="oled"] .track-row.current .track-title,
+[data-style="oled"] .queue-row.current .queue-title { color: var(--accent); }
+[data-style="oled"] .track-row.current:hover, [data-style="oled"] .queue-row.current:hover { background: var(--hover); }
+[data-style="oled"] .queue-row.drop { border-top: 1px solid var(--accent); }
+[data-style="oled"] .track-art-overlay { background: rgba(0,0,0,.65); color: var(--accent); }
+
+/* ---------------------------------------------------------------- labels, tabs & hero */
+
+[data-style="oled"] .tag-pill, [data-style="oled"] .chip {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--muted);
+}
+[data-style="oled"] a.tag-pill:hover, [data-style="oled"] .chip:hover { background: var(--hover); color: var(--text); }
+[data-style="oled"] .chip.active { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+[data-style="oled"] .tabs { border-bottom: 1px solid var(--border); }
+[data-style="oled"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+[data-style="oled"] .hero { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); }
+[data-style="oled"] .hero-bg { display: none; }
+[data-style="oled"] .hero-bg::after { background: none; }
+[data-style="oled"] .hero-inner { color: var(--text); }
+[data-style="oled"] .hero .stat { color: var(--muted); }
+
+/* ---------------------------------------------------------------- player: thin rules */
+
+[data-style="oled"] .playerbar, [data-style="oled"][data-bg] .playerbar {
+  background: var(--bg); border-top: 1px solid var(--border);
+}
+[data-style="oled"][data-player="top"] .playerbar { border-top: 0; border-bottom: 1px solid var(--border); }
+[data-style="oled"] .pb-title { color: var(--text); }
+[data-style="oled"] .pb-artist, [data-style="oled"] .pb-time { color: var(--muted); }
+[data-style="oled"] .pb-track { height: 2px; background: var(--wave); border-radius: 0; }
+[data-style="oled"] .pb-volume .pb-track { height: 2px; }
+[data-style="oled"] .pb-buffer { background: var(--oled-outline); border-radius: 0; }
+[data-style="oled"] .pb-fill, [data-style="oled"] .pb-progress:hover .pb-fill,
+[data-style="oled"] .pb-progress.dragging .pb-fill, [data-style="oled"] .pb-volume:hover .pb-fill {
+  background: var(--wave-played); border-radius: 0;
+}
+[data-style="oled"] .pb-knob { display: none; }
+[data-style="oled"] .pb-hovertime { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+[data-style="oled"] .pb-speed:hover { background: var(--hover); }
+
+/* ---------------------------------------------------------------- menus, modals & queue */
+
+[data-style="oled"] .menu, [data-style="oled"] .modal, [data-style="oled"] .queue-panel {
+  background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+}
+[data-style="oled"] .menu-item, [data-style="oled"] .menu-item.danger,
+[data-style="oled"] .menu-item.danger .icon { color: var(--accent); }
+[data-style="oled"] .menu-item:hover, [data-style="oled"] .atp-row:hover { background: var(--hover); }
+[data-style="oled"] .menu-item .icon { color: inherit; }
+[data-style="oled"] .menu-sep { background: var(--border); }
+[data-style="oled"] .modal-overlay { background: rgba(0,0,0,.8); }
+[data-style="oled"] .modal-head, [data-style="oled"] .queue-head {
+  background: var(--bg); border-bottom: 1px solid var(--border);
+}
+[data-style="oled"] .atp-track { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); }
+[data-style="oled"] .atp-state { border-color: var(--oled-outline); }
+[data-style="oled"] .atp-row.added .atp-state { background: var(--accent); color: var(--accent-text); }
+[data-style="oled"] .toast, [data-style="oled"] .toast-error {
+  background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+[data-style="oled"] .toast-error { border-color: var(--accent); }
+
+/* ---------------------------------------------------------------- scrollbars & login */
+
+[data-style="oled"] ::-webkit-scrollbar { width: 6px; height: 6px; background: var(--bg); }
+[data-style="oled"] ::-webkit-scrollbar-track { background: var(--bg); }
+[data-style="oled"] ::-webkit-scrollbar-thumb {
+  background: var(--oled-outline); border: 1px solid var(--bg); border-radius: 0;
+}
+[data-style="oled"] ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+[data-style="oled"] ::-webkit-scrollbar-corner { background: var(--bg); }
+[data-style="oled"] .spinner { border: 1px solid var(--border); border-top-color: var(--accent); }
+[data-style="oled"] .skeleton { background: var(--hover); }
+[data-style="oled"] .login { background: var(--bg); }
+[data-style="oled"] .login-card {
+  background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+[data-style="oled"] .login-error { background: var(--bg); color: var(--accent); border: 1px solid var(--oled-outline); }

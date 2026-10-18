@@ -1,0 +1,210 @@
+/* Industrial theme: steel plates, stamped labels and hazard-yellow safety tape.
+   Active when <html data-style="industrial">. Metal and tape follow theme variables;
+   fixed light and dark overlays supply the grain, bevels and bolt highlights. */
+
+[data-style="industrial"] {
+  --bg: #1c1d1f; --surface: #2a2b2e; --bar: #222326;
+  --text: #e6e6e3; --muted: #9a9b95; --accent: #f2b705; --accent-text: #111111;
+  --wave: #3a3b3e; --wave-played: #f2b705;
+  --font-display: "Stencil", "Bahnschrift", "Arial Narrow", Impact, sans-serif;
+  --radius: 2px; --shadow: 0 3px 6px rgba(0,0,0,.4);
+  --border: color-mix(in srgb, var(--surface) 65%, #000);
+  --hover: color-mix(in srgb, var(--surface) 85%, var(--text));
+  --ind-edge: color-mix(in srgb, var(--surface) 70%, var(--text));
+  --ind-tape: repeating-linear-gradient(45deg, var(--accent) 0 7px, #111 7px 14px);
+  --ind-steel: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px),
+               linear-gradient(135deg, rgba(255,255,255,.08), transparent 48%, rgba(0,0,0,.15));
+  --ind-bevel: inset 1px 1px 0 rgba(255,255,255,.15), inset -1px -1px 0 rgba(0,0,0,.65);
+  --ind-bolt: radial-gradient(circle, #222 0 1px, #a3a3a3 1px 2px, #555 2px 3px, #111 3px 4px, transparent 4px);
+}
+
+/* ---------------------------------------------------------------- concrete & headings */
+
+[data-style="industrial"] body {
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 8px),
+              repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 1px, transparent 1px 8px), var(--bg);
+}
+[data-style="industrial"][data-bg] body { background: var(--bg); }
+[data-style="industrial"] *, [data-style="industrial"] *::before,
+[data-style="industrial"] *::after { animation: none !important; }
+[data-style="industrial"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-style="industrial"] .page-title, [data-style="industrial"] .shelf-title,
+[data-style="industrial"] .section-title, [data-style="industrial"] .hero-title,
+[data-style="industrial"] .modal-head h2, [data-style="industrial"] .queue-head h2,
+[data-style="industrial"] .login-card h1 {
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em;
+}
+[data-style="industrial"] .sidebar-title, [data-style="industrial"] .queue-label,
+[data-style="industrial"] .hero-eyebrow { font-family: var(--font-display); letter-spacing: .1em; }
+[data-style="industrial"] .page-header, [data-style="industrial"] .shelf-head {
+  border-bottom: 1px solid var(--ind-edge); padding-bottom: 8px;
+}
+
+/* ---------------------------------------------------------------- top bar & safety tape */
+
+[data-style="industrial"] .topbar, [data-style="industrial"][data-bg] .topbar {
+  background: var(--ind-steel), var(--bar); border-bottom: 1px solid var(--border); box-shadow: var(--ind-bevel);
+}
+/* These edges are decorative and never intercept title-bar dragging or controls. */
+[data-style="industrial"] .topbar::after, [data-style="industrial"] .playerbar::before,
+[data-style="industrial"] .modal-head::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 3px;
+  background: var(--ind-tape); pointer-events: none;
+}
+[data-style="industrial"] .topbar::after, [data-style="industrial"] .modal-head::after { bottom: 0; }
+[data-style="industrial"] .playerbar::before { top: 0; }
+[data-style="industrial"][data-nav="sidebar"] .nav {
+  background: var(--ind-steel), var(--bar); border-right: 1px solid var(--ind-edge); backdrop-filter: none;
+}
+[data-style="industrial"] .nav-link { border-radius: var(--radius); color: var(--muted); }
+[data-style="industrial"] .nav-link:hover { background: var(--hover); color: var(--text); }
+[data-style="industrial"] .nav-link.active { background: var(--accent); color: var(--accent-text); box-shadow: var(--ind-bevel); }
+[data-style="industrial"] .search-input, [data-style="industrial"] .input {
+  background: var(--bg); color: var(--text); border: 1px solid var(--ind-edge); border-radius: var(--radius);
+  box-shadow: inset 1px 2px 3px rgba(0,0,0,.5);
+}
+[data-style="industrial"] .search-input:focus, [data-style="industrial"] .input:focus { background: var(--bg); border-color: var(--accent); }
+[data-style="industrial"] .search > .icon { color: var(--muted); }
+[data-style="industrial"] .search-suggest { background: var(--surface); border: 1px solid var(--ind-edge); }
+[data-style="industrial"] .suggest-item:hover, [data-style="industrial"] .suggest-item.active { background: var(--hover); color: var(--accent); }
+
+/* ---------------------------------------------------------------- steel switches */
+
+[data-style="industrial"] .btn, [data-style="industrial"] .hero .btn {
+  border-radius: var(--radius); border: 1px solid var(--ind-edge); color: var(--text);
+  background: var(--ind-steel), var(--surface); box-shadow: var(--ind-bevel), 0 2px 0 #111;
+}
+[data-style="industrial"] .btn:hover, [data-style="industrial"] .hero .btn:hover {
+  background: var(--ind-steel), var(--hover); border-color: var(--accent); filter: none;
+}
+[data-style="industrial"] .btn-primary, [data-style="industrial"] .btn-primary:hover,
+[data-style="industrial"] .hero .btn-primary, [data-style="industrial"] .hero .btn-primary:hover {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent); border-bottom-color: #111;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 3px 0 #111; font-weight: 800;
+}
+[data-style="industrial"] .btn:active, [data-style="industrial"] .hero .btn:active {
+  transform: translateY(2px); box-shadow: inset 0 2px 2px rgba(0,0,0,.4);
+}
+[data-style="industrial"] .btn-danger { border-color: var(--accent); }
+[data-style="industrial"] .icon-btn, [data-style="industrial"] .hero .icon-btn {
+  border-radius: var(--radius); border: 1px solid var(--ind-edge); color: var(--muted); background: var(--surface);
+}
+[data-style="industrial"] .icon-btn:hover, [data-style="industrial"] .hero .icon-btn:hover { background: var(--hover); color: var(--accent); }
+[data-style="industrial"] .icon-btn.active, [data-style="industrial"] .hero .icon-btn.active { color: var(--accent); border-color: var(--accent); }
+[data-style="industrial"] .play-btn, [data-style="industrial"] .card-play, [data-style="industrial"] .pb-play {
+  background: var(--accent); color: var(--accent-text); border: 1px solid #111;
+  box-shadow: var(--ind-bevel), 0 2px 0 #111;
+}
+[data-style="industrial"] .play-btn:active, [data-style="industrial"] .card-play:active,
+[data-style="industrial"] .pb-play:active { transform: translateY(2px) !important; box-shadow: var(--ind-bevel); }
+
+/* ---------------------------------------------------------------- bolted plates & lists */
+
+[data-style="industrial"] .card, [data-style="industrial"] .feed-card {
+  position: relative; border: 1px solid var(--ind-edge); border-radius: var(--radius);
+  background: var(--ind-steel), var(--surface); box-shadow: var(--ind-bevel), var(--shadow);
+}
+[data-style="industrial"] .card:hover { background: var(--ind-steel), var(--hover); border-color: var(--accent); }
+/* Four bolts use one noninteractive overlay; artwork and play buttons retain their own layers. */
+[data-style="industrial"] .card::before, [data-style="industrial"] .feed-card::before {
+  content: ""; position: absolute; inset: 2px; pointer-events: none; z-index: 2;
+  background: var(--ind-bolt) left top / 8px 8px no-repeat,
+              var(--ind-bolt) right top / 8px 8px no-repeat,
+              var(--ind-bolt) left bottom / 8px 8px no-repeat,
+              var(--ind-bolt) right bottom / 8px 8px no-repeat;
+}
+[data-style="industrial"] .card-art, [data-style="industrial"] .feed-art,
+[data-style="industrial"] .track-art, [data-style="industrial"] .hero-art,
+[data-style="industrial"] .pb-art, [data-style="industrial"] .queue-art, [data-style="industrial"] .atp-art {
+  border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 1px 0 rgba(255,255,255,.15);
+}
+[data-style="industrial"] .card-art.round, [data-style="industrial"] .hero-art.round { border-radius: 50%; }
+[data-style="industrial"] .shelf-row { background: transparent; }
+[data-style="industrial"] .track-list { background: var(--bg); border: 1px solid var(--ind-edge); }
+[data-style="industrial"] .track-row, [data-style="industrial"] .queue-row {
+  border-radius: 0; border-left: 3px solid transparent; border-bottom: 1px solid var(--border);
+}
+[data-style="industrial"] .track-row:hover, [data-style="industrial"] .queue-row:hover { background: var(--hover); }
+[data-style="industrial"] .track-row.current, [data-style="industrial"] .queue-row.current {
+  border-left-color: var(--accent); background: var(--surface);
+}
+[data-style="industrial"] .track-row.current .track-title,
+[data-style="industrial"] .queue-row.current .queue-title { color: var(--accent); }
+
+/* ---------------------------------------------------------------- stamped labels & hero */
+
+[data-style="industrial"] .tag-pill, [data-style="industrial"] .chip {
+  border-radius: var(--radius); border: 1px solid var(--ind-edge); background: var(--ind-steel), var(--surface);
+  color: var(--text); font-family: var(--font-display); text-transform: uppercase; letter-spacing: .05em;
+  box-shadow: var(--ind-bevel); text-shadow: 0 1px 0 #111;
+}
+[data-style="industrial"] .chip:hover, [data-style="industrial"] a.tag-pill:hover { background: var(--hover); border-color: var(--accent); }
+[data-style="industrial"] .chip.active { background: var(--accent); color: var(--accent-text); text-shadow: none; }
+[data-style="industrial"] .tabs { border-bottom: 1px solid var(--ind-edge); }
+[data-style="industrial"] .tab { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em; }
+[data-style="industrial"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+[data-style="industrial"] .hero { border: 1px solid var(--ind-edge); border-radius: var(--radius); background: var(--surface); }
+[data-style="industrial"] .hero-bg, [data-style="industrial"] .hero.banner .hero-bg { filter: grayscale(.65) brightness(.35); }
+[data-style="industrial"] .hero-art { box-shadow: var(--ind-bevel), var(--shadow); }
+
+/* ---------------------------------------------------------------- diamond plate player */
+
+[data-style="industrial"] .playerbar, [data-style="industrial"][data-bg] .playerbar {
+  background: linear-gradient(45deg, transparent 43%, rgba(255,255,255,.035) 44% 49%, transparent 50%) 0 0 / 16px 16px,
+              linear-gradient(-45deg, transparent 43%, rgba(0,0,0,.15) 44% 49%, transparent 50%) 8px 0 / 16px 16px,
+              var(--ind-steel), var(--bar);
+  border-top: 1px solid var(--ind-edge); box-shadow: var(--ind-bevel); backdrop-filter: none;
+}
+[data-style="industrial"][data-player="top"] .playerbar { border-top: 0; border-bottom: 1px solid var(--ind-edge); }
+[data-style="industrial"] .pb-title { color: var(--text); }
+[data-style="industrial"] .pb-time, [data-style="industrial"] .pb-artist { color: var(--muted); }
+[data-style="industrial"] .pb-track {
+  height: 5px; border-radius: 1px; background: var(--wave); box-shadow: inset 0 1px 2px #111, 0 1px 0 rgba(255,255,255,.15);
+}
+[data-style="industrial"] .pb-volume .pb-track { height: 4px; }
+[data-style="industrial"] .pb-buffer { background: var(--ind-edge); border-radius: 1px; }
+[data-style="industrial"] .pb-fill, [data-style="industrial"] .pb-progress:hover .pb-fill,
+[data-style="industrial"] .pb-progress.dragging .pb-fill, [data-style="industrial"] .pb-volume:hover .pb-fill {
+  background: var(--wave-played); border-radius: 1px; box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+}
+[data-style="industrial"] .pb-knob { background: var(--accent); border: 1px solid #111; border-radius: 1px; }
+[data-style="industrial"] .pb-hovertime { background: var(--surface); color: var(--text); border: 1px solid var(--ind-edge); border-radius: var(--radius); }
+
+/* ---------------------------------------------------------------- windows & warning tape */
+
+[data-style="industrial"] .menu, [data-style="industrial"] .modal, [data-style="industrial"] .queue-panel {
+  background: var(--ind-steel), var(--surface); border: 1px solid var(--ind-edge);
+  border-radius: var(--radius); box-shadow: var(--ind-bevel), var(--shadow);
+}
+[data-style="industrial"] .menu-item { border-radius: var(--radius); }
+[data-style="industrial"] .menu-item:hover, [data-style="industrial"] .atp-row:hover { background: var(--hover); color: var(--accent); }
+[data-style="industrial"] .menu-item:hover .icon { color: inherit; }
+[data-style="industrial"] .modal-overlay { background: rgba(0,0,0,.75); backdrop-filter: none; }
+[data-style="industrial"] .modal-head, [data-style="industrial"] .queue-head {
+  position: relative; background: var(--bar); border-bottom: 1px solid var(--ind-edge);
+}
+[data-style="industrial"] .atp-track { background: var(--bg); border: 1px solid var(--ind-edge); border-radius: var(--radius); }
+[data-style="industrial"] .atp-state { border-radius: var(--radius); border-color: var(--ind-edge); }
+[data-style="industrial"] .toast, [data-style="industrial"] .toast-error {
+  border-radius: var(--radius); border: 1px solid #111; color: var(--accent-text);
+  background: var(--ind-tape) top / 100% 4px no-repeat, var(--ind-tape) bottom / 100% 4px no-repeat, var(--accent);
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: .05em;
+}
+
+/* ---------------------------------------------------------------- scrollbars & login */
+
+[data-style="industrial"] ::-webkit-scrollbar { width: 10px; height: 10px; background: var(--bg); }
+[data-style="industrial"] ::-webkit-scrollbar-track { background: var(--bg); }
+[data-style="industrial"] ::-webkit-scrollbar-thumb {
+  background: var(--ind-steel), var(--surface); border: 1px solid var(--ind-edge); border-radius: 1px;
+}
+[data-style="industrial"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+[data-style="industrial"] ::-webkit-scrollbar-corner { background: var(--bg); }
+[data-style="industrial"] .spinner { border: 3px solid var(--wave); border-top-color: var(--accent); border-radius: 2px; }
+[data-style="industrial"] .skeleton { background: var(--ind-steel), var(--surface); }
+[data-style="industrial"] .login { background: transparent; }
+[data-style="industrial"] .login-card {
+  background: var(--ind-steel), var(--surface); border: 1px solid var(--ind-edge); border-radius: var(--radius);
+  box-shadow: var(--ind-bevel), var(--shadow); backdrop-filter: none;
+}
+[data-style="industrial"] .login-error { background: var(--bg); color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius); }

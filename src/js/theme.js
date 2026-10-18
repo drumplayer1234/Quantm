@@ -65,6 +65,27 @@ export const PRESETS = {
     accent: '#0a84ff', accentText: '#ffffff', bg: '#0a0a0f', surface: '#1c1c22', bar: '#16161c',
     text: '#f5f5f7', muted: '#9a9aa5', wave: '#3a3a44', wavePlayed: '#0a84ff'
   },
+  'Hextech': {
+    accent: '#c8aa6e', accentText: '#010a13', bg: '#010a13', surface: '#0a1428', bar: '#091428',
+    text: '#f0e6d2', muted: '#a09b8c', wave: '#1e2328', wavePlayed: '#0ac8b9'
+  },
+  'OLED': {
+    accent: '#3d9bff', accentText: '#000000', bg: '#000000', surface: '#0a0a0a', bar: '#000000',
+    text: '#f5f5f5', muted: '#8a8a8a', wave: '#262626', wavePlayed: '#3d9bff'
+  },
+  'E-ink': {
+    accent: '#111111', accentText: '#f4f1ea', bg: '#f4f1ea', surface: '#ece8df', bar: '#f4f1ea',
+    text: '#111111', muted: '#5a5a5a', wave: '#c9c4b8', wavePlayed: '#111111'
+  },
+  'Industrial': {
+    accent: '#f2b705', accentText: '#111111', bg: '#1c1d1f', surface: '#2a2b2e', bar: '#222326',
+    text: '#e6e6e3', muted: '#9a9b95', wave: '#3a3b3e', wavePlayed: '#f2b705'
+  },
+  // colors are replaced live from the playing song's artwork (appearance.js)
+  'Album Match': {
+    accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
+    text: '#f4f4f4', muted: '#a0a0a0', wave: '#5c5c5c', wavePlayed: '#ff5500'
+  },
   'Mono': {
     accent: '#ffffff', accentText: '#000000', bg: '#000000', surface: '#111111', bar: '#0a0a0a',
     text: '#ffffff', muted: '#8a8a8a', wave: '#333333', wavePlayed: '#ffffff'
@@ -82,11 +103,23 @@ export const PRESET_STYLES = {
   'Pixel': 'pixel',
   'Minimal': 'minimal',
   'Liquid Glass': 'liquid',
-  'Liquid Glass Dark': 'liquid'
+  'Liquid Glass Dark': 'liquid',
+  'Hextech': 'hextech',
+  'OLED': 'oled',
+  'E-ink': 'eink',
+  'Industrial': 'industrial',
+  'Album Match': 'album'
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22 };
+export const PRESET_RADIUS = { 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14 };
+
+// Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
+// window.QUANTM_LOCAL_THEMES = { presets, styles, radius } before this module runs
+const local = (typeof window !== 'undefined' && window.QUANTM_LOCAL_THEMES) || {};
+Object.assign(PRESETS, local.presets || {});
+Object.assign(PRESET_STYLES, local.styles || {});
+Object.assign(PRESET_RADIUS, local.radius || {});
 
 export const DEFAULT_THEME = { preset: 'SoundCloud Dark', colors: Object.assign({}, PRESETS['SoundCloud Dark']), radius: 10 };
 

@@ -4,3 +4,7 @@ dist/
 .DS_Store
 userConfig.json
 auth.json
+.dev-profile/
+# personal themes, never published
+src/js/local-themes.js
+src/styles/themes/local/

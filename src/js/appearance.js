@@ -173,6 +173,7 @@ function applyArtworkColors(a) {
 }
 
 async function updateArtworkAccent() {
+  if (isAlbumMatch()) return; // Album Match already colors everything from the artwork
   const a = getAppearance();
   const track = player.current;
   if (!a.artworkColors || !track) return;
@@ -188,6 +189,12 @@ async function updateArtworkAccent() {
 
 /** The most vivid color in an image (fetched through the main process: no CORS) */
 async function dominantColor(url) {
+  const palette = await imagePalette(url);
+  return palette && palette.vivid;
+}
+
+/** { vivid, base } colors of an image: the most striking color and the overall average */
+async function imagePalette(url) {
   const dataUrl = await window.native.image(url);
   if (!dataUrl) return null;
   const img = new Image();
@@ -202,8 +209,10 @@ async function dominantColor(url) {
 
   // bucket colors, score buckets by count × saturation so dull backgrounds lose
   const buckets = new Map();
+  const sum = { r: 0, g: 0, b: 0, n: 0 };
   for (let i = 0; i < data.length; i += 4) {
     const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+    sum.r += r; sum.g += g; sum.b += b; sum.n++;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
     const sat = max === 0 ? 0 : (max - min) / max;
     const light = (max + min) / 510;
@@ -219,8 +228,66 @@ async function dominantColor(url) {
     const score = bucket.n * Math.pow(bucket.sat / bucket.n + 0.05, 2);
     if (score > bestScore) { bestScore = score; best = bucket; }
   }
-  if (!best) return null;
-  return toHex(best.r / best.n, best.g / best.n, best.b / best.n);
+  const base = toHex(sum.r / sum.n, sum.g / sum.n, sum.b / sum.n);
+  const vivid = best ? toHex(best.r / best.n, best.g / best.n, best.b / best.n) : base;
+  return { vivid, base };
+}
+
+// --- Album Match theme: the whole palette follows the playing artwork -----------
+
+const mix = (a, b, t) => {
+  const [r1, g1, b1] = theme.hexToRgb(a);
+  const [r2, g2, b2] = theme.hexToRgb(b);
+  return toHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
+};
+
+let albumColors = null;
+
+export function isAlbumMatch() {
+  return theme.getTheme().style === 'album';
+}
+
+/** Build a dark palette from the artwork's colors and apply it (not saved: it changes per song) */
+async function updateAlbumMatch() {
+  if (!isAlbumMatch()) { albumColors = null; return; }
+  const track = player.current;
+  if (!track) return;
+  const url = artwork(track.artwork_url || (track.user && track.user.avatar_url), 't67x67');
+  const palette = url ? await imagePalette(url).catch(() => null) : null;
+  if (!palette || player.current !== track || !isAlbumMatch()) return;
+
+  // tint near-black with the artwork's overall hue, then pick a vivid accent that reads on it
+  const bg = mix(palette.base, '#000000', 0.86);
+  const accent = ensureContrast(palette.vivid, bg);
+  albumColors = {
+    bg,
+    surface: mix(palette.base, '#000000', 0.76),
+    bar: mix(palette.base, '#000000', 0.82),
+    text: '#f4f4f4',
+    muted: mix(palette.base, '#b4b4b4', 0.7),
+    accent,
+    accentText: theme.luminance(accent) > 0.45 ? '#000000' : '#ffffff',
+    wave: mix(palette.base, '#000000', 0.55),
+    wavePlayed: accent
+  };
+  applyAlbumColors();
+}
+
+function applyAlbumColors() {
+  if (!albumColors || !isAlbumMatch()) return;
+  const root = document.documentElement.style;
+  const c = albumColors;
+  root.setProperty('--bg', c.bg);
+  root.setProperty('--surface', c.surface);
+  root.setProperty('--bar', c.bar);
+  root.setProperty('--text', c.text);
+  root.setProperty('--muted', c.muted);
+  root.setProperty('--accent', c.accent);
+  root.setProperty('--accent-text', c.accentText);
+  root.setProperty('--wave', c.wave);
+  root.setProperty('--wave-played', c.wavePlayed);
+  if (window.native) window.native.setTitleBar(c.bar, '#ffffff');
+  document.dispatchEvent(new CustomEvent('accentchange'));
 }
 
 /** Lighten or darken a color until it stands out against the background */
@@ -277,10 +344,18 @@ export function initAppearance() {
   player.on('track', () => {
     const a = getAppearance();
     if (a.background === 'artwork') applyBackground(a);
-    updateArtworkAccent();
+    if (isAlbumMatch()) updateAlbumMatch();
+    else updateArtworkAccent();
   });
   // a theme change resets the CSS variables: put the artwork accent back on top
   document.addEventListener('themechange', () => {
+    if (isAlbumMatch()) {
+      // switching to Album Match: build the palette now; staying on it: re-apply after a reset
+      if (albumColors) applyAlbumColors();
+      else updateAlbumMatch();
+      return;
+    }
+    albumColors = null;
     if (artworkAccent) applyArtworkColors(getAppearance());
   });
   setInterval(() => checkSchedule(), 30000);

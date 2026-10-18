@@ -1,0 +1,28 @@
+/* Album Match: the palette is rebuilt from each song's artwork (appearance.js).
+   This layer only makes the switch between songs a smooth color blend. */
+
+[data-style="album"] body,
+[data-style="album"] .topbar,
+[data-style="album"] .playerbar,
+[data-style="album"] .card,
+[data-style="album"] .track-list,
+[data-style="album"] .feed-card,
+[data-style="album"] .modal,
+[data-style="album"] .menu,
+[data-style="album"] .queue-panel,
+[data-style="album"] .btn-primary,
+[data-style="album"] .play-btn,
+[data-style="album"] .pb-play,
+[data-style="album"] .nav-link.active {
+  transition: background-color .8s ease, color .8s ease, border-color .8s ease;
+}
+
+/* a soft glow of the artwork's accent behind the page */
+[data-style="album"] body {
+  background:
+    radial-gradient(1100px 520px at 15% -10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 65%),
+    var(--bg);
+}
+[data-style="album"][data-bg] body { background: var(--bg); }
+[data-style="album"] .pb-fill,
+[data-style="album"] .tab.active { transition: background-color .8s ease, border-color .8s ease; }

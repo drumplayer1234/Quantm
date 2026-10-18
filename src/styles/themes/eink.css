@@ -1,0 +1,176 @@
+/* E-ink theme: crisp printed rules, monochrome artwork and a quiet paper surface.
+   Active when <html data-style="eink">. Ink and paper follow the editable theme variables.
+   Only the faint paper grain uses gradients; all controls and panels are flat. */
+
+[data-style="eink"] {
+  --bg: #f4f1ea; --surface: #ece8df; --bar: #f4f1ea;
+  --text: #111111; --muted: #5a5a5a; --accent: #111111; --accent-text: #f4f1ea;
+  --wave: #c9c4b8; --wave-played: #111111;
+  --font: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --font-display: var(--font); --radius: 0px; --shadow: none;
+  --border: var(--text); --hover: var(--surface); --hover-strong: var(--wave);
+  --surface-2: var(--surface); --accent-soft: var(--surface);
+}
+
+/* ---------------------------------------------------------------- paper & stillness */
+
+[data-style="eink"] *, [data-style="eink"] *::before, [data-style="eink"] *::after {
+  border-radius: 0 !important; box-shadow: none !important; text-shadow: none !important;
+  backdrop-filter: none !important; transition: none !important; animation: none !important;
+  scroll-behavior: auto !important;
+}
+[data-style="eink"] body, [data-style="eink"][data-bg] body {
+  color: var(--text);
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.012) 0 1px, transparent 1px 3px),
+              repeating-linear-gradient(90deg, rgba(0,0,0,.008) 0 1px, transparent 1px 5px), var(--bg);
+}
+[data-style="eink"] ::selection { background: var(--text); color: var(--bg); }
+[data-style="eink"] :focus-visible { outline: 1px dotted var(--text); outline-offset: 3px; }
+/* Background artwork lives on divs as well as img elements. Keep performance mode monochrome. */
+[data-style="eink"] img, [data-style="eink"] [style*="background-image"],
+[data-style="eink"] .avatar, [data-style="eink"] .card-art, [data-style="eink"] .track-art,
+[data-style="eink"] .feed-art, [data-style="eink"] .hero-art, [data-style="eink"] .hero-bg,
+[data-style="eink"] .pb-art, [data-style="eink"] .queue-art, [data-style="eink"] .atp-art,
+[data-style="eink"] .app-bg-image, [data-style="eink"] .pb-visualizer,
+[data-style="eink"] .waveform canvas { filter: grayscale(1) contrast(1.1) !important; }
+[data-style="eink"] .app-bg-dim { background: var(--bg); opacity: .94; }
+
+/* ---------------------------------------------------------------- top bar & search */
+
+[data-style="eink"] .topbar, [data-style="eink"][data-bg] .topbar {
+  background: var(--bar); border-bottom: 1px solid var(--text);
+}
+[data-style="eink"][data-nav="sidebar"] .nav { background: var(--bar); border-right: 1px solid var(--text); }
+[data-style="eink"] .logo, [data-style="eink"] .logo:hover { color: var(--text); filter: none; }
+[data-style="eink"] .nav-link { color: var(--text); }
+[data-style="eink"] .nav-link:hover, [data-style="eink"] .nav-link.active { background: var(--text); color: var(--bg); }
+[data-style="eink"] .search-input, [data-style="eink"] .input {
+  background: var(--bg); color: var(--text); border: 1px solid var(--text);
+}
+[data-style="eink"] .search-input:focus, [data-style="eink"] .input:focus { background: var(--bg); border-color: var(--text); }
+[data-style="eink"] .search-input::placeholder, [data-style="eink"] .input::placeholder { color: var(--muted); opacity: 1; }
+[data-style="eink"] .search > .icon { color: var(--text); }
+[data-style="eink"] .search-suggest { background: var(--bg); border: 1px solid var(--text); }
+[data-style="eink"] .suggest-item { color: var(--text); }
+[data-style="eink"] .suggest-item:hover, [data-style="eink"] .suggest-item.active { background: var(--text); color: var(--bg); }
+
+/* ---------------------------------------------------------------- printed buttons */
+
+[data-style="eink"] .btn, [data-style="eink"] .hero .btn,
+[data-style="eink"] .icon-btn, [data-style="eink"] .hero .icon-btn,
+[data-style="eink"] .play-btn, [data-style="eink"] .card-play, [data-style="eink"] .pb-play {
+  background: var(--bg); color: var(--text); border: 1px solid var(--text); filter: none;
+}
+[data-style="eink"] .btn:hover, [data-style="eink"] .btn:active,
+[data-style="eink"] .hero .btn:hover, [data-style="eink"] .hero .btn:active,
+[data-style="eink"] .icon-btn:hover, [data-style="eink"] .icon-btn:active, [data-style="eink"] .icon-btn.active,
+[data-style="eink"] .hero .icon-btn:hover, [data-style="eink"] .hero .icon-btn.active,
+[data-style="eink"] .play-btn:hover, [data-style="eink"] .play-btn:active,
+[data-style="eink"] .card-play:hover, [data-style="eink"] .card-play:active,
+[data-style="eink"] .pb-play:hover, [data-style="eink"] .pb-play:active {
+  background: var(--text); color: var(--bg); filter: none; transform: none !important;
+}
+[data-style="eink"] .win-btn:hover, [data-style="eink"] .pb-speed:hover,
+[data-style="eink"] .pb-speed.active { background: var(--text); color: var(--bg); }
+[data-style="eink"] .pb-mode.active::after { background: currentColor; }
+[data-style="eink"] .wave-comment:hover { transform: none; }
+
+/* ---------------------------------------------------------------- cards & ruled lists */
+
+[data-style="eink"] .page-title, [data-style="eink"] .shelf-title, [data-style="eink"] .hero-title {
+  font-family: var(--font-display); letter-spacing: 0;
+}
+[data-style="eink"] .page-header, [data-style="eink"] .shelf-head {
+  border-bottom: 1px solid var(--text); padding-bottom: 8px;
+}
+[data-style="eink"] .card, [data-style="eink"] .feed-card {
+  background: var(--bg); border: 1px solid var(--text);
+}
+[data-style="eink"] .card:hover { background: var(--surface); }
+[data-style="eink"] .shelf-row { background: transparent; }
+[data-style="eink"] .card-art, [data-style="eink"] .feed-art, [data-style="eink"] .track-art,
+[data-style="eink"] .hero-art, [data-style="eink"] .pb-art, [data-style="eink"] .queue-art,
+[data-style="eink"] .atp-art, [data-style="eink"] .avatar { border: 1px solid var(--text); }
+[data-style="eink"] .track-list { border: 1px solid var(--text); background: var(--bg); }
+[data-style="eink"] .track-row { border-bottom: 1px dotted var(--text); }
+[data-style="eink"] .track-row:last-child { border-bottom: 0; }
+[data-style="eink"] .track-row:hover, [data-style="eink"] .queue-row:hover { background: var(--surface); }
+[data-style="eink"] .track-row.current, [data-style="eink"] .queue-row.current {
+  background: var(--text); color: var(--bg);
+}
+[data-style="eink"] .track-row.current :is(.track-title, .track-sub, .track-sub a, .track-duration, .track-num, .track-reason, .stat),
+[data-style="eink"] .queue-row.current :is(.queue-title, .muted) { color: var(--bg); }
+[data-style="eink"] .track-row.current :is(.icon-btn, .tag-pill),
+[data-style="eink"] .queue-row.current .icon-btn { background: transparent; color: var(--bg); border-color: var(--bg); }
+[data-style="eink"] .track-row.current .icon-btn:hover,
+[data-style="eink"] .queue-row.current .icon-btn:hover { background: var(--bg); color: var(--text); }
+[data-style="eink"] .track-art-overlay { background: var(--text); color: var(--bg); }
+[data-style="eink"] .queue-row.drop { border-top: 1px solid var(--text); }
+
+/* ---------------------------------------------------------------- labels, tabs & hero */
+
+[data-style="eink"] .tag-pill, [data-style="eink"] .chip {
+  background: var(--bg); color: var(--text); border: 1px solid var(--text);
+}
+[data-style="eink"] a.tag-pill:hover, [data-style="eink"] .chip:hover,
+[data-style="eink"] .chip.active { background: var(--text); color: var(--bg); }
+[data-style="eink"] .tabs { border-bottom: 1px solid var(--text); }
+[data-style="eink"] .tab { color: var(--text); }
+[data-style="eink"] .tab:hover, [data-style="eink"] .tab.active {
+  color: var(--bg); background: var(--text); border-bottom-color: var(--text);
+}
+[data-style="eink"] .hero { background: var(--bg); border: 1px solid var(--text); }
+[data-style="eink"] .hero-bg, [data-style="eink"] .hero.banner .hero-bg { inset: 0; transform: none; opacity: .12; }
+[data-style="eink"] .hero-bg::after { background: none; }
+[data-style="eink"] .hero-inner { color: var(--text); }
+[data-style="eink"] .hero-text { background: var(--bg); }
+[data-style="eink"] .hero .stat { color: var(--muted); }
+
+/* ---------------------------------------------------------------- player: ink on a rule */
+
+[data-style="eink"] .playerbar, [data-style="eink"][data-bg] .playerbar {
+  background: var(--bar); color: var(--text); border-top: 1px solid var(--text);
+}
+[data-style="eink"][data-player="top"] .playerbar { border-top: 0; border-bottom: 1px solid var(--text); }
+[data-style="eink"] .pb-title { color: var(--text); }
+[data-style="eink"] .pb-time, [data-style="eink"] .pb-artist { color: var(--muted); }
+[data-style="eink"] .pb-track, [data-style="eink"] .pb-volume .pb-track { height: 1px; background: var(--wave); }
+[data-style="eink"] .pb-fill, [data-style="eink"] .pb-progress:hover .pb-fill,
+[data-style="eink"] .pb-progress.dragging .pb-fill, [data-style="eink"] .pb-volume:hover .pb-fill { background: var(--wave-played); }
+[data-style="eink"] .pb-buffer { background: transparent; }
+[data-style="eink"] .pb-knob { display: none; }
+[data-style="eink"] .pb-hovertime { background: var(--bg); color: var(--text); border: 1px solid var(--text); }
+
+/* ---------------------------------------------------------------- menus, dialogs & queue */
+
+[data-style="eink"] .menu, [data-style="eink"] .modal, [data-style="eink"] .queue-panel {
+  background: var(--bg); color: var(--text); border: 1px solid var(--text);
+}
+[data-style="eink"] .menu-item, [data-style="eink"] .menu-item.danger { color: var(--text); }
+[data-style="eink"] .menu-item .icon, [data-style="eink"] .menu-item.danger .icon { color: inherit; }
+[data-style="eink"] .menu-item:hover, [data-style="eink"] .atp-row:hover { background: var(--text); color: var(--bg); }
+[data-style="eink"] .atp-row:hover .muted { color: inherit; }
+[data-style="eink"] .menu-sep { background: none; border-top: 1px dotted var(--text); }
+[data-style="eink"] .modal-overlay { background: color-mix(in srgb, var(--bg) 85%, transparent); }
+[data-style="eink"] .modal-head, [data-style="eink"] .queue-head { border-bottom: 1px solid var(--text); }
+[data-style="eink"] .atp-track { background: var(--surface); border: 1px solid var(--text); }
+[data-style="eink"] .atp-state { border-color: currentColor; color: inherit; }
+[data-style="eink"] .atp-row.added .atp-state { background: var(--text); color: var(--bg); border-color: currentColor; }
+[data-style="eink"] .toast, [data-style="eink"] .toast-error {
+  background: var(--bg); color: var(--text); border: 1px solid var(--text);
+}
+[data-style="eink"] .toast-error { border-style: dashed; }
+
+/* ---------------------------------------------------------------- scrollbars & login */
+
+[data-style="eink"] ::-webkit-scrollbar { width: 9px; height: 9px; background: var(--bg); }
+[data-style="eink"] ::-webkit-scrollbar-track { background: var(--bg); border-left: 1px solid var(--text); }
+[data-style="eink"] ::-webkit-scrollbar-thumb { background: var(--text); border: 2px solid var(--bg); }
+[data-style="eink"] ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+[data-style="eink"] ::-webkit-scrollbar-corner { background: var(--bg); }
+[data-style="eink"] .spinner { border: 1px dotted var(--text); border-top: 2px solid var(--text); }
+[data-style="eink"] .skeleton { background: var(--surface); border: 1px dotted var(--muted); }
+[data-style="eink"] .login { background: transparent; }
+[data-style="eink"] .login-card { background: var(--bg); color: var(--text); border: 1px solid var(--text); }
+[data-style="eink"] .login-logo { color: var(--text); }
+[data-style="eink"] .login-error { background: var(--surface); color: var(--text); border: 1px dotted var(--text); }
