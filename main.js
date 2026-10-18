@@ -408,12 +408,14 @@ ipcMain.handle('window:mode', () => ({
 }));
 
 // saving the choice restarts the app, since a window can't become transparent later
-ipcMain.handle('window:setSeeThrough', (event, on) => {
+ipcMain.handle('window:setSeeThrough', async (event, on) => {
   const prefs = loadWindowPrefs();
   prefs.seeThrough = !!on;
   fs.writeFileSync(windowPrefsFile(), JSON.stringify(prefs));
+  // write theme/settings (localStorage) to disk first, then quit normally
+  await session.defaultSession.flushStorageData();
   app.relaunch();
-  app.exit(0);
+  app.quit();
 });
 
 ipcMain.handle('window:control', (event, action) => {
@@ -456,6 +458,16 @@ if (!app.requestSingleInstanceLock()) {
     registerNotificationIdentity();
     auth = loadAuth();
     createMainWindow();
+  });
+
+  // make sure the latest theme and settings are on disk however the app closes
+  let flushed = false;
+  app.on('before-quit', (event) => {
+    if (flushed) return;
+    event.preventDefault();
+    flushed = true;
+    session.defaultSession.flushStorageData();
+    setTimeout(() => app.quit(), 50);
   });
 
   app.on('window-all-closed', () => {
