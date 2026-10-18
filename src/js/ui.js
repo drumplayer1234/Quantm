@@ -320,7 +320,23 @@ export function trackList(pager, opts = {}) {
   const spinnerEl = spinner();
   list.append(spinnerEl);
 
-  const loadMore = async () => {
+  // the play context can load every remaining page, so shuffle covers the whole collection
+  let loading = null;
+  const loadAll = async () => {
+    while (!pager.done) await loadMore();
+    return tracks;
+  };
+  opts = Object.assign({}, opts, { context: Object.assign({}, opts.context, { loadAll }) });
+  list.loadAll = loadAll;
+  list.context = opts.context;
+
+  const loadMore = () => {
+    // one page at a time, even when scrolling and loadAll overlap
+    if (!loading) loading = loadPage().finally(() => { loading = null; });
+    return loading;
+  };
+
+  const loadPage = async () => {
     if (pager.done) return;
     try {
       const items = await pager.next();

@@ -116,20 +116,16 @@ function likes(content) {
   const count = store.me && store.me.likes_count;
 
   const loaded = () => list.tracks.slice();
+  // list.context can load every page, so the player plays / shuffles the whole collection
   const playAll = () => {
     const tracks = loaded();
     if (!tracks.length) return toast('Nothing to play yet');
-    player.playList(tracks, 0, likesContext);
+    player.playList(tracks, 0, list.context);
   };
   const shuffleAll = () => {
     const tracks = loaded();
     if (!tracks.length) return toast('Nothing to play yet');
-    // Fisher-Yates so the first track is random too
-    for (let i = tracks.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
-    }
-    player.playList(tracks, 0, likesContext);
+    player.shufflePlay(tracks, list.context);
   };
 
   content.append(

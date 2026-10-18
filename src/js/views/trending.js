@@ -14,16 +14,6 @@ const GENRES = [
 /** "Hip-hop & Rap" -> "hip-hop-and-rap" */
 const slugOf = (title) => title.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-/** Random order copy (Fisher-Yates), so Shuffle doesn't flip the global shuffle setting */
-function shuffled(items) {
-  const copy = items.slice();
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 export async function render(page, params) {
   const genre = params.genre ? GENRES.find(g => slugOf(g) === slugOf(params.genre)) : null;
   const title = genre || 'All music';
@@ -39,11 +29,11 @@ export async function render(page, params) {
   };
   const playAll = async () => {
     const tracks = await tracksReady();
-    if (tracks.length) player.playList(tracks, 0, context);
+    if (tracks.length) player.playList(tracks, 0, list.context);
   };
   const shuffle = async () => {
-    const tracks = shuffled(await tracksReady());
-    if (tracks.length) player.playList(tracks, 0, context);
+    const tracks = await tracksReady();
+    if (tracks.length) player.shufflePlay(tracks, list.context);
   };
 
   const chip = (label, href, active) => h('a.chip' + (active ? '.active' : ''), { href }, label);

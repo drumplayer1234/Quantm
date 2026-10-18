@@ -4,6 +4,16 @@ import { Emitter, artwork } from './dom.js';
 import { settings, saveSettings } from './store.js';
 import { toast } from './ui.js';
 
+/** Uniformly random order (Fisher-Yates), returns a new array */
+function randomOrder(list) {
+  const out = list.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 class Player extends Emitter {
   constructor() {
     super();
@@ -54,7 +64,21 @@ class Player extends Emitter {
     this.original = null;
     if (this.shuffle) this.applyShuffle();
     this.emit('queue');
-    return this.load();
+    const started = this.load();
+    if (this.shuffle) this.shuffleWholeCollection();
+    return started;
+  }
+
+  /** Turn shuffle on and start a random track; the whole collection gets shuffled in */
+  shufflePlay(tracks, context = null) {
+    const playable = tracks.filter(t => t && t.kind !== 'playlist');
+    if (!playable.length) return;
+    if (!this.shuffle) {
+      this.shuffle = true;
+      saveSettings({ shuffle: true });
+      this.emit('modes');
+    }
+    return this.playList(playable, Math.floor(Math.random() * playable.length), context);
   }
 
   /** Play a single track (keeps it as a one-item queue unless it's already queued) */
@@ -193,6 +217,7 @@ class Player extends Emitter {
     if (this.index < this.queue.length - 1) {
       this.index++;
     } else if (this.repeat === 'all') {
+      if (this.shuffle) this.queue = randomOrder(this.queue);
       this.index = 0;
     } else if (settings.autoplayRelated && this.current) {
       // like soundcloud.com: keep playing related tracks
@@ -258,7 +283,10 @@ class Player extends Emitter {
 
   toggleShuffle() {
     this.shuffle = !this.shuffle;
-    if (this.shuffle) this.applyShuffle();
+    if (this.shuffle) {
+      this.applyShuffle();
+      this.shuffleWholeCollection();
+    }
     else if (this.original) {
       const current = this.current;
       this.queue = this.original;
@@ -273,13 +301,39 @@ class Player extends Emitter {
   applyShuffle() {
     const current = this.current;
     this.original = this.queue.slice();
-    const rest = this.queue.filter((t, i) => i !== this.index);
-    for (let i = rest.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [rest[i], rest[j]] = [rest[j], rest[i]];
-    }
+    const rest = randomOrder(this.queue.filter((t, i) => i !== this.index));
     this.queue = current ? [current, ...rest] : rest;
     this.index = current ? 0 : -1;
+  }
+
+  /**
+   * Lists like Likes load in pages. Load every remaining page of the list the queue
+   * came from, then put the whole collection (minus the current song) in random order.
+   */
+  async shuffleWholeCollection() {
+    const context = this.context;
+    if (!context || !context.loadAll || this.loadingAll === context) return;
+    this.loadingAll = context;
+    let all;
+    try {
+      all = await context.loadAll();
+    } catch (e) {
+      return;
+    } finally {
+      this.loadingAll = null;
+    }
+    // the user may have started something else or turned shuffle off meanwhile
+    if (this.context !== context || !this.shuffle) return;
+
+    const current = this.current;
+    const tracks = all.filter(t => t && t.kind !== 'playlist');
+    if (tracks.length <= this.queue.length) return;
+    const played = this.queue.slice(0, this.index);
+    const rest = randomOrder(tracks.filter(t => (!current || t.id !== current.id) && !played.some(p => p.id === t.id)));
+    this.original = tracks;
+    this.queue = [...played, ...(current ? [current] : []), ...rest];
+    this.emit('queue');
+    toast(`Shuffling all ${tracks.length} tracks`);
   }
 
   cycleRepeat() {
