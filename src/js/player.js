@@ -3,6 +3,7 @@ import * as api from './api.js';
 import { Emitter, artwork } from './dom.js';
 import { settings, saveSettings } from './store.js';
 import { toast } from './ui.js';
+import { Normalizer } from './normalizer.js';
 
 /** Uniformly random order (Fisher-Yates), returns a new array */
 function randomOrder(list) {
@@ -19,9 +20,15 @@ class Player extends Emitter {
     super();
     this.audio = new Audio();
     this.audio.preload = 'auto';
-    this.audio.volume = settings.volume;
-    this.audio.muted = settings.muted;
+    this.audio.crossOrigin = 'anonymous'; // needed to route progressive streams through Web Audio
     this.hls = null;
+
+    // volume is applied in the Web Audio graph (after loudness normalization)
+    this.volume = settings.volume;
+    this.muted = settings.muted;
+    this.normalizer = new Normalizer(this.audio);
+    this.normalizer.enabled = settings.normalize !== false;
+    this.normalizer.setVolume(this.volume, this.muted);
 
     this.queue = [];        // tracks in play order
     this.index = -1;        // position in queue
@@ -38,7 +45,6 @@ class Player extends Emitter {
     this.audio.addEventListener('pause', () => { this.emit('state'); this.updateMediaSession(); });
     this.audio.addEventListener('waiting', () => this.emit('buffering', true));
     this.audio.addEventListener('playing', () => this.emit('buffering', false));
-    this.audio.addEventListener('volumechange', () => this.emit('volume', this.audio.volume, this.audio.muted));
     this.audio.addEventListener('ended', () => this.onEnded());
 
     this.setupMediaSession();
@@ -146,6 +152,8 @@ class Player extends Emitter {
     if (!track) return;
     const loadId = ++this.loadId;
     this.loading = true;
+    this.normalizer.init();
+    this.normalizer.startTrack(track.id);
     this.emit('track', track);
     this.emit('buffering', true);
 
@@ -271,14 +279,23 @@ class Player extends Emitter {
   seekBy(delta) { this.seek(this.audio.currentTime + delta); }
 
   setVolume(value) {
-    this.audio.volume = Math.max(0, Math.min(1, value));
-    if (this.audio.muted && value > 0) this.audio.muted = false;
-    saveSettings({ volume: this.audio.volume, muted: this.audio.muted });
+    this.volume = Math.max(0, Math.min(1, value));
+    if (this.muted && value > 0) this.muted = false;
+    this.normalizer.setVolume(this.volume, this.muted);
+    saveSettings({ volume: this.volume, muted: this.muted });
+    this.emit('volume', this.volume, this.muted);
   }
 
   toggleMute() {
-    this.audio.muted = !this.audio.muted;
-    saveSettings({ muted: this.audio.muted });
+    this.muted = !this.muted;
+    this.normalizer.setVolume(this.volume, this.muted);
+    saveSettings({ muted: this.muted });
+    this.emit('volume', this.volume, this.muted);
+  }
+
+  setNormalize(on) {
+    this.normalizer.setEnabled(on);
+    saveSettings({ normalize: on });
   }
 
   toggleShuffle() {

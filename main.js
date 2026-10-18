@@ -13,6 +13,10 @@ const TITLEBAR_HEIGHT = 56;
 // SoundCloud rejects requests whose user agent mentions Electron
 app.userAgentFallback = CHROME_UA;
 
+// Windows shows this app's name (not "electron.app.Electron") on notifications.
+// Must match build.appId so it lines up with the installer's Start Menu shortcut.
+app.setAppUserModelId('app.quantm.desktop');
+
 let mainWindow = null;
 let loginWindow = null;
 let auth = null; // { token, clientId }

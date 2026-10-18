@@ -229,8 +229,8 @@ function setupShortcuts(searchInput) {
     else if (ctrl && e.key === 'ArrowLeft') { e.preventDefault(); player.prev(); }
     else if (e.key === 'ArrowRight') player.seekBy(10);
     else if (e.key === 'ArrowLeft') player.seekBy(-10);
-    else if (e.key === 'ArrowUp' && ctrl) { e.preventDefault(); player.setVolume(player.audio.volume + 0.05); }
-    else if (e.key === 'ArrowDown' && ctrl) { e.preventDefault(); player.setVolume(player.audio.volume - 0.05); }
+    else if (e.key === 'ArrowUp' && ctrl) { e.preventDefault(); player.setVolume(player.volume + 0.05); }
+    else if (e.key === 'ArrowDown' && ctrl) { e.preventDefault(); player.setVolume(player.volume - 0.05); }
     else if (e.key.toLowerCase() === 'm') player.toggleMute();
     else if (e.key.toLowerCase() === 'l' && player.current) store.toggleLike(player.current);
     else if (e.key.toLowerCase() === 's') player.toggleShuffle();

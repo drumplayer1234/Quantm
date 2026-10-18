@@ -106,7 +106,8 @@ const defaults = {
   shuffle: false,
   repeat: 'off', // off | all | one
   notifications: true,
-  autoplayRelated: true
+  autoplayRelated: true,
+  normalize: true
 };
 
 export const settings = Object.assign({}, defaults, safeParse(localStorage.getItem(SETTINGS_KEY)));

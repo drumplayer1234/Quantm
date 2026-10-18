@@ -382,7 +382,9 @@ async function playbackTab(cleanups) {
     card('Playback', null,
       toggleRow('Autoplay related tracks', 'Keep the music going with similar tracks when the queue ends.', settings.autoplayRelated,
         (on) => saveSettings({ autoplayRelated: on })),
-      toggleRow('Desktop notifications', 'Show a notification when a new track starts playing.', settings.notifications, onNotifications)
+      toggleRow('Desktop notifications', 'Show a notification when a new track starts playing.', settings.notifications, onNotifications),
+      toggleRow('Normalize volume', 'Even out loud and quiet tracks so every song plays at a similar level.', settings.normalize !== false,
+        (on) => player.setNormalize(on))
     ),
     card('Volume', 'The level Quantm plays at. You can also change it from the player bar.',
       h('div.settings-radius',

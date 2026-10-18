@@ -93,7 +93,7 @@ export function mountPlayerBar(root) {
 
   // --- volume -------------------------------------------------------------------
   const renderVolume = () => {
-    const v = player.audio.muted ? 0 : player.audio.volume;
+    const v = player.muted ? 0 : player.volume;
     volFill.style.width = v * 100 + '%';
     clear(volIcon).append(icon(v === 0 ? 'mute' : v < 0.5 ? 'volumeLow' : 'volume'));
   };
@@ -104,7 +104,7 @@ export function mountPlayerBar(root) {
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
   });
-  volume.addEventListener('wheel', (e) => { e.preventDefault(); player.setVolume(player.audio.volume - Math.sign(e.deltaY) * 0.05); }, { passive: false });
+  volume.addEventListener('wheel', (e) => { e.preventDefault(); player.setVolume(player.volume - Math.sign(e.deltaY) * 0.05); }, { passive: false });
   player.on('volume', renderVolume);
   renderVolume();
 
