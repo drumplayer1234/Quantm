@@ -64,7 +64,7 @@ function toggleRow(title, desc, checked, onChange) {
 // Theme tab
 // ---------------------------------------------------------------------------
 
-const clone = (t) => ({ preset: t.preset, colors: Object.assign({}, t.colors), radius: t.radius });
+const clone = (t) => ({ preset: t.preset, colors: Object.assign({}, t.colors), radius: t.radius, style: t.style || '' });
 
 /** "#abc" / "ABCDEF" / "#aabbcc" -> "#aabbcc", or null if invalid. short=false only accepts 6 digits */
 function normalizeHex(value, short = true) {
@@ -248,7 +248,7 @@ async function themeTab(cleanups) {
   // --- preset gallery ----------------------------------------------------------
   const gallery = h('div.settings-presets', Object.entries(theme.PRESETS).map(([name, colors]) => {
     const el = h('button.settings-preset', { type: 'button', title: 'Use ' + name,
-      onclick: () => commit({ preset: name, colors: Object.assign({}, colors), radius: draft.radius }) },
+      onclick: () => commit({ preset: name, colors: Object.assign({}, colors), radius: name === 'Y2K' ? 3 : draft.radius, style: theme.PRESET_STYLES[name] || '' }) },
       presetMock(colors),
       h('span.settings-preset-name', h('span', name), icon('check', 14))
     );
@@ -257,7 +257,7 @@ async function themeTab(cleanups) {
   }));
 
   // --- actions -----------------------------------------------------------------
-  const randomize = () => commit({ preset: 'Custom', colors: randomColors(), radius: draft.radius });
+  const randomize = () => commit({ preset: 'Custom', colors: randomColors(), radius: draft.radius, style: '' });
 
   const exportIt = async () => {
     try {

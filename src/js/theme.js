@@ -37,10 +37,22 @@ export const PRESETS = {
     accent: '#3ddc84', accentText: '#06210f', bg: '#0f1712', surface: '#17221b', bar: '#121c16',
     text: '#e4f1e8', muted: '#8aa594', wave: '#2c3d32', wavePlayed: '#3ddc84'
   },
+  'Y2K': {
+    accent: '#2f6fe0', accentText: '#ffffff', bg: '#ece9d8', surface: '#ffffff', bar: '#245edb',
+    text: '#000000', muted: '#4d4d4d', wave: '#a9c3ef', wavePlayed: '#2f6fe0'
+  },
   'Mono': {
     accent: '#ffffff', accentText: '#000000', bg: '#000000', surface: '#111111', bar: '#0a0a0a',
     text: '#ffffff', muted: '#8a8a8a', wave: '#333333', wavePlayed: '#ffffff'
   }
+};
+
+/**
+ * Some presets also change shapes, fonts and textures, not just colors.
+ * The style name becomes <html data-style="..."> and styles/themes/<name>.css does the rest.
+ */
+export const PRESET_STYLES = {
+  'Y2K': 'y2k'
 };
 
 export const DEFAULT_THEME = { preset: 'SoundCloud Dark', colors: Object.assign({}, PRESETS['SoundCloud Dark']), radius: 10 };
@@ -48,10 +60,12 @@ export const DEFAULT_THEME = { preset: 'SoundCloud Dark', colors: Object.assign(
 export function getTheme() {
   const saved = safeParse(localStorage.getItem(THEME_KEY));
   const base = PRESETS[saved.preset] || DEFAULT_THEME.colors;
+  const preset = saved.preset || DEFAULT_THEME.preset;
   return {
-    preset: saved.preset || DEFAULT_THEME.preset,
+    preset,
     colors: Object.assign({}, base, saved.colors || {}),
-    radius: typeof saved.radius === 'number' ? saved.radius : DEFAULT_THEME.radius
+    radius: typeof saved.radius === 'number' ? saved.radius : DEFAULT_THEME.radius,
+    style: typeof saved.style === 'string' ? saved.style : (PRESET_STYLES[preset] || '')
   };
 }
 
@@ -75,8 +89,12 @@ export function applyTheme(theme = getTheme()) {
   root.setProperty('--wave-played', c.wavePlayed);
   root.setProperty('--radius', theme.radius + 'px');
   document.documentElement.dataset.scheme = luminance(c.bg) > 0.5 ? 'light' : 'dark';
+  const style = typeof theme.style === 'string' ? theme.style : (PRESET_STYLES[theme.preset] || '');
+  if (style) document.documentElement.dataset.style = style;
+  else delete document.documentElement.dataset.style;
 
-  if (window.native) window.native.setTitleBar(c.bar, c.text);
+  // window buttons need to stay readable on the bar, whatever the text color is
+  if (window.native) window.native.setTitleBar(c.bar, luminance(c.bar) > 0.5 ? '#000000' : '#ffffff');
   document.dispatchEvent(new CustomEvent('themechange', { detail: theme }));
 }
 
@@ -103,7 +121,7 @@ export function hexToRgb(hex) {
 
 /** Theme as a shareable JSON string */
 export function exportTheme(theme = getTheme()) {
-  return JSON.stringify({ name: theme.preset, colors: theme.colors, radius: theme.radius }, null, 2);
+  return JSON.stringify({ name: theme.preset, colors: theme.colors, radius: theme.radius, style: theme.style || '' }, null, 2);
 }
 
 /** Parse a shared theme; throws if it isn't valid */
@@ -114,5 +132,6 @@ export function importTheme(text) {
   THEME_FIELDS.forEach(({ key }) => {
     if (/^#[0-9a-f]{6}$/i.test(data.colors[key] || '')) colors[key] = data.colors[key];
   });
-  return { preset: 'Custom', colors, radius: typeof data.radius === 'number' ? data.radius : DEFAULT_THEME.radius };
+  const style = Object.values(PRESET_STYLES).includes(data.style) ? data.style : '';
+  return { preset: 'Custom', colors, radius: typeof data.radius === 'number' ? data.radius : DEFAULT_THEME.radius, style };
 }
