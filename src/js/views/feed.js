@@ -7,8 +7,7 @@ import { store } from '../store.js';
 import { player } from '../player.js';
 import {
   pageHeader, feedItem, spinner, emptyState, errorState, link, userHref, playlistHref,
-  likeButton, repostButton, playButton, staticTrackList, button, avatar
-} from '../ui.js';
+  likeButton, repostButton, playButton, staticTrackList, button, avatar, applyPlaylistCover } from '../ui.js';
 
 const context = { label: 'Feed', href: '#/feed' };
 
@@ -99,6 +98,7 @@ function playlistFeedCard(item) {
   getTracks().then((list) => {
     tracksSlot.append(staticTrackList(list.slice(0, 5), { context: { label: playlist.title, href } }));
   }).catch(() => {});
+  applyPlaylistCover(card.querySelector('.feed-art'), playlist);
   return card;
 }
 

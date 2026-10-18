@@ -280,14 +280,15 @@ export function trackRow(tracks, index, opts = {}) {
     ...(opts.extraActions ? opts.extraActions(track) : [])
   );
 
-  row.append(
+  // native append() would print "null" for skipped cells, so filter them out
+  row.append(...[
     opts.number ? h('div.track-num', String(index + 1)) : null,
     cover,
     h('div.track-main', meta, opts.showWave ? waveform(track, { height: 44, onPlay: () => p.playList(tracks, index, opts.context) }) : null),
     stats,
     h('div.track-duration', duration(track.full_duration || track.duration)),
     actions
-  );
+  ].filter(Boolean));
 
   const play = () => p.toggleOrPlay(tracks, index, opts.context);
   row.addEventListener('dblclick', play);
@@ -406,9 +407,44 @@ export function feedItem(tracks, index, opts = {}) {
 // Cards (playlists, albums, users, stations) and shelves
 // ---------------------------------------------------------------------------
 
+// Playlists without their own artwork use their first track's artwork, like soundcloud.com.
+// Library listings don't include tracks, so this may need to fetch the playlist (cached).
+const coverCache = new Map();
+
+export function playlistCover(playlist, size = 't500x500') {
+  const own = playlist.artwork_url || playlist.calculated_artwork_url;
+  if (own) return Promise.resolve(artwork(own, size));
+  const key = playlist.id || playlist.urn;
+  if (!coverCache.has(key)) {
+    coverCache.set(key, (async () => {
+      let tracks = playlist.tracks || [];
+      if (!tracks.some(t => t.artwork_url) && playlist.id) {
+        const full = await _api.get('playlists/' + playlist.id);
+        tracks = full.tracks || [];
+      }
+      let first = tracks.find(t => t.artwork_url);
+      if (!first && tracks.length) {
+        // stub tracks have no artwork: hydrate the first few
+        first = (await _api.tracksByIds(tracks.slice(0, 5).map(t => t.id))).find(t => t.artwork_url);
+      }
+      return first ? first.artwork_url : (playlist.user && playlist.user.avatar_url) || null;
+    })().catch(() => null));
+  }
+  return coverCache.get(key).then(url => artwork(url, size));
+}
+
+/** Set an element's background to the playlist cover once it's known */
+export function applyPlaylistCover(el, playlist, size) {
+  playlistCover(playlist, size).then((url) => {
+    if (url) {
+      el.style.backgroundImage = `url("${url}")`;
+      el.classList.add('has-cover');
+    }
+  });
+}
+
 export function playlistCard(playlist) {
   const href = playlistHref(playlist);
-  const cover = coverOf(playlist) || (playlist.calculated_artwork_url && artwork(playlist.calculated_artwork_url));
   const play = h('button.card-play', { title: 'Play' }, icon('play', 20));
   play.addEventListener('click', async (e) => {
     e.stopPropagation();
@@ -418,8 +454,10 @@ export function playlistCard(playlist) {
   const subtitle = playlist.kind === 'system-playlist'
     ? (playlist.short_description || playlist.description || 'Station')
     : [playlist.is_album ? (playlist.set_type || 'Album') : 'Playlist', playlist.user && playlist.user.username].filter(Boolean).join(' · ');
+  const art = h('div.card-art.playlist-art', icon('playlist', 40), play);
+  applyPlaylistCover(art, playlist);
   return h('a.card', { href },
-    h('div.card-art', { style: { backgroundImage: cover ? `url("${cover}")` : '' } }, cover ? null : icon('playlist', 40), play),
+    art,
     h('div.card-title', playlist.short_title || playlist.title),
     h('div.card-sub', subtitle)
   );
@@ -750,6 +788,11 @@ export async function addToPlaylistDialog(track) {
     return;
   }
 
+  const coverEl = (pl) => {
+    const el = h('div.atp-art.playlist-art', icon('playlist', 18));
+    applyPlaylistCover(el, pl, 't67x67');
+    return el;
+  };
   const render = () => {
     const q = filter.value.trim().toLowerCase();
     clear(listEl);
@@ -758,7 +801,7 @@ export async function addToPlaylistDialog(track) {
     shown.forEach((pl) => {
       const has = (pl.tracks || []).some(t => t.id === track.id);
       const row = h('button.atp-row' + (has ? '.added' : ''),
-        h('div.atp-art', { style: { backgroundImage: coverOf(pl, 't67x67') ? `url("${coverOf(pl, 't67x67')}")` : '' } }, coverOf(pl) ? null : icon('playlist', 18)),
+        coverEl(pl),
         h('div.atp-row-meta', h('div.strong', pl.title), h('div.muted.small', `${pl.track_count} tracks${pl.sharing === 'private' ? ' · Private' : ''}`)),
         h('span.atp-state', icon(has ? 'check' : 'plus', 18))
       );

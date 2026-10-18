@@ -527,3 +527,6 @@ a.stat:hover { color: var(--text); }
 
 [data-scheme="light"] { --shadow: 0 10px 30px rgba(0, 0, 0, .12); }
 [data-scheme="light"] .track-art-overlay { background: rgba(0, 0, 0, .35); }
+
+/* playlist covers load lazily: hide the placeholder icon once the image is set */
+.playlist-art.has-cover > .icon { display: none; }

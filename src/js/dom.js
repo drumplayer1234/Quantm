@@ -1,5 +1,15 @@
 // Small DOM + formatting helpers shared by every view
 
+// Let el.append(a, cond ? b : null) skip empty values instead of printing "null"
+for (const proto of [Element.prototype, DocumentFragment.prototype]) {
+  for (const method of ['append', 'prepend']) {
+    const native = proto[method];
+    proto[method] = function (...nodes) {
+      return native.apply(this, nodes.filter(n => n !== null && n !== undefined && n !== false));
+    };
+  }
+}
+
 /**
  * Create an element.
  *   h('div.card.big', { onclick, title: 'x', style: {...}, dataset: {...} }, child, [children], 'text')

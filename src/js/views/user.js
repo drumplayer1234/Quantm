@@ -5,8 +5,7 @@ import { icon } from '../icons.js';
 import { player } from '../player.js';
 import {
   hero, tabs, feedItem, trackList, staticTrackList, cardGrid, userList, shelf, spinner, emptyState, errorState,
-  button, iconButton, followButton, likeButton, repostButton, playButton, avatar, link, toast, userHref, playlistHref
-} from '../ui.js';
+  button, iconButton, followButton, likeButton, repostButton, playButton, avatar, link, toast, userHref, playlistHref, applyPlaylistCover } from '../ui.js';
 
 const TABS = [
   { id: 'all', label: 'All' },
@@ -299,7 +298,7 @@ function playlistFeedCard(item) {
     return full.tracks;
   };
 
-  return h('article.feed-card',
+  const card = h('article.feed-card',
     h('div.feed-header',
       reposted ? icon('repost', 14) : null,
       item.user ? link(userHref(item.user), item.user.username) : null,
@@ -327,4 +326,6 @@ function playlistFeedCard(item) {
       )
     )
   );
+  applyPlaylistCover(card.querySelector('.feed-art'), playlist);
+  return card;
 }
