@@ -139,6 +139,7 @@ function mountShell() {
   setupWindowMode(topbar);
   mountPlayerBar(app);
   initAppearance();
+  player.restoreSession();
 
   document.addEventListener('routechange', (e) => {
     const section = e.detail.path.split('/')[1];

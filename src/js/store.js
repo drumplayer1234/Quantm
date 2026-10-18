@@ -126,6 +126,7 @@ const defaults = {
   notifications: true,
   autoplayRelated: true,
   normalize: true,
+  resumeSession: true,
   ...VISUALIZER_DEFAULTS
 };
 

@@ -15,6 +15,8 @@ function randomOrder(list) {
   return out;
 }
 
+const SESSION_KEY = 'quantm.session';
+
 class Player extends Emitter {
   constructor() {
     super();
@@ -48,6 +50,13 @@ class Player extends Emitter {
     this.audio.addEventListener('ended', () => this.onEnded());
 
     this.setupMediaSession();
+
+    // remember the session: on song / queue / pause changes, every few seconds while playing, and on close
+    this.on('queue', () => this.saveSession());
+    this.audio.addEventListener('pause', () => this.saveSession());
+    this.audio.addEventListener('seeked', () => this.saveSession());
+    setInterval(() => { if (this.playing) this.saveSession(); }, 5000);
+    window.addEventListener('beforeunload', () => this.saveSession());
   }
 
   get current() { return this.queue[this.index] || null; }
@@ -147,7 +156,8 @@ class Player extends Emitter {
     return this.load();
   }
 
-  async load() {
+  /** Load the current queue entry. autoplay=false is used when restoring the last session */
+  async load({ autoplay = true, startAt = 0 } = {}) {
     const track = this.current;
     if (!track) return;
     const loadId = ++this.loadId;
@@ -173,24 +183,29 @@ class Player extends Emitter {
 
     Object.assign(track, stream.track);
     if (stream.snipped) toast('Only a 30 second preview is available for this track');
-    this.attach(stream);
+    this.attach(stream, autoplay, startAt);
     this.loading = false;
+    if (!autoplay) this.emit('buffering', false);
     this.updateMediaSession();
     this.emit('track', track);
-    this.notify(track);
+    if (autoplay) this.notify(track);
+    this.saveSession();
   }
 
-  attach(stream) {
+  attach(stream, autoplay = true, startAt = 0) {
     if (this.hls) {
       this.hls.destroy();
       this.hls = null;
     }
     const audio = this.audio;
+    if (startAt > 0) {
+      audio.addEventListener('loadedmetadata', () => { audio.currentTime = Math.min(startAt, Math.max(0, audio.duration - 1)); }, { once: true });
+    }
 
     if (stream.protocol === 'hls' && window.Hls && window.Hls.isSupported()) {
       const hls = new window.Hls({ maxBufferLength: 30, enableWorker: true });
       this.hls = hls;
-      hls.on(window.Hls.Events.MANIFEST_PARSED, () => audio.play().catch(() => {}));
+      hls.on(window.Hls.Events.MANIFEST_PARSED, () => { if (autoplay) audio.play().catch(() => {}); });
       hls.on(window.Hls.Events.ERROR, (event, data) => {
         if (!data.fatal) return;
         if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
@@ -207,8 +222,48 @@ class Player extends Emitter {
       hls.attachMedia(audio);
     } else {
       audio.src = stream.url;
-      audio.play().catch(() => {});
+      if (autoplay) audio.play().catch(() => {});
     }
+  }
+
+  // ---- remember the session across restarts ----------------------------------
+
+  /** Save what's playing, where, and the queue (slimmed down so it fits in storage) */
+  saveSession() {
+    if (!this.current) return;
+    const slim = (t) => ({
+      id: t.id, kind: 'track', title: t.title, duration: t.duration, full_duration: t.full_duration,
+      artwork_url: t.artwork_url, permalink_url: t.permalink_url, waveform_url: t.waveform_url,
+      station_urn: t.station_urn, genre: t.genre, playback_count: t.playback_count,
+      likes_count: t.likes_count, reposts_count: t.reposts_count, comment_count: t.comment_count,
+      user: t.user && { id: t.user.id, username: t.user.username, avatar_url: t.user.avatar_url, permalink_url: t.user.permalink_url }
+    });
+    // keep the queue around the current song, capped so storage never overflows
+    const start = Math.max(0, this.index - 50);
+    const queue = this.queue.slice(start, start + 500);
+    const session = {
+      queue: queue.map(slim),
+      index: this.index - start,
+      position: Math.floor(this.audio.currentTime || 0),
+      context: this.context ? { label: this.context.label, href: this.context.href } : null,
+      savedAt: Date.now()
+    };
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch (e) { /* storage full */ }
+  }
+
+  /** Put the last session back in the player bar, paused at the same spot */
+  restoreSession() {
+    if (settings.resumeSession === false || this.current) return false;
+    let session;
+    try { session = JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return false; }
+    if (!session || !Array.isArray(session.queue) || !session.queue[session.index]) return false;
+    this.queue = session.queue;
+    this.index = session.index;
+    this.context = session.context;
+    this.original = null;
+    this.emit('queue');
+    this.load({ autoplay: false, startAt: session.position || 0 });
+    return true;
   }
 
   toggle() {
