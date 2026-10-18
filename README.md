@@ -3,8 +3,7 @@
 > A successor to [Soundnode](https://github.com/Soundnode/soundnode-app), rebuilt from scratch.
 
 A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
-
-![Screenshot](docs/screenshot.png)
+
 
 ## Features
 
@@ -60,7 +59,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 ## Download
 
-Grab the latest build from the **Releases** page of this repository on GitHub:
+Grab the latest build from the [**Releases** page](https://github.com/drumplayer1234/Quantm/releases/latest):
 
 - **Windows:** the `.exe` installer, or the portable version if you don't want to install anything.
 - **macOS:** the `.dmg` disk image.

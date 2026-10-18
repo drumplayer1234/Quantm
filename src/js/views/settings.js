@@ -833,7 +833,7 @@ async function aboutTab() {
       ),
       h('p.settings-about-text', 'Quantm is open source (GPL-3.0), a successor to Soundnode.'),
       h('div.settings-actions',
-        button('View on GitHub', () => window.native.openExternal('https://github.com/'), 'btn-outline', 'external')
+        button('View on GitHub', () => window.native.openExternal('https://github.com/drumplayer1234/Quantm'), 'btn-outline', 'external')
       )
     ),
     card('Credits', null,

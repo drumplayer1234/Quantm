@@ -70,5 +70,13 @@
   },
   "author": {
     "name": "Quantm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/drumplayer1234/Quantm.git"
+  },
+  "homepage": "https://github.com/drumplayer1234/Quantm",
+  "bugs": {
+    "url": "https://github.com/drumplayer1234/Quantm/issues"
   }
 }
