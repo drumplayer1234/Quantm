@@ -87,8 +87,14 @@ export const systemPlaylist = (urn) => get('system-playlists/' + encodeURICompon
 export const trending = () => new Pager('charts', { kind: 'trending', genre: 'soundcloud:genres:all-music', limit: 50 }, i => cacheTrack(i.track));
 export const popularByGenre = (genre) => new Pager('search/tracks', { q: '*', 'filter.genre_or_tag': genre.toLowerCase(), sort: 'popular', limit: 30 }, cacheTrack);
 
+/** SoundCloud mixes paid "promoted" posts into feeds; Quantm never shows them */
+export function isPromoted(item) {
+  return !!item && (/promoted/.test(item.type || '') || !!item.promoted);
+}
+
 // Feed: items are { type: track | track-repost | playlist | playlist-repost, track?, playlist?, user, created_at }
 export const stream = () => new Pager('stream', { limit: 20 }, (item) => {
+  if (isPromoted(item)) return null;
   if (item.track) cacheTrack(item.track);
   return (item.track || item.playlist) ? item : null;
 });
@@ -101,6 +107,7 @@ export const userTopTracks = (id) => new Pager(`users/${id}/toptracks`, { limit:
 export const userAlbums = (id) => new Pager(`users/${id}/albums`, { limit: 20 });
 export const userPlaylists = (id) => new Pager(`users/${id}/playlists_without_albums`, { limit: 20 });
 export const userReposts = (id) => new Pager(`stream/users/${id}/reposts`, { limit: 20 }, (item) => {
+  if (isPromoted(item)) return null;
   if (item.track) cacheTrack(item.track);
   return (item.track || item.playlist) ? item : null;
 });

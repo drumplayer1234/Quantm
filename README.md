@@ -3,12 +3,15 @@
 > A successor to [Soundnode](https://github.com/Soundnode/soundnode-app), rebuilt from scratch.
 
 A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
+
+**🚫 No ads.** No audio ads between songs, no banners, and no promoted tracks in your feed. Free and open source.
 
 
 ## Features
 
 **Listening**
 
+- **No ads, ever.** No audio ads, banners or promoted posts. Just your music.
 - **Sign in inside the app.** Log in with your SoundCloud account in a built-in sign-in window, or enter a token manually. Your token is stored encrypted on your computer.
 - **Home with personalized shelves.** Recently played, mixes, "more of what you like", stations and trending picks, all picked for you.
 - **Feed.** New posts and reposts from the people you follow.

@@ -67,7 +67,7 @@
       "artifactName": "${productName}-${version}-Portable.${ext}"
     },
     "releaseInfo": {
-      "releaseNotes": "## Which file should I download?\n\n- **Windows:** `Quantm-Setup-<version>.exe` ⭐ **recommended** — installs Quantm with shortcuts and an uninstaller.\n  - `Quantm-<version>-Portable.exe` — runs without installing (starts a little slower).\n- **macOS:** the `.dmg`\n- **Linux:** the `.AppImage` (runs anywhere) or the `.deb` (Debian/Ubuntu)\n\nWindows may show \"Windows protected your PC\" because the installer isn't signed yet: click **More info → Run anyway**."
+      "releaseNotes": "**🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.\n\n## Which file should I download?\n\n- **Windows:** `Quantm-Setup-<version>.exe` ⭐ **recommended** — installs Quantm with shortcuts and an uninstaller.\n  - `Quantm-<version>-Portable.exe` — runs without installing (starts a little slower).\n- **macOS:** the `.dmg`\n- **Linux:** the `.AppImage` (runs anywhere) or the `.deb` (Debian/Ubuntu)\n\nWindows may show \"Windows protected your PC\" because the installer isn't signed yet: click **More info → Run anyway**."
     }
   },
   "devDependencies": {

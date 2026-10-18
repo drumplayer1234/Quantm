@@ -831,7 +831,7 @@ async function aboutTab() {
           h('div.muted', version || 'A desktop app for SoundCloud')
         )
       ),
-      h('p.settings-about-text', 'Quantm is open source (GPL-3.0), a successor to Soundnode.'),
+      h('p.settings-about-text', 'Quantm is free, open source (GPL-3.0) and has no ads. A successor to Soundnode.'),
       h('div.settings-actions',
         button('View on GitHub', () => window.native.openExternal('https://github.com/drumplayer1234/Quantm'), 'btn-outline', 'external')
       )
