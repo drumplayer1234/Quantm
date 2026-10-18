@@ -13,9 +13,25 @@ const TITLEBAR_HEIGHT = 56;
 // SoundCloud rejects requests whose user agent mentions Electron
 app.userAgentFallback = CHROME_UA;
 
-// Windows shows this app's name (not "electron.app.Electron") on notifications.
-// Must match build.appId so it lines up with the installer's Start Menu shortcut.
-app.setAppUserModelId('app.quantm.desktop');
+// Windows shows the app id as the notification header when it has no cached name for it,
+// so the Windows id is just "Quantm". Must match build.win.appId (the installer shortcut).
+const APP_ID = process.platform === 'win32' ? 'Quantm' : 'app.quantm.desktop';
+app.setAppUserModelId(APP_ID);
+
+// Windows looks up the name and icon for notification headers in the registry under the
+// app id. Without this entry it shows the raw id ("app.quantm.desktop").
+function registerNotificationIdentity() {
+  if (process.platform !== 'win32') return;
+  try {
+    const iconPath = path.join(app.getPath('userData'), 'notification-icon.png');
+    fs.mkdirSync(path.dirname(iconPath), { recursive: true });
+    fs.copyFileSync(path.join(__dirname, 'build', 'icon.png'), iconPath);
+    const key = `HKCU\\Software\\Classes\\AppUserModelId\\${APP_ID}`;
+    const { execFile } = require('child_process');
+    execFile('reg', ['add', key, '/v', 'DisplayName', '/t', 'REG_SZ', '/d', 'Quantm', '/f'], () => {});
+    execFile('reg', ['add', key, '/v', 'IconUri', '/t', 'REG_SZ', '/d', iconPath, '/f'], () => {});
+  } catch (e) { /* cosmetic only */ }
+}
 
 let mainWindow = null;
 let loginWindow = null;
@@ -343,6 +359,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(() => {
     nativeTheme.themeSource = 'dark';
+    registerNotificationIdentity();
     auth = loadAuth();
     createMainWindow();
   });

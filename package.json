@@ -35,7 +35,8 @@
         "nsis",
         "portable"
       ],
-      "icon": "build/icon.png"
+      "icon": "build/icon.png",
+      "appId": "Quantm"
     },
     "mac": {
       "target": [
