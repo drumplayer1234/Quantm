@@ -2,8 +2,11 @@
 // Audio is routed through Web Audio so we can measure each track's loudness while it
 // plays and nudge a gain node toward a common target, like Spotify's "normalize volume".
 //
-//   <audio> → source ─┬─ meter (K-weighting-ish filters → analyser)
-//                     └─ normalize gain → limiter → user volume → speakers
+//   <audio> → source ─┬─ meter tap → meter (K-weighting-ish filters → analyser)
+//                     └─ deck fade gain → normalize gain → limiter → user volume → speakers
+//
+// There is one source + fade gain per <audio> element ("deck"), so two tracks can
+// overlap while crossfading. The meter only listens to the active deck.
 
 import { safeParse } from './store.js';
 
@@ -15,11 +18,16 @@ const MIN_BLOCKS = 15;       // wait 1.5s of audio before the first adjustment
 const CACHE_KEY = 'quantm.loudness';
 const CACHE_LIMIT = 3000;
 
+const CURVE_POINTS = 96;     // resolution of the equal-power crossfade curves
+
 const dbToGain = (db) => Math.pow(10, db / 20);
+/** Equal-power fade level at t (0..1): the two tracks together keep a steady loudness */
+const fadeLevel = (fadeIn, t) => (fadeIn ? Math.sin(t * Math.PI / 2) : Math.cos(t * Math.PI / 2));
 
 export class Normalizer {
   constructor(audio) {
-    this.audio = audio;
+    this.audio = audio;      // the active deck: the one being measured
+    this.decks = new Map();  // <audio> → { source, tap, fade }
     this.enabled = true;
     this.ctx = null;
     this.blocks = [];        // mean-square energy per block for the current track
@@ -34,7 +42,6 @@ export class Normalizer {
     if (this.ctx) return true;
     try {
       const ctx = new AudioContext();
-      const source = ctx.createMediaElementSource(this.audio);
 
       // meter branch: rough K-weighting so bass-heavy tracks aren't over-counted
       const highpass = ctx.createBiquadFilter();
@@ -48,9 +55,10 @@ export class Normalizer {
       this.analyser.fftSize = 4096;
       const silent = ctx.createGain();
       silent.gain.value = 0; // keeps the meter branch running without making sound
-      source.connect(highpass).connect(shelf).connect(this.analyser).connect(silent).connect(ctx.destination);
+      highpass.connect(shelf).connect(this.analyser).connect(silent).connect(ctx.destination);
+      this.meterIn = highpass;
 
-      // output branch
+      // output branch (every deck's fade gain feeds this.gain)
       this.gain = ctx.createGain();
       this.limiter = ctx.createDynamicsCompressor();
       this.limiter.threshold.value = -1.5;
@@ -59,7 +67,7 @@ export class Normalizer {
       this.limiter.attack.value = 0.003;
       this.limiter.release.value = 0.25;
       this.output = ctx.createGain();
-      source.connect(this.gain).connect(this.limiter).connect(this.output).connect(ctx.destination);
+      this.gain.connect(this.limiter).connect(this.output).connect(ctx.destination);
 
       // visualizer tap: after normalization, before user volume, so it looks the same at any volume
       this.visual = ctx.createAnalyser();
@@ -69,6 +77,7 @@ export class Normalizer {
 
       this.ctx = ctx;
       this.buffer = new Float32Array(this.analyser.fftSize);
+      if (!this.addDeck(this.audio)) { this.ctx = null; throw new Error('Could not route the audio element'); }
       this.applyVolume();
       setInterval(() => this.measure(), BLOCK_MS);
       return true;
@@ -78,8 +87,59 @@ export class Normalizer {
     }
   }
 
-  /** Called when a new track starts loading */
-  startTrack(trackId) {
+  /** Route another <audio> element through the graph (created lazily for the crossfade deck) */
+  addDeck(audio) {
+    if (!this.ctx || this.decks.has(audio)) return !!this.ctx;
+    try {
+      const ctx = this.ctx;
+      const source = ctx.createMediaElementSource(audio);
+      const tap = ctx.createGain(); // meter listens to the active deck only
+      tap.gain.value = audio === this.audio ? 1 : 0;
+      const fade = ctx.createGain();
+      source.connect(tap).connect(this.meterIn);
+      source.connect(fade).connect(this.gain);
+      this.decks.set(audio, { source, tap, fade });
+      return true;
+    } catch (error) {
+      console.error('Second audio deck unavailable', error);
+      return false;
+    }
+  }
+
+  /** The deck whose track is the current one: the meter measures it */
+  setActive(audio) {
+    this.audio = audio;
+    for (const [el, deck] of this.decks) deck.tap.gain.value = el === audio ? 1 : 0;
+  }
+
+  /** Set a deck's fade gain right now (1 = full, 0 = silent) */
+  setFade(audio, level) {
+    const deck = this.decks.get(audio);
+    if (!deck) return;
+    deck.fade.gain.cancelScheduledValues(this.ctx.currentTime);
+    deck.fade.gain.setValueAtTime(level, this.ctx.currentTime);
+  }
+
+  /** Equal-power fade from `from` (0..1 of the whole fade) to the end over `seconds` */
+  fadeDeck(audio, fadeIn, seconds, from = 0) {
+    const deck = this.decks.get(audio);
+    if (!deck) return;
+    const now = this.ctx.currentTime;
+    deck.fade.gain.cancelScheduledValues(now);
+    deck.fade.gain.setValueAtTime(fadeLevel(fadeIn, from), now);
+    if (seconds <= 0 || from >= 1) { deck.fade.gain.setValueAtTime(fadeLevel(fadeIn, 1), now); return; }
+    const curve = new Float32Array(CURVE_POINTS);
+    for (let i = 0; i < CURVE_POINTS; i++) curve[i] = fadeLevel(fadeIn, from + (1 - from) * i / (CURVE_POINTS - 1));
+    deck.fade.gain.setValueCurveAtTime(curve, now, seconds);
+  }
+
+  /** Freeze a deck's fade where it is (progress 0..1), used while paused mid-crossfade */
+  holdFade(audio, fadeIn, progress) {
+    this.setFade(audio, fadeLevel(fadeIn, Math.min(1, Math.max(0, progress))));
+  }
+
+  /** Called when a new track starts loading. smooth (seconds) eases the level in, for crossfades */
+  startTrack(trackId, smooth = 0) {
     this.saveCurrent();
     this.trackId = trackId;
     this.blocks = [];
@@ -88,8 +148,15 @@ export class Normalizer {
     // songs we've heard before start at the right level straight away
     const known = this.cache[trackId];
     const db = this.enabled && typeof known === 'number' ? this.gainFor(known) : 0;
-    this.gain.gain.cancelScheduledValues(this.ctx.currentTime);
-    this.gain.gain.setValueAtTime(dbToGain(db), this.ctx.currentTime);
+    const now = this.ctx.currentTime;
+    const from = this.gain.gain.value;
+    this.gain.gain.cancelScheduledValues(now);
+    if (smooth > 0) {
+      this.gain.gain.setValueAtTime(from, now);
+      this.gain.gain.setTargetAtTime(dbToGain(db), now, smooth / 3);
+    } else {
+      this.gain.gain.setValueAtTime(dbToGain(db), now);
+    }
   }
 
   measure() {

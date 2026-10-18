@@ -4,7 +4,7 @@ import { icon } from './icons.js';
 import { player } from './player.js';
 import { createVisualizer } from './visualizer.js';
 import { store, settings } from './store.js';
-import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, toast } from './ui.js';
+import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, toast, menu } from './ui.js';
 
 export function mountPlayerBar(root) {
   const art = h('a.pb-art', { href: '#' });
@@ -27,6 +27,7 @@ export function mountPlayerBar(root) {
   const addBtn = iconButton('addToPlaylist', 'Add to playlist', () => addToPlaylistDialog(player.current), 'pb-add');
   const moreBtn = iconButton('more', 'More', (e) => player.current && trackMenu(player.current, e));
   const queueBtn = iconButton('queue', 'Queue', () => toggleQueue(), 'pb-queue-btn');
+  const speedBtn = h('button.pb-speed', { title: 'Playback speed', 'aria-label': 'Playback speed', onclick: (e) => { e.stopPropagation(); speedMenu(e); } });
   const volIcon = iconButton('volume', 'Mute (M)', () => player.toggleMute());
   const volFill = h('div.pb-fill');
   const volume = h('div.pb-volume', h('div.pb-track', volFill));
@@ -44,7 +45,7 @@ export function mountPlayerBar(root) {
       ),
       h('div.pb-progress-row', current, progress, total)
   );
-  const pbRight = h('div.pb-right', moreBtn, queueBtn, volIcon, volume);
+  const pbRight = h('div.pb-right', moreBtn, speedBtn, queueBtn, volIcon, volume);
   const bar = h('footer.playerbar.idle', pbLeft, pbCenter, pbRight);
   root.append(bar);
 
@@ -102,6 +103,27 @@ export function mountPlayerBar(root) {
     const a = player.audio;
     if (a.buffered.length && dur) buffer.style.width = (a.buffered.end(a.buffered.length - 1) / dur) * 100 + '%';
   });
+
+  // --- playback speed -----------------------------------------------------------
+  const renderSpeed = () => {
+    speedBtn.textContent = player.speedLabel;
+    speedBtn.classList.toggle('active', settings.speedMode !== undefined && settings.speedMode !== 'normal');
+    speedBtn.title = `Playback speed: ${+player.rate.toFixed(2)}×`;
+  };
+  const speedMenu = (e) => {
+    const mode = settings.speedMode || 'normal';
+    const rate = player.rate;
+    const custom = (value) => ({ label: `${value}×`, icon: mode === 'custom' && rate === value ? 'check' : null, onclick: () => player.setSpeed(value) });
+    menu([
+      { label: 'Normal', icon: mode === 'normal' ? 'check' : null, onclick: () => player.setSpeedMode('normal') },
+      { label: 'Nightcore', icon: mode === 'nightcore' ? 'check' : null, onclick: () => player.setSpeedMode('nightcore') },
+      { label: 'Slowed', icon: mode === 'slowed' ? 'check' : null, onclick: () => player.setSpeedMode('slowed') },
+      'separator',
+      custom(0.75), custom(1.25), custom(1.5)
+    ], e);
+  };
+  player.on('speed', renderSpeed);
+  renderSpeed();
 
   // --- volume -------------------------------------------------------------------
   const renderVolume = () => {

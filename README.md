@@ -8,21 +8,55 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 ## Features
 
-- **Sign in inside the app.** Log in with your SoundCloud account in a built-in sign-in window.
-- **Home and discover.** Shelves of music picked for you, plus your **Feed** of new posts from people you follow.
+**Listening**
+
+- **Sign in inside the app.** Log in with your SoundCloud account in a built-in sign-in window, or enter a token manually. Your token is stored encrypted on your computer.
+- **Home with personalized shelves.** Recently played, mixes, "more of what you like", stations and trending picks, all picked for you.
+- **Feed.** New posts and reposts from the people you follow.
 - **Library.** Your likes, playlists, albums, stations, listening history and who you follow.
-- **Trending and genres.** Browse what's popular, filtered by genre.
-- **Full search.** Find tracks, people, albums and playlists, or paste a SoundCloud link to jump straight to it.
-- **Artist profiles.** Tracks, reposts, albums, playlists and followers for every artist.
-- **Track pages.** Waveform display and timed comments, so you can see what people said at each moment.
-- **Playlists.** Create and edit playlists, reorder them, and add or remove tracks.
+- **Trending charts.** See what's popular across all music, or browse 30 genres.
+- **Full search.** Find tracks, people, albums and playlists, with suggestions as you type. Paste any soundcloud.com link to jump straight to it.
+- **Artist profiles.** Popular tracks, tracks, albums, playlists, reposts, likes, followers and following, plus the artist's bio.
+- **Track pages.** Full waveform, timed comments (post and delete your own), related tracks, and who liked or reposted.
+- **Playlists and albums.** Create, rename, make private or public, delete, drag to reorder, and remove tracks.
+- **Stations.** Start a station based on any track.
+- **Notifications.** Likes, reposts, comments and new followers.
+- **Like, repost and follow from anywhere.** No need to visit the artist's page first.
+
+**Player**
+
+- **High-quality HLS streaming.** Smooth, high-quality playback of SoundCloud's streams.
 - **Add to playlist from the player bar.** Save the track that's playing in one click.
-- **Queue.** See what's next and drag tracks to reorder them.
-- **Playback controls.** Shuffle, repeat, and autoplay of related tracks when your queue runs out.
-- **Media keys and system controls.** Use your keyboard's media keys, and the Windows and macOS media controls.
-- **Desktop notifications.** Get notified about new activity.
-- **Keyboard shortcuts.** Control playback without leaving the keyboard.
-- **Themes.** Fully custom colors, with presets, and import and export so you can share your own.
+- **Queue.** See what's next, drag tracks to reorder them, play next, or add to the queue.
+- **Shuffle and repeat.** Shuffle covers your whole collection, not just what's loaded. Repeat all or repeat one.
+- **Autoplay.** Related tracks keep playing when your queue runs out.
+- **Crossfade.** Blend from one song into the next, from 0 to 12 seconds.
+- **Playback speed.** Nightcore and Slowed modes, or a custom speed with optional pitch keeping.
+- **Volume normalization.** Loud and quiet tracks play at a similar level.
+- **Resume where you left off.** Reopen the app to your last song, queue and position, paused.
+- **Media keys and system controls.** Use your keyboard's media keys and the Windows and macOS media controls. Desktop notifications keep you posted.
+- **Keyboard shortcuts.** Space and arrows for playback, Ctrl+arrows to skip, L to like, S to shuffle, R to repeat, Ctrl+F or Ctrl+K to search, and `Shift+<` / `Shift+>` for speed.
+
+**Make it yours**
+
+- **Theme presets.** SoundCloud Dark and Light, Midnight, Synthwave, Forest, Mono, Y2K (Windows XP and early iTunes), Glass, Neon, Pixel, Minimal, and Liquid Glass (light and dark).
+- **Custom themes.** Edit every color and corner roundness, import and export themes to share them, or try the random theme generator.
+- **Day and night schedule.** Switch between a day theme and a night theme automatically.
+- **See-through window.** With Liquid Glass, your desktop shows through the app, blurred, on Windows and macOS.
+- **Layout.** Top bar or sidebar navigation, player bar at the top or bottom, compact density, and the option to hide play counts and genre tags.
+- **Backgrounds.** Use your own picture or the playing song's artwork, with dimming and blur.
+- **Matching accent color.** The accent color follows the artwork of the song that's playing.
+- **Font and zoom.** Pick a font and zoom the app from 70% to 150%.
+- **Waveform styles.** Bars, mirrored, smooth line or blocks, with adjustable thickness.
+- **Player-bar visualizer.** Bars, mirrored, wave, line, circle or dots, in theme, accent, rainbow or custom colors, with adjustable bar count, size, sensitivity, smoothness, falling peaks, glow and left, center or right position.
+- **Exact values.** Every slider has a number box, so you can type in the precise value you want.
+
+**Extras**
+
+- **Discord status.** Show "Listening to Quantm" with the song, artist, artwork and a progress bar, plus a "Listen on SoundCloud" button. You can turn it off.
+- **Performance page.** Live CPU and memory readouts, Performance mode (no blur or animations), visuals paused while minimized, and a hardware acceleration switch. Light enough to leave running while you game.
+- **Remembers your setup.** Your themes and settings carry over every time you restart.
+- **Installers for every platform.** A Windows installer and portable version, plus macOS and Linux builds.
 
 ## Download
 

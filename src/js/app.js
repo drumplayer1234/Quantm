@@ -212,22 +212,24 @@ function setupDiscord() {
   const push = () => {
     if (settings.discordStatus === false) return;
     const t = player.current;
+    const rate = player.rate || 1;
     window.native.discord.update(t ? {
       title: t.title,
       artist: t.user ? t.user.username : '',
       artwork: artwork(t.artwork_url || (t.user && t.user.avatar_url), 't500x500'),
       url: t.permalink_url,
       artistUrl: t.user && t.user.permalink_url,
-      duration: player.duration,
-      position: player.audio.currentTime,
+      // the status counts real time, so scale media time by the playback speed
+      duration: player.duration / rate,
+      position: player.audio.currentTime / rate,
       playing: player.playing
     } : null);
   };
   window.native.discord.setEnabled(settings.discordStatus !== false);
   player.on('state', push);
   player.on('track', push);
-  player.audio.addEventListener('seeked', push);
-  player.audio.addEventListener('durationchange', push);
+  player.on('timeline', push); // seeks and duration changes on the active deck
+  player.on('speed', push);
   store.on('settings', (s) => {
     window.native.discord.setEnabled(s.discordStatus !== false);
     push();
@@ -290,6 +292,8 @@ function setupShortcuts(searchInput) {
     else if (e.key.toLowerCase() === 'l' && player.current) store.toggleLike(player.current);
     else if (e.key.toLowerCase() === 's') player.toggleShuffle();
     else if (e.key.toLowerCase() === 'r') player.cycleRepeat();
+    else if (e.key === '>') player.nudgeSpeed(0.05);
+    else if (e.key === '<') player.nudgeSpeed(-0.05);
   });
   // mouse back/forward buttons
   window.addEventListener('mouseup', (e) => {

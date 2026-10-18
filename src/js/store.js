@@ -130,6 +130,10 @@ const defaults = {
   discordStatus: true,
   performanceMode: false,   // no blur, animations or visualizer
   pauseWhenHidden: true,    // stop visuals and free memory while minimized
+  speedMode: 'normal',      // normal | nightcore | slowed | custom
+  playbackSpeed: 1,         // 0.5-2, used by custom
+  keepPitch: true,          // custom speed keeps the original pitch
+  crossfade: 0,             // seconds (0-12), 0 = off
   ...VISUALIZER_DEFAULTS
 };
 

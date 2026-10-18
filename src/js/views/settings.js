@@ -618,6 +618,12 @@ async function playbackTab(cleanups) {
       toggleRow('Normalize volume', 'Even out loud and quiet tracks so every song plays at a similar level.', settings.normalize !== false,
         (on) => player.setNormalize(on))
     ),
+    speedCard(cleanups),
+    card('Crossfade', 'Blend the end of each song into the start of the next. Skipping always cuts cleanly.',
+      sliderRow('Crossfade', '0 turns it off. Songs shorter than twice this length play normally.',
+        { min: 0, max: 12, step: 0.5, value: Math.min(12, Math.max(0, Number(settings.crossfade) || 0)), unit: 's' },
+        (v) => saveSettings({ crossfade: v }))
+    ),
     visualizerCard(),
     card('Volume', 'The level Quantm plays at. You can also change it from the player bar.',
       h('div.settings-radius',
@@ -626,6 +632,41 @@ async function playbackTab(cleanups) {
       )
     )
   );
+}
+
+const SPEED_MODES = [
+  { id: 'normal', label: 'Normal' },
+  { id: 'nightcore', label: 'Nightcore' },
+  { id: 'slowed', label: 'Slowed' },
+  { id: 'custom', label: 'Custom' }
+];
+
+/** Playback speed: presets that change pitch with speed, or your own speed (pitch optional) */
+function speedCard(cleanups) {
+  const mode = () => (SPEED_MODES.some(m => m.id === settings.speedMode) ? settings.speedMode : 'normal');
+  const customSpeed = () => Math.min(2, Math.max(0.5, Number(settings.playbackSpeed) || 1));
+
+  const modeRow = chipRow('Mode', 'Nightcore plays at 1.25× with a higher pitch, Slowed at 0.8× with a lower pitch', SPEED_MODES, mode(), (v) => player.setSpeedMode(v));
+  const speed = sliderRow('Speed', 'Custom mode only', { min: 0.5, max: 2, step: 0.05, value: customSpeed(), unit: '×' },
+    (v) => saveSettings({ playbackSpeed: v }));
+  const pitch = toggleRow('Keep original pitch', 'Custom mode only. Off makes faster songs higher and slower songs lower.', settings.keepPitch !== false,
+    (on) => saveSettings({ keepPitch: on }));
+
+  // stay in step with changes made from the player bar or the keyboard
+  const sync = () => {
+    const current = mode();
+    modeRow.querySelectorAll('.chip').forEach((chip, i) => chip.classList.toggle('active', SPEED_MODES[i].id === current));
+    speed.setValue(customSpeed());
+    pitch.querySelector('input').checked = settings.keepPitch !== false;
+    for (const row of [speed, pitch]) {
+      row.classList.toggle('disabled', current !== 'custom');
+      row.querySelectorAll('input').forEach((input) => { input.disabled = current !== 'custom'; });
+    }
+  };
+  sync();
+  cleanups.push(store.on('settings', sync));
+
+  return card('Speed', "Play songs faster or slower. Time and progress still show the song's own length.", modeRow, speed, pitch);
 }
 
 /** The player bar visualizer: every option applies live and is saved immediately */
@@ -740,7 +781,9 @@ const SHORTCUTS = [
     ['Mute / unmute', [['M']]],
     ['Like current track', [['L']]],
     ['Toggle shuffle', [['S']]],
-    ['Cycle repeat mode', [['R']]]
+    ['Cycle repeat mode', [['R']]],
+    ['Playback faster', [['Shift', '>']], 'by 0.05×'],
+    ['Playback slower', [['Shift', '<']], 'by 0.05×']
   ] },
   { title: 'Navigation', items: [
     ['Search', [['Ctrl', 'F'], ['Ctrl', 'K']]],

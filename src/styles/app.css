@@ -660,3 +660,12 @@ a.stat:hover { color: var(--text); }
   --lq-bar: color-mix(in srgb, var(--surface) 96%, transparent);
   --lq-soft: color-mix(in srgb, var(--surface) 90%, transparent);
 }
+
+/* =================================================================== playback speed */
+.pb-speed {
+  min-width: 36px; height: 28px; padding: 0 8px; border-radius: 999px; color: var(--muted);
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; transition: background .15s, color .15s;
+}
+.pb-speed:hover { background: var(--hover); color: var(--text); }
+.pb-speed.active { color: var(--accent); }
+.settings-row.disabled { opacity: .45; }
