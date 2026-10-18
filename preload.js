@@ -21,5 +21,10 @@ contextBridge.exposeInMainWorld('native', {
   onMaximized: (fn) => ipcRenderer.on('window:maximized', (event, value) => fn(value)),
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   copy: (text) => ipcRenderer.invoke('clipboard:write', text),
+  discord: {
+    update: (state) => ipcRenderer.invoke('discord:update', state),
+    setEnabled: (on) => ipcRenderer.invoke('discord:setEnabled', on),
+    status: () => ipcRenderer.invoke('discord:status')
+  },
   info: () => ipcRenderer.invoke('app:info')
 });

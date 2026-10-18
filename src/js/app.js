@@ -1,6 +1,7 @@
 // Bootstrap: theme, login, app shell, routes, keyboard shortcuts
 import * as api from './api.js';
 import { h, clear, debounce, artwork } from './dom.js';
+import { settings } from './store.js';
 import { icon } from './icons.js';
 import { store } from './store.js';
 import { player } from './player.js';
@@ -140,6 +141,7 @@ function mountShell() {
   mountPlayerBar(app);
   initAppearance();
   player.restoreSession();
+  setupDiscord();
 
   document.addEventListener('routechange', (e) => {
     const section = e.detail.path.split('/')[1];
@@ -201,6 +203,33 @@ function mountShell() {
   setupShortcuts(searchInput);
   if (!location.hash) location.hash = '#/home';
   startRouter();
+}
+
+/** Keep Discord's "Listening to Quantm" status in sync with the player */
+function setupDiscord() {
+  const push = () => {
+    if (settings.discordStatus === false) return;
+    const t = player.current;
+    window.native.discord.update(t ? {
+      title: t.title,
+      artist: t.user ? t.user.username : '',
+      artwork: artwork(t.artwork_url || (t.user && t.user.avatar_url), 't500x500'),
+      url: t.permalink_url,
+      artistUrl: t.user && t.user.permalink_url,
+      duration: player.duration,
+      position: player.audio.currentTime,
+      playing: player.playing
+    } : null);
+  };
+  window.native.discord.setEnabled(settings.discordStatus !== false);
+  player.on('state', push);
+  player.on('track', push);
+  player.audio.addEventListener('seeked', push);
+  player.audio.addEventListener('durationchange', push);
+  store.on('settings', (s) => {
+    window.native.discord.setEnabled(s.discordStatus !== false);
+    push();
+  });
 }
 
 /** See-through windows have no native title bar buttons, so draw our own */

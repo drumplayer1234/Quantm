@@ -127,6 +127,7 @@ const defaults = {
   autoplayRelated: true,
   normalize: true,
   resumeSession: true,
+  discordStatus: true,
   ...VISUALIZER_DEFAULTS
 };
 

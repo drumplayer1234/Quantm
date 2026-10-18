@@ -4,6 +4,7 @@ const { app, BrowserWindow, ipcMain, net, session, shell, clipboard, safeStorage
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const discord = require('./discord');
 
 const API = 'https://api-v2.soundcloud.com/';
 const LOGIN_PARTITION = 'persist:soundcloud-login';
@@ -424,6 +425,11 @@ ipcMain.handle('window:control', (event, action) => {
   if (action === 'maximize') mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
   if (action === 'close') mainWindow.close();
 });
+
+// Discord "Listening to Quantm" status
+ipcMain.handle('discord:update', (event, state) => discord.update(state));
+ipcMain.handle('discord:setEnabled', (event, on) => discord.setEnabled(on));
+ipcMain.handle('discord:status', () => discord.status());
 
 ipcMain.handle('window:titlebar', (event, { color, symbolColor }) => {
   if (mainWindow && !mainWindow.seeThrough && process.platform !== 'darwin' && mainWindow.setTitleBarOverlay) {
