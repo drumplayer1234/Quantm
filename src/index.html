@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src 'self' blob: https:; connect-src 'self' https://*.soundcloud.cloud https://*.sndcdn.com https://*.soundcloud.com; font-src 'self' data:">
+  <title>Soundnode</title>
+  <link rel="stylesheet" href="styles/app.css">
+  <link rel="stylesheet" href="styles/views/home.css">
+  <link rel="stylesheet" href="styles/views/trending.css">
+  <link rel="stylesheet" href="styles/views/library.css">
+  <link rel="stylesheet" href="styles/views/notifications.css">
+  <link rel="stylesheet" href="styles/views/search.css">
+  <link rel="stylesheet" href="styles/views/user.css">
+  <link rel="stylesheet" href="styles/views/track.css">
+  <link rel="stylesheet" href="styles/views/playlist.css">
+  <link rel="stylesheet" href="styles/views/settings.css">
+</head>
+<body>
+  <div id="app"></div>
+  <div id="toasts"></div>
+  <script src="vendor/hls.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
