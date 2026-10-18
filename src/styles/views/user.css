@@ -1,0 +1,40 @@
+/* User profile */
+
+.user-hero .hero-inner { padding: 40px 32px 32px; }
+.user-hero .hero-art { box-shadow: 0 0 0 4px rgba(255, 255, 255, .15), 0 16px 40px rgba(0, 0, 0, .45); }
+.user-hero.banner { min-height: 300px; display: flex; align-items: flex-end; }
+.user-hero.banner .hero-inner { width: 100%; }
+.user-hero.banner .hero-bg::after { background: linear-gradient(180deg, rgba(0,0,0,.05) 20%, rgba(0,0,0,.6)); }
+.user-verified { display: inline-flex; vertical-align: middle; margin-left: 10px; color: var(--accent); }
+.user-hero .hero-meta .icon { opacity: .8; vertical-align: -2px; }
+
+.user-section { margin-bottom: 40px; }
+.user-main { min-width: 0; }
+
+/* sidebar */
+.user-sidebar { gap: 26px; }
+.user-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 18px; }
+.user-stat { display: flex; flex-direction: column; gap: 2px; padding: 4px 8px; border-radius: 8px; transition: background .12s; }
+.user-stat:hover { background: var(--hover); }
+.user-stat-label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.user-stat-value { font-size: 20px; font-weight: 800; font-family: var(--font-display); }
+
+.user-sidebar .description { font-size: 13px; }
+.user-more { margin-top: 8px; }
+
+.user-links { display: flex; flex-direction: column; gap: 6px; }
+.user-ext { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; min-width: 0; }
+.user-ext span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-ext:hover { color: var(--accent); }
+
+.user-mini:hover .mini-user-name { text-decoration: underline; }
+
+.user-following { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.user-following-item { display: block; border-radius: 50%; transition: transform .12s; }
+.user-following-item:hover { transform: scale(1.06); }
+.user-following-item .avatar { width: 100% !important; height: auto !important; aspect-ratio: 1; }
+
+@media (max-width: 700px) {
+  .user-hero .hero-inner { flex-direction: column; align-items: flex-start; }
+  .user-hero .hero-art { width: 140px; height: 140px; }
+}

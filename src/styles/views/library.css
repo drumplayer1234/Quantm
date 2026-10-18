@@ -1,0 +1,20 @@
+/* Library view */
+.library-shelves .shelf:last-child { margin-bottom: 0; }
+
+.library-head {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; padding: 20px;
+  border-radius: var(--radius); border: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--accent-soft), transparent 70%);
+}
+.library-head-art {
+  width: 84px; height: 84px; border-radius: 12px; flex: none; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 45%, #000));
+  color: var(--accent-text); box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}
+.library-head-text { flex: 1; min-width: 160px; }
+.library-head-title { font-size: 28px; font-weight: 800; font-family: var(--font-display); margin: 0 0 2px; }
+.library-head-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.library-section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.library-section-title { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; margin: 0; }
+.library-section-title .icon { color: var(--accent); }

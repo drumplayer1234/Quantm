@@ -72,7 +72,7 @@ function showLogin(message) {
   app.append(h('div.login',
     h('div.login-drag'),
     h('div.login-card',
-      h('div.login-logo', icon('cloud', 56)),
+      h('div.login-logo', icon('logo', 64)),
       h('h1', 'Soundnode'),
       h('p.muted', 'A desktop app for SoundCloud.'),
       message ? h('div.login-error', message) : null,
@@ -119,7 +119,7 @@ function mountShell() {
 
   const topbar = h('header.topbar',
     h('div.topbar-left',
-      h('a.logo', { href: '#/home', title: 'Soundnode' }, icon('cloud', 28)),
+      h('a.logo', { href: '#/home', title: 'Soundnode' }, icon('logo', 28)),
       iconButton('back', 'Back', () => history.back(), 'nav-arrow'),
       iconButton('forward', 'Forward', () => history.forward(), 'nav-arrow'),
       h('nav.nav', navLinks)
@@ -223,6 +223,8 @@ function setupShortcuts(searchInput) {
     if (typing) return;
 
     if (e.code === 'Space') { e.preventDefault(); player.toggle(); }
+    else if (e.altKey && e.key === 'ArrowLeft') history.back();
+    else if (e.altKey && e.key === 'ArrowRight') history.forward();
     else if (ctrl && e.key === 'ArrowRight') { e.preventDefault(); player.next(); }
     else if (ctrl && e.key === 'ArrowLeft') { e.preventDefault(); player.prev(); }
     else if (e.key === 'ArrowRight') player.seekBy(10);
@@ -233,8 +235,6 @@ function setupShortcuts(searchInput) {
     else if (e.key.toLowerCase() === 'l' && player.current) store.toggleLike(player.current);
     else if (e.key.toLowerCase() === 's') player.toggleShuffle();
     else if (e.key.toLowerCase() === 'r') player.cycleRepeat();
-    else if (e.altKey && e.key === 'ArrowLeft') history.back();
-    else if (e.altKey && e.key === 'ArrowRight') history.forward();
   });
   // mouse back/forward buttons
   window.addEventListener('mouseup', (e) => {

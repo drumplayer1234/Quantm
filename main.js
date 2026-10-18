@@ -114,6 +114,8 @@ async function apiRequest({ method = 'GET', resource, params, body }, retried = 
       body: body !== undefined ? JSON.stringify(body) : undefined
     });
   } catch (error) {
+    // transient connection resets happen; retry once before giving up
+    if (!retried) return apiRequest({ method, resource, params, body }, true);
     return { ok: false, status: 0, data: { error: 'network', message: error.message } };
   }
 

@@ -1,0 +1,55 @@
+/* Track page */
+
+.track-hero-wave { position: relative; padding: 0 32px 30px; color: #fff; }
+.track-hero-wave .waveform { margin-top: 0; }
+@media (max-width: 700px) { .track-hero-wave { padding: 0 16px 26px; } }
+
+.track-back { margin-bottom: 14px; }
+
+.track-main-col { min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+.track-section { min-width: 0; }
+
+/* artist mini-card */
+.track-artist {
+  display: flex; align-items: center; gap: 16px; padding: 14px 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: calc(var(--radius) + 2px);
+}
+.track-artist-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.track-artist-name { font-size: 17px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+.track-artist-name:hover { text-decoration: underline; }
+.track-artist-name .icon { color: var(--accent); }
+
+/* description / tags / license */
+.track-more { margin-top: 8px; color: var(--muted); font-weight: 600; font-size: 13px; }
+.track-more:hover { color: var(--text); }
+.track-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.track-license { margin-top: -10px; }
+
+/* comments */
+.track-comments-title { font-size: 18px; font-weight: 800; margin-bottom: 14px; }
+.track-comments .comment-box { padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.track-comments .comment { position: relative; }
+.track-comments .comment-head .muted { font-size: 12px; }
+.track-comments .comment-time:hover { text-decoration: underline; }
+.track-comment-delete { opacity: 0; align-self: flex-start; transition: opacity .12s; }
+.track-comments .comment:hover .track-comment-delete { opacity: 1; }
+.track-comments-off { padding: 12px 0; }
+
+/* sidebar */
+.track-mini { display: flex; align-items: center; gap: 10px; padding: 6px; margin: 0 -6px; border-radius: 8px; cursor: pointer; transition: background .12s; }
+.track-mini:hover { background: var(--hover); }
+.track-mini-art {
+  width: 52px; height: 52px; flex: none; border-radius: 6px; position: relative; overflow: hidden;
+  background: var(--surface-2) center/cover no-repeat; display: flex; align-items: center; justify-content: center; color: var(--muted);
+}
+.track-mini-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, .5); color: #fff; opacity: 0; transition: opacity .15s; }
+.track-mini:hover .track-mini-play { opacity: 1; }
+.track-mini-meta { min-width: 0; flex: 1; }
+.track-mini-meta .link { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-mini-title { display: block; font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.track-mini-title:hover { text-decoration: underline; }
+.track-mini-stats { display: flex; gap: 10px; margin-top: 1px; }
+
+.track-faces { display: flex; flex-wrap: wrap; gap: 6px; }
+.track-face { border-radius: 50%; transition: transform .12s, box-shadow .12s; }
+.track-face:hover { transform: scale(1.08); box-shadow: 0 0 0 2px var(--accent); }

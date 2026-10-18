@@ -1,0 +1,17 @@
+/* Playlist / album / station page */
+
+.playlist-body { display: flex; flex-direction: column; gap: 22px; }
+.playlist-section { max-width: 820px; min-width: 0; }
+.playlist-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.playlist-more { margin-top: 24px; }
+
+/* own playlists: rows can be dragged to reorder */
+.playlist-editable .track-row { cursor: grab; position: relative; }
+.playlist-editable .track-row.playlist-dragging { opacity: .4; }
+.playlist-editable .track-row.playlist-drop-before::before,
+.playlist-editable .track-row.playlist-drop-after::after {
+  content: ""; position: absolute; left: 8px; right: 8px; height: 2px; border-radius: 2px; background: var(--accent);
+  pointer-events: none;
+}
+.playlist-editable .track-row.playlist-drop-before::before { top: -1px; }
+.playlist-editable .track-row.playlist-drop-after::after { bottom: -1px; }

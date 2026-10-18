@@ -8,9 +8,11 @@ const routes = [];
 /** route('/user/:id/:tab?', () => import('./views/user.js')) */
 export function route(pattern, loader) {
   const keys = [];
-  const regex = new RegExp('^' + pattern
-    .replace(/\/:(\w+)\?/g, (m, key) => { keys.push(key); return '(?:/([^/]+))?'; })
-    .replace(/:(\w+)/g, (m, key) => { keys.push(key); return '([^/]+)'; }) + '/?$');
+  // one pass so keys stay in the same order as the capture groups
+  const regex = new RegExp('^' + pattern.replace(/\/:(\w+)(\?)?/g, (m, key, optional) => {
+    keys.push(key);
+    return optional ? '(?:/([^/]+))?' : '/([^/]+)';
+  }) + '/?$');
   routes.push({ regex, keys, loader });
 }
 

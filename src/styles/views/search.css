@@ -1,0 +1,32 @@
+/* Search results */
+
+.search-heading { font-size: 20px; font-weight: 700; margin-bottom: 14px; }
+.search-section { margin-bottom: 40px; }
+
+/* top result card beside the first tracks */
+.search-top { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 32px; margin-bottom: 40px; align-items: start; }
+
+.search-topcard {
+  display: flex; flex-direction: column; gap: 16px; padding: 20px; cursor: pointer;
+  border-radius: calc(var(--radius) + 6px); background: var(--surface); border: 1px solid var(--border);
+  transition: background .15s, border-color .15s;
+}
+.search-topcard:hover { background: var(--surface-2); }
+.search-topart {
+  width: 150px; height: 150px; border-radius: var(--radius); flex: none;
+  background: var(--surface-2) center/cover no-repeat; box-shadow: 0 8px 28px rgba(0, 0, 0, .35);
+  display: flex; align-items: center; justify-content: center; color: var(--muted);
+}
+.search-topart.round { border-radius: 50%; }
+.search-topinfo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.search-toptitle {
+  font-size: 22px; font-weight: 800; line-height: 1.2; display: flex; align-items: center; gap: 6px;
+  overflow-wrap: anywhere;
+}
+.search-toptitle a:hover { text-decoration: underline; }
+.search-toptitle .icon { color: var(--accent); }
+.search-topactions { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+
+@media (max-width: 900px) {
+  .search-top { grid-template-columns: 1fr; }
+}

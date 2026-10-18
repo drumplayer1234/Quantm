@@ -1,0 +1,6 @@
+/* Trending / charts */
+
+.trending-chips { margin-bottom: 28px; }
+.trending-heading { font-size: 22px; font-weight: 800; margin: 0 0 8px; }
+.trending-list .track-num { font-weight: 700; color: var(--muted); }
+.trending-list .track-row:nth-child(-n+3) .track-num { color: var(--accent); }

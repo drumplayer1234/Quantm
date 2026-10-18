@@ -25,6 +25,11 @@
     "directories": {
       "output": "dist"
     },
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ],
     "win": {
       "target": [
         "nsis",

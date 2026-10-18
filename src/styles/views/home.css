@@ -1,0 +1,12 @@
+/* Home / Discover */
+
+.home-hero { margin-bottom: 28px; }
+.home-greeting {
+  margin: 0; font-family: var(--font-display); font-size: 36px; font-weight: 800; letter-spacing: -.02em;
+  background: linear-gradient(90deg, var(--text), color-mix(in srgb, var(--text) 55%, var(--accent)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.home-sub { color: var(--muted); margin-top: 6px; font-size: 15px; }
+
+.home-see-all { align-self: center; margin-right: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.home-see-all:hover { color: var(--text); text-decoration: underline; }
