@@ -1,7 +1,7 @@
 name: Release
 
 # Builds installers for Windows, macOS and Linux and attaches them to a
-# GitHub Release. Push a tag such as v8.0.1 to start a release.
+# GitHub Release. Push a tag such as v1.0.1 to start a release.
 on:
   push:
     tags:
