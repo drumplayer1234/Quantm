@@ -61,6 +61,12 @@ export class Normalizer {
       this.output = ctx.createGain();
       source.connect(this.gain).connect(this.limiter).connect(this.output).connect(ctx.destination);
 
+      // visualizer tap: after normalization, before user volume, so it looks the same at any volume
+      this.visual = ctx.createAnalyser();
+      this.visual.fftSize = 256;
+      this.visual.smoothingTimeConstant = 0.78;
+      this.limiter.connect(this.visual);
+
       this.ctx = ctx;
       this.buffer = new Float32Array(this.analyser.fftSize);
       this.applyVolume();

@@ -107,7 +107,9 @@ const defaults = {
   repeat: 'off', // off | all | one
   notifications: true,
   autoplayRelated: true,
-  normalize: true
+  normalize: true,
+  visualizer: true,
+  visualizerStyle: 'bars' // bars | mirror | wave
 };
 
 export const settings = Object.assign({}, defaults, safeParse(localStorage.getItem(SETTINGS_KEY)));

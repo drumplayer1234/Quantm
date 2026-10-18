@@ -2,6 +2,7 @@
 import { h, clear, duration, coverOf } from './dom.js';
 import { icon } from './icons.js';
 import { player } from './player.js';
+import { createVisualizer } from './visualizer.js';
 import { store } from './store.js';
 import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, toast } from './ui.js';
 
@@ -42,7 +43,7 @@ export function mountPlayerBar(root) {
       ),
       h('div.pb-progress-row', current, progress, total)
     ),
-    h('div.pb-right', moreBtn, queueBtn, volIcon, volume)
+    h('div.pb-right', createVisualizer(), moreBtn, queueBtn, volIcon, volume)
   );
   root.append(bar);
 

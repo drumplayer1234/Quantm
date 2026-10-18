@@ -530,3 +530,8 @@ a.stat:hover { color: var(--text); }
 
 /* playlist covers load lazily: hide the placeholder icon once the image is set */
 .playlist-art.has-cover > .icon { display: none; }
+
+/* player bar visualizer */
+.pb-visualizer { flex: none; margin-right: 8px; opacity: .9; }
+.playerbar.empty .pb-visualizer { opacity: .25; }
+@media (max-width: 1100px) { .pb-visualizer { display: none; } }

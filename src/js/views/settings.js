@@ -4,6 +4,7 @@ import { h, debounce } from '../dom.js';
 import { icon } from '../icons.js';
 import { store, settings, saveSettings } from '../store.js';
 import { player } from '../player.js';
+import { VISUALIZER_STYLES } from '../visualizer.js';
 import * as theme from '../theme.js';
 import { pageHeader, button, toast, avatar, confirmDialog, promptDialog } from '../ui.js';
 
@@ -385,6 +386,22 @@ async function playbackTab(cleanups) {
       toggleRow('Desktop notifications', 'Show a notification when a new track starts playing.', settings.notifications, onNotifications),
       toggleRow('Normalize volume', 'Even out loud and quiet tracks so every song plays at a similar level.', settings.normalize !== false,
         (on) => player.setNormalize(on))
+    ),
+    card('Visualizer', 'A small animated spectrum in the player bar, drawn in your theme colors.',
+      toggleRow('Show visualizer', 'Animate the player bar along with the music.', settings.visualizer !== false,
+        (on) => saveSettings({ visualizer: on })),
+      h('div.settings-row',
+        h('div.settings-row-text', h('span.settings-row-title', 'Style'), h('span.settings-row-desc', 'How the visualizer is drawn')),
+        h('div.chips', VISUALIZER_STYLES.map((style) => {
+          const chip = h('button.chip' + (settings.visualizerStyle === style.id ? '.active' : ''), {
+            onclick: () => {
+              saveSettings({ visualizerStyle: style.id });
+              chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c === chip));
+            }
+          }, style.label);
+          return chip;
+        }))
+      )
     ),
     card('Volume', 'The level Quantm plays at. You can also change it from the player bar.',
       h('div.settings-radius',
