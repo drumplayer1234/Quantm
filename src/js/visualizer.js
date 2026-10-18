@@ -311,6 +311,8 @@ export function createVisualizer() {
   player.on('track', start);
   store.on('settings', start);
   document.addEventListener('themechange', () => { colors = readColors(); start(); });
+  // the accent can also follow the playing song's artwork (Settings → Appearance)
+  document.addEventListener('accentchange', () => { colors = readColors(); start(); });
   document.addEventListener('appvisibility', start);
   start();
   return canvas;

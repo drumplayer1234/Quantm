@@ -169,6 +169,7 @@ function applyArtworkColors(a) {
   root.setProperty('--accent', artworkAccent.accent);
   root.setProperty('--wave-played', artworkAccent.accent);
   root.setProperty('--accent-text', artworkAccent.accentText);
+  document.dispatchEvent(new CustomEvent('accentchange'));
 }
 
 async function updateArtworkAccent() {
