@@ -199,3 +199,8 @@
 .settings-number { width: 64px; height: 30px; padding: 0 6px; text-align: right; font-variant-numeric: tabular-nums; }
 .settings-number::-webkit-inner-spin-button { opacity: .6; }
 .settings-unit { color: var(--muted); font-size: 12px; min-width: 16px; }
+
+/* --- performance tab --- */
+.settings-usage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.settings-usage-item { padding: 14px; border-radius: var(--radius); background: var(--hover); }
+.settings-usage-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }

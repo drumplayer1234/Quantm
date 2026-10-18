@@ -273,6 +273,7 @@ export function waveform(track, { height = 60, onPlay, comments = null } = {}) {
   observer.observe(wrap);
   const onTime = () => {
     if (!wrap.isConnected) { observer.disconnect(); offTime(); return; }
+    if (document.documentElement.hasAttribute('data-hidden')) return;
     if (player().current && player().current.id === track.id) draw();
   };
   const offTime = player().on('time', onTime);

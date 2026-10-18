@@ -13,6 +13,7 @@ const TABS = [
   { id: 'theme', label: 'Theme & colors', icon: 'palette' },
   { id: 'appearance', label: 'Appearance', icon: 'edit' },
   { id: 'playback', label: 'Playback', icon: 'play' },
+  { id: 'performance', label: 'Performance', icon: 'trending' },
   { id: 'account', label: 'Account', icon: 'user' },
   { id: 'shortcuts', label: 'Shortcuts', icon: 'queue' },
   { id: 'about', label: 'About', icon: 'cloud' }
@@ -26,7 +27,7 @@ export async function render(page, params) {
     h('a.settings-nav-link' + (t.id === active ? '.active' : ''), { href: '#/settings/' + t.id }, icon(t.icon, 18), h('span', t.label))
   ));
 
-  const builders = { theme: themeTab, appearance: appearanceTab, playback: playbackTab, account: accountTab, shortcuts: shortcutsTab, about: aboutTab };
+  const builders = { theme: themeTab, appearance: appearanceTab, playback: playbackTab, performance: performanceTab, account: accountTab, shortcuts: shortcutsTab, about: aboutTab };
   const content = h('div.settings-content' + (active === 'theme' ? '.wide' : ''), await builders[active](cleanups));
 
   page.append(
@@ -538,6 +539,45 @@ async function appearanceTab() {
         h('span.settings-row-text', h('span.settings-row-title', 'Day starts / night starts')),
         h('div.settings-times', timeInput('dayStart'), h('span.muted', 'to'), timeInput('nightStart'))
       )
+    )
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Performance tab: live usage plus the switches that make Quantm lighter
+// ---------------------------------------------------------------------------
+
+async function performanceTab(cleanups) {
+  const info = await window.native.performanceInfo();
+  const usage = h('div.settings-usage', h('span.muted', 'Measuring…'));
+
+  // CPU is measured between two samples, so poll every 2 seconds
+  const refresh = async () => {
+    const m = await window.native.metrics();
+    usage.replaceChildren(
+      h('div.settings-usage-item', h('div.settings-usage-value', m.cpu + '%'), h('div.muted.small', 'CPU')),
+      h('div.settings-usage-item', h('div.settings-usage-value', m.memoryMB + ' MB'), h('div.muted.small', 'Memory')),
+      h('div.settings-usage-item', h('div.settings-usage-value', String(m.processes)), h('div.muted.small', 'Processes'))
+    );
+  };
+  window.native.metrics();
+  setTimeout(refresh, 800);
+  const timer = setInterval(refresh, 2000);
+  cleanups.push(() => clearInterval(timer));
+
+  return h('div',
+    card('Resource usage', 'Everything Quantm is using right now, across all of its processes.', usage),
+    card('Lighter on resources', 'Handy while gaming. Music keeps playing either way.',
+      toggleRow('Performance mode', 'Turn off blur, animations and the visualizer. Glass themes become solid so text stays readable.', !!settings.performanceMode,
+        (on) => saveSettings({ performanceMode: on })),
+      toggleRow('Pause visuals when minimized', 'Stop animations and drawing, and free cached images, while Quantm is minimized.', settings.pauseWhenHidden !== false,
+        (on) => saveSettings({ pauseWhenHidden: on })),
+      toggleRow('Hardware acceleration', 'Use the graphics card for drawing. Turning it off leaves your GPU to your games, but Quantm uses more memory (around 200 MB more). Quantm restarts to apply this.', info.hardwareAcceleration,
+        async (on, input) => {
+          const ok = await confirmDialog(on ? 'Turn hardware acceleration on?' : 'Turn hardware acceleration off?', 'Quantm will restart to apply this. Music stops for a moment.', 'Restart now');
+          if (!ok) { input.checked = !on; return; }
+          window.native.setHardwareAcceleration(on);
+        })
     )
   );
 }

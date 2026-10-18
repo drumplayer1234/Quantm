@@ -7,6 +7,7 @@ import { store } from './store.js';
 import { player } from './player.js';
 import { applyTheme } from './theme.js';
 import { initAppearance } from './appearance.js';
+import { initPerformance } from './performance.js';
 import { route, startRouter } from './router.js';
 import { mountPlayerBar } from './playerbar.js';
 import { bindServices, iconButton, button, menu, toast, avatar, go, playlistHref } from './ui.js';
@@ -140,6 +141,7 @@ function mountShell() {
   setupWindowMode(topbar);
   mountPlayerBar(app);
   initAppearance();
+  initPerformance();
   player.restoreSession();
   setupDiscord();
 

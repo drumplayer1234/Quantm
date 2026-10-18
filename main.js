@@ -14,6 +14,15 @@ const TITLEBAR_HEIGHT = 56;
 // SoundCloud rejects requests whose user agent mentions Electron
 app.userAgentFallback = CHROME_UA;
 
+// Keep the app light: skip Chromium features a music player never uses
+app.commandLine.appendSwitch('disable-features', 'SpareRendererForSitePerProcess,Translate,MediaRouter,OptimizationHints,AutofillServerCommunication,InterestFeedContentSuggestions');
+
+// "Hardware acceleration" off (Settings → Performance) keeps Quantm off the graphics card
+try {
+  const startupPrefs = JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'window-prefs.json'), 'utf8'));
+  if (startupPrefs.hardwareAcceleration === false) app.disableHardwareAcceleration();
+} catch (e) { /* defaults */ }
+
 // Windows shows the app id as the notification header when it has no cached name for it,
 // so the Windows id is just "Quantm". Must match build.win.appId (the installer shortcut).
 const APP_ID = process.platform === 'win32' ? 'Quantm' : 'app.quantm.desktop';
@@ -316,7 +325,8 @@ function createMainWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      backgroundThrottling: false
+      backgroundThrottling: false,
+      spellcheck: false
     }
   }, chrome));
   mainWindow.seeThrough = seeThrough;
@@ -328,6 +338,11 @@ function createMainWindow() {
   });
   const sendMaximized = () => mainWindow && mainWindow.webContents.send('window:maximized', mainWindow.isMaximized());
   mainWindow.on('maximize', sendMaximized);
+  const sendVisibility = (hidden) => mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.send('window:visibility', hidden);
+  mainWindow.on('minimize', () => sendVisibility(true));
+  mainWindow.on('hide', () => sendVisibility(true));
+  mainWindow.on('restore', () => sendVisibility(false));
+  mainWindow.on('show', () => sendVisibility(false));
   mainWindow.on('unmaximize', sendMaximized);
 
   const saveState = () => {
@@ -419,6 +434,19 @@ ipcMain.handle('window:setSeeThrough', async (event, on) => {
   app.quit();
 });
 
+ipcMain.handle('app:setHardwareAcceleration', async (event, on) => {
+  const prefs = loadWindowPrefs();
+  prefs.hardwareAcceleration = !!on;
+  fs.writeFileSync(windowPrefsFile(), JSON.stringify(prefs));
+  await session.defaultSession.flushStorageData();
+  app.relaunch();
+  app.quit();
+});
+
+ipcMain.handle('app:performanceInfo', () => ({
+  hardwareAcceleration: loadWindowPrefs().hardwareAcceleration !== false
+}));
+
 ipcMain.handle('window:control', (event, action) => {
   if (!mainWindow) return;
   if (action === 'minimize') mainWindow.minimize();
@@ -444,6 +472,17 @@ ipcMain.handle('shell:open', (event, url) => {
 ipcMain.handle('clipboard:write', (event, text) => clipboard.writeText(String(text)));
 
 ipcMain.handle('app:info', () => ({ version: app.getVersion(), platform: process.platform }));
+
+// resource usage of all Quantm processes (Settings → Performance shows it)
+ipcMain.handle('app:metrics', () => {
+  const metrics = app.getAppMetrics();
+  return {
+    processes: metrics.length,
+    cpu: Math.round(metrics.reduce((sum, m) => sum + m.cpu.percentCPUUsage, 0) * 10) / 10,
+    memoryMB: Math.round(metrics.reduce((sum, m) => sum + m.memory.workingSetSize, 0) / 1024),
+    byType: metrics.map(m => ({ type: m.type, cpu: Math.round(m.cpu.percentCPUUsage * 10) / 10, mb: Math.round(m.memory.workingSetSize / 1024) }))
+  };
+});
 
 // ---------------------------------------------------------------------------
 // Lifecycle

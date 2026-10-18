@@ -120,8 +120,14 @@ export function createVisualizer() {
 
   const hue = (i, n, shift) => `hsl(${(i / n * 280 + shift) % 360} 85% 60%)`;
 
+  const quiet = () => {
+    const root = document.documentElement;
+    return root.hasAttribute('data-perf') || root.hasAttribute('data-hidden');
+  };
+
   function draw() {
     frame = null;
+    if (quiet()) return; // minimized or performance mode: no drawing at all
     const analyser = player.normalizer && player.normalizer.visual;
     if (!settings.visualizer || !analyser || !canvas.isConnected) return;
 
@@ -295,7 +301,8 @@ export function createVisualizer() {
 
   const start = () => {
     layout();
-    canvas.classList.toggle('hidden', !settings.visualizer);
+    canvas.classList.toggle('hidden', !settings.visualizer || document.documentElement.hasAttribute('data-perf'));
+    if (quiet()) return;
     idle = 0;
     if (!frame) frame = requestAnimationFrame(draw);
   };
@@ -304,6 +311,7 @@ export function createVisualizer() {
   player.on('track', start);
   store.on('settings', start);
   document.addEventListener('themechange', () => { colors = readColors(); start(); });
+  document.addEventListener('appvisibility', start);
   start();
   return canvas;
 }

@@ -128,6 +128,8 @@ const defaults = {
   normalize: true,
   resumeSession: true,
   discordStatus: true,
+  performanceMode: false,   // no blur, animations or visualizer
+  pauseWhenHidden: true,    // stop visuals and free memory while minimized
   ...VISUALIZER_DEFAULTS
 };
 

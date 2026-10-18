@@ -639,3 +639,24 @@ a.stat:hover { color: var(--text); }
 .pb-visualizer.pos-center {
   position: absolute; top: 20px; left: calc(50% + 128px); transform: translateY(-50%); margin: 0; z-index: 1;
 }
+
+/* =================================================================== performance
+   data-hidden: window minimized (pause everything). data-perf: Performance mode. */
+[data-hidden] *, [data-hidden] *::before, [data-hidden] *::after,
+[data-hidden] body::before { animation-play-state: paused !important; }
+
+[data-perf] *, [data-perf] *::before, [data-perf] *::after {
+  animation: none !important;
+  transition: none !important;
+  backdrop-filter: none !important;
+}
+[data-perf] .pb-visualizer { display: none !important; }
+[data-perf] .app-bg-image { filter: none; }
+/* glass themes lean on blur for readability: make their panels nearly solid instead */
+[data-perf] {
+  --glass-bg: color-mix(in srgb, var(--surface) 94%, transparent);
+  --glass-bar: color-mix(in srgb, var(--bar) 96%, transparent);
+  --lq-tint: color-mix(in srgb, var(--surface) 94%, transparent);
+  --lq-bar: color-mix(in srgb, var(--surface) 96%, transparent);
+  --lq-soft: color-mix(in srgb, var(--surface) 90%, transparent);
+}

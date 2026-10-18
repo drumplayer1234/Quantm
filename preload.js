@@ -1,6 +1,6 @@
 'use strict';
 
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webFrame } = require('electron');
 
 // The only bridge between the page and the main process
 contextBridge.exposeInMainWorld('native', {
@@ -26,5 +26,11 @@ contextBridge.exposeInMainWorld('native', {
     setEnabled: (on) => ipcRenderer.invoke('discord:setEnabled', on),
     status: () => ipcRenderer.invoke('discord:status')
   },
+  metrics: () => ipcRenderer.invoke('app:metrics'),
+  performanceInfo: () => ipcRenderer.invoke('app:performanceInfo'),
+  setHardwareAcceleration: (on) => ipcRenderer.invoke('app:setHardwareAcceleration', on),
+  onVisibility: (fn) => ipcRenderer.on('window:visibility', (event, hidden) => fn(hidden)),
+  // drop decoded images and other caches (used when the window is minimized)
+  trimMemory: () => webFrame.clearCache(),
   info: () => ipcRenderer.invoke('app:info')
 });
