@@ -11,6 +11,8 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 ![Quantm SoundCloud desktop client showing the glass theme, music library, and playback controls](docs/images/quantm-home.png)
 
+![Quantm switching between themes, a track page and Album Match](docs/images/quantm-demo.gif)
+
 ## Features
 
 **Listening**
@@ -75,6 +77,15 @@ Grab the latest build from the [**Releases** page](https://github.com/drumplayer
   - `Quantm-x.y.z-Portable.exe`: runs without installing, handy for trying it out or on PCs where you can't install apps. It starts a little slower, and your settings are still saved on that PC.
 - **macOS:** the `.dmg` disk image.
 - **Linux:** the `AppImage` (runs anywhere) or the `.deb` package (Debian and Ubuntu).
+
+Or install with a package manager on Windows:
+
+```powershell
+scoop bucket add quantm https://github.com/drumplayer1234/Quantm
+scoop install quantm/quantm
+```
+
+`winget install drumplayer1234.Quantm` will work once Quantm is approved in the winget catalog.
 
 ### "Windows protected your PC"?
 
