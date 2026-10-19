@@ -1,5 +1,6 @@
 // App-wide state: the logged in user, what they like / repost / follow, and settings.
 import * as api from './api.js';
+import { normalizeEqualizer } from './equalizer.js';
 import { Emitter } from './dom.js';
 import { toast } from './ui.js';
 
@@ -126,6 +127,7 @@ const defaults = {
   notifications: true,
   autoplayRelated: true,
   normalize: true,
+  eq: { enabled: false, preset: 'Flat', preamp: 0, gains: [0, 0, 0, 0, 0] },
   resumeSession: true,
   discordStatus: true,
   performanceMode: false,   // no blur, animations or visualizer
@@ -139,7 +141,10 @@ const defaults = {
 
 export const settings = Object.assign({}, defaults, safeParse(localStorage.getItem(SETTINGS_KEY)));
 
+settings.eq = normalizeEqualizer(settings.eq);
+
 export function saveSettings(patch) {
+  if (patch.eq) patch = { ...patch, eq: normalizeEqualizer(patch.eq) };
   Object.assign(settings, patch);
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   store.emit('settings', settings);

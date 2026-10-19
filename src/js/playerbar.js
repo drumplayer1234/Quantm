@@ -3,8 +3,9 @@ import { h, clear, duration, coverOf } from './dom.js';
 import { icon } from './icons.js';
 import { player } from './player.js';
 import { createVisualizer } from './visualizer.js';
-import { store, settings } from './store.js';
-import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, menu, transitionDialog } from './ui.js';
+import { store, settings, saveSettings } from './store.js';
+import { getSleepTimer, formatRemaining } from './sleep.js';
+import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, menu, transitionDialog, toast } from './ui.js';
 import { getCues, cueEvents, transitionFor } from './cues.js';
 import { formatCueTime } from './cue-time.js';
 
@@ -49,6 +50,38 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   addBtn.hidden = moreBtn.hidden = offline;
   const queueBtn = iconButton('queue', 'Queue', () => toggleQueue(), 'pb-queue-btn');
   const speedBtn = h('button.pb-speed', { title: 'Playback speed', 'aria-label': 'Playback speed', onclick: (e) => { e.stopPropagation(); speedMenu(e); } });
+  const eqBtn = h('button.pb-speed.pb-eq', { title: 'Equalizer', 'aria-label': 'Equalizer', onclick: (e) => {
+    e.stopPropagation();
+    menu([
+      { label: settings.eq.enabled ? 'Turn equalizer off' : 'Turn equalizer on', icon: 'equalizer', onclick: () => {
+        saveSettings({ eq: { ...settings.eq, enabled: !settings.eq.enabled } });
+        location.hash = '#/settings/playback?card=equalizer';
+      } },
+      { label: 'Equalizer settings', icon: 'settings', onclick: () => { location.hash = '#/settings/playback?card=equalizer'; } }
+    ], e);
+  } }, 'EQ');
+  const syncEq = () => { eqBtn.classList.toggle('active', settings.eq.enabled); eqBtn.setAttribute('aria-pressed', String(settings.eq.enabled)); };
+  store.on('settings', syncEq);
+  syncEq();
+  const sleep = getSleepTimer(player, toast);
+  const sleepLabel = h('span.pb-sleep-label');
+  const sleepBtn = h('button.icon-btn.pb-sleep', { title: 'Sleep timer', 'aria-label': 'Sleep timer', onclick: (e) => {
+    e.stopPropagation();
+    menu([
+      ...[15, 30, 45, 60, 90].map(minutes => ({ label: `${minutes} minutes`, onclick: () => sleep.start(minutes) })),
+      player.current ? { label: 'End of this track', onclick: () => sleep.startEndOfTrack() } : null,
+      'separator',
+      { label: 'Cancel timer', onclick: () => sleep.cancel() }
+    ], e);
+  } }, icon('moon', 18), sleepLabel);
+  const syncSleep = () => {
+    sleepBtn.classList.toggle('active', !!sleep.mode);
+    sleepLabel.textContent = sleep.mode === 'time' ? formatRemaining(sleep.remaining) : sleep.mode === 'track' ? '•' : '';
+    sleepBtn.title = sleep.mode === 'track' ? 'Sleep timer: end of this track' : sleep.mode ? `Sleep timer: ${formatRemaining(sleep.remaining)} remaining` : 'Sleep timer';
+    sleepBtn.setAttribute('aria-label', sleepBtn.title);
+  };
+  sleep.on('change', syncSleep);
+  syncSleep();
   const volIcon = iconButton('volume', 'Mute (M)', () => player.toggleMute());
   const volFill = h('div.pb-fill');
   const volume = h('div.pb-volume', h('div.pb-track', volFill));
@@ -66,7 +99,7 @@ export function mountPlayerBar(root, { offline = false } = {}) {
       ),
       h('div.pb-progress-row', current, progress, total)
   );
-  const pbRight = h('div.pb-right', moreBtn, speedBtn, queueBtn, volIcon, volume);
+  const pbRight = h('div.pb-right', moreBtn, speedBtn, eqBtn, sleepBtn, queueBtn, volIcon, volume);
   const bar = h('footer.playerbar.idle', pbLeft, pbCenter, pbRight);
   root.append(bar);
 

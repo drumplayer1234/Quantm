@@ -1,7 +1,7 @@
 const globals = require('globals');
 
 module.exports = [
-  { ignores: ['dist/**', 'node_modules/**', 'src/vendor/**'] },
+  { ignores: ['dist/**', 'node_modules/**', 'src/vendor/**', '.claude/**', 'promo/**'] },
   {
     files: ['**/*.js', '**/*.mjs'],
     languageOptions: { ecmaVersion: 'latest' },

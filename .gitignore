@@ -12,3 +12,4 @@ src/styles/themes/local/
 TODO.md
 # launch drafts and promo tooling (local only)
 promo/
+.claude/

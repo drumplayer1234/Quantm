@@ -1,0 +1,21 @@
+/* Audio controls inherit the active theme, including custom themes. */
+.eq-bands { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
+.eq-band { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text); }
+.eq-band .settings-range-wrap { flex-direction: column; width: 100%; min-width: 0; flex: none; gap: 10px; }
+.eq-band .settings-range { writing-mode: vertical-lr; direction: rtl; height: 130px; width: 24px; flex: none; accent-color: var(--accent); }
+.eq-band .settings-number { width: 58px; }
+#equalizer { scroll-margin-top: 20px; }
+#equalizer:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pb-eq.active, .pb-sleep.active { color: var(--accent); }
+.pb-sleep { display: inline-flex; align-items: center; gap: 4px; width: auto; flex-shrink: 0; }
+.pb-sleep-label { font-size: 11px; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) {
+  .eq-bands { grid-template-columns: 1fr; }
+  .eq-band { flex-direction: row; justify-content: space-between; }
+  .eq-band .settings-range-wrap { flex-direction: row; width: min(75%, 320px); }
+  .eq-band .settings-range { writing-mode: horizontal-tb; direction: ltr; height: auto; width: 100%; flex: 1; }
+  .pb-sleep-label { max-width: 5ch; }
+}
+html[data-perf] .eq-band input, html[data-perf] .pb-eq, html[data-perf] .pb-sleep { transition: none; animation: none; }
+
+.playerbar.idle .pb-right .pb-sleep { opacity: 1; pointer-events: auto; }

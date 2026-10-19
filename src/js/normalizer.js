@@ -3,12 +3,13 @@
 // plays and nudge a gain node toward a common target, like Spotify's "normalize volume".
 //
 //   <audio> → source ─┬─ meter tap → meter (K-weighting-ish filters → analyser)
-//                     └─ deck fade gain → normalize gain → limiter → user volume → speakers
+//                     └─ deck fade gain → normalize gain → preamp → EQ → limiter → user volume → sleep gain → speakers
 //
 // There is one source + fade gain per <audio> element ("deck"), so two tracks can
 // overlap while crossfading. The meter only listens to the active deck.
 
 import { safeParse } from './store.js';
+import { EQ_BANDS, normalizeEqualizer } from './equalizer.js';
 
 const TARGET = -14;          // dB, roughly the -14 LUFS streaming services use
 const MAX_BOOST = 9;         // never boost quiet tracks by more than this
@@ -33,6 +34,7 @@ export class Normalizer {
     this.blocks = [];        // mean-square energy per block for the current track
     this.trackId = null;
     this.cache = safeParse(localStorage.getItem(CACHE_KEY));
+    this.equalizer = normalizeEqualizer();
     this.volume = 1;
     this.muted = false;
   }
@@ -67,7 +69,18 @@ export class Normalizer {
       this.limiter.attack.value = 0.003;
       this.limiter.release.value = 0.25;
       this.output = ctx.createGain();
-      this.gain.connect(this.limiter).connect(this.output).connect(ctx.destination);
+      this.preamp = ctx.createGain();
+      this.eqFilters = EQ_BANDS.map((frequency, i) => {
+        const filter = ctx.createBiquadFilter();
+        filter.type = i === 0 ? 'lowshelf' : i === 4 ? 'highshelf' : 'peaking';
+        filter.frequency.value = Math.min(frequency, ctx.sampleRate / 2);
+        filter.Q.value = 1;
+        return filter;
+      });
+      let tail = this.gain.connect(this.preamp);
+      this.eqFilters.forEach(filter => { tail = tail.connect(filter); });
+      this.sleepGain = ctx.createGain();
+      tail.connect(this.limiter).connect(this.output).connect(this.sleepGain).connect(ctx.destination);
 
       // visualizer tap: after normalization, before user volume, so it looks the same at any volume
       this.visual = ctx.createAnalyser();
@@ -78,6 +91,7 @@ export class Normalizer {
       this.ctx = ctx;
       this.buffer = new Float32Array(this.analyser.fftSize);
       if (!this.addDeck(this.audio)) { this.ctx = null; throw new Error('Could not route the audio element'); }
+      this.setEqualizer(this.equalizer);
       this.applyVolume();
       setInterval(() => this.measure(), BLOCK_MS);
       return true;
@@ -210,6 +224,30 @@ export class Normalizer {
     if (!this.ctx) return;
     const db = on && this.blocks.length >= MIN_BLOCKS ? this.gainFor(this.integrated()) : on && typeof this.cache[this.trackId] === 'number' ? this.gainFor(this.cache[this.trackId]) : 0;
     this.gain.gain.setTargetAtTime(dbToGain(db), this.ctx.currentTime, 0.3);
+  }
+
+  setEqualizer(value) {
+    this.equalizer = normalizeEqualizer(value);
+    if (!this.ctx) return;
+    const { enabled, preamp, gains } = this.equalizer;
+    this.preamp.gain.setTargetAtTime(dbToGain(enabled ? preamp : 0), this.ctx.currentTime, 0.03);
+    this.eqFilters.forEach((filter, i) => filter.gain.setTargetAtTime(enabled ? gains[i] : 0, this.ctx.currentTime, 0.03));
+  }
+
+  /** Independent of user volume, so a timer never changes saved volume or mute. */
+  fadeForSleep(seconds) {
+    if (!this.ctx) return;
+    const gain = this.sleepGain.gain;
+    const now = this.ctx.currentTime;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(gain.value, now);
+    gain.setTargetAtTime(0, now, Math.max(0.01, seconds / 5));
+  }
+
+  restoreSleepVolume() {
+    if (!this.ctx) return;
+    this.sleepGain.gain.cancelScheduledValues(this.ctx.currentTime);
+    this.sleepGain.gain.setTargetAtTime(1, this.ctx.currentTime, 0.02);
   }
 
   /** User volume lives after the limiter, so it never affects the loudness measurement */

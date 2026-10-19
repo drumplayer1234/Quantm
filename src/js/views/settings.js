@@ -4,6 +4,7 @@ import { h, debounce } from '../dom.js';
 import { icon } from '../icons.js';
 import { store, settings, saveSettings, VISUALIZER_DEFAULTS } from '../store.js';
 import { player } from '../player.js';
+import { EQ_PRESETS, presetFor, normalizeEqualizer } from '../equalizer.js';
 import { offline, formatBytes } from '../offline.js';
 import { VISUALIZER_STYLES, VISUALIZER_COLORS, VISUALIZER_POSITIONS, VISUALIZER_LIMITS } from '../visualizer.js';
 import * as theme from '../theme.js';
@@ -21,7 +22,7 @@ const TABS = [
   { id: 'about', label: 'About', icon: 'cloud' }
 ];
 
-export async function render(page, params) {
+export async function render(page, params, query = {}) {
   const active = TABS.some(t => t.id === params.tab) ? params.tab : 'theme';
   const cleanups = [];
 
@@ -36,6 +37,10 @@ export async function render(page, params) {
     pageHeader('Settings', { subtitle: 'Make Quantm yours' }),
     h('div.settings-layout', nav, content)
   );
+  if (query.card === 'equalizer') requestAnimationFrame(() => {
+    const eq = page.querySelector('#equalizer');
+    if (eq?.isConnected) { eq.scrollIntoView({ block: 'start' }); eq.focus({ preventScroll: true }); }
+  });
   return () => cleanups.forEach(fn => fn());
 }
 
@@ -662,6 +667,7 @@ async function playbackTab(cleanups) {
       h('div.settings-actions', button('Open downloads folder', () => offline.openFolder(), 'btn-outline'), removeDownloads),
       h('p.muted.small', "Only tracks whose artist allows downloads can be downloaded. Files are kept in the artist's original format.")
     ),
+    equalizerCard(cleanups),
     speedCard(cleanups),
     card('Crossfade', 'Blend the end of each song into the start of the next. Skipping always cuts cleanly.',
       sliderRow('Crossfade', '0 turns it off. Songs shorter than twice this length play normally.',
@@ -677,6 +683,43 @@ async function playbackTab(cleanups) {
       )
     )
   );
+}
+
+function equalizerCard(cleanups) {
+  const current = () => normalizeEqualizer(settings.eq);
+  const save = (patch) => saveSettings({ eq: { ...current(), ...patch } });
+  const toggle = toggleRow('Enable equalizer', 'Applies to both decks, including crossfades.', current().enabled,
+    enabled => save({ enabled }));
+  const preset = h('select.input.settings-select', { 'aria-label': 'Equalizer preset', onchange: () => {
+    if (preset.value !== 'Custom') save(presetFor(preset.value));
+    else save({ preset: 'Custom' });
+  } }, [...Object.keys(EQ_PRESETS), 'Custom'].map(name => h('option', { value: name }, name)));
+  const bands = ['60 Hz', '230 Hz', '910 Hz', '3.6 kHz', '14 kHz'].map((label, i) => {
+    const control = rangeControl({ min: -12, max: 12, step: 0.5, value: current().gains[i], unit: 'dB', label }, value => {
+      const gains = current().gains.slice();
+      gains[i] = value;
+      save({ gains, preset: 'Custom' });
+    });
+    return h('div.eq-band', h('span.settings-row-title', label), control);
+  });
+  const preamp = sliderRow('Preamp', 'Reduce this if boosts sound too compressed.',
+    { min: -12, max: 12, step: 0.5, value: current().preamp, unit: 'dB' }, preamp => save({ preamp, preset: 'Custom' }));
+  const sync = () => {
+    const eq = current();
+    toggle.querySelector('input').checked = eq.enabled;
+    preset.value = eq.preset;
+    bands.forEach((band, i) => band.querySelector('.settings-range-wrap').setValue(eq.gains[i]));
+    preamp.setValue(eq.preamp);
+  };
+  cleanups.push(store.on('settings', sync));
+  sync();
+  const section = card('Equalizer', 'Shape your sound with five bands and a preamp. Each control ranges from -12 to +12 dB.',
+    toggle, h('div.settings-row', h('span.settings-row-title', 'Preset'), preset),
+    h('div.eq-bands', bands), preamp,
+    h('div.settings-actions', button('Reset', () => save(presetFor('Flat')), 'btn-outline')));
+  section.id = 'equalizer';
+  section.tabIndex = -1;
+  return section;
 }
 
 const SPEED_MODES = [

@@ -40,6 +40,7 @@ class Player extends Emitter {
     this.muted = settings.muted;
     this.normalizer = new Normalizer(this.decks[0].audio);
     this.normalizer.enabled = settings.normalize !== false;
+    this.normalizer.setEqualizer(settings.eq);
     this.normalizer.setVolume(this.volume, this.muted);
 
     this.queue = [];        // tracks in play order
@@ -54,7 +55,7 @@ class Player extends Emitter {
     this.decks.forEach(deck => this.bindDeck(deck));
     this.speedKey = '';
     this.syncSpeed();
-    store.on('settings', () => this.syncSpeed());
+    store.on('settings', () => { this.syncSpeed(); this.normalizer.setEqualizer(settings.eq); });
 
     this.setupMediaSession();
 
@@ -357,7 +358,7 @@ class Player extends Emitter {
   /** Runs as the song plays: look up the next stream a little early, then start the overlap */
   checkCrossfade() {
     const audio = this.audio;
-    if (this.fading || this.loading || this.noCrossfade || !this.current) return;
+    if (this.stopAtTrackEnd || this.fading || this.loading || this.noCrossfade || !this.current) return;
     if (this.repeat === 'one' || audio.paused || audio.seeking || !this.normalizer.ctx) return;
     const dur = audio.duration;
     if (!isFinite(dur) || dur <= 0) return;
@@ -605,6 +606,7 @@ class Player extends Emitter {
   }
 
   onEnded() {
+    if (this.stopAtTrackEnd) { this.emit('sleepend'); return; }
     if (this.repeat === 'one') {
       this.audio.currentTime = 0;
       this.audio.play().catch(() => {});
