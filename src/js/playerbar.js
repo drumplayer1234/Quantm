@@ -4,7 +4,9 @@ import { icon } from './icons.js';
 import { player } from './player.js';
 import { createVisualizer } from './visualizer.js';
 import { store, settings } from './store.js';
-import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, menu } from './ui.js';
+import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, menu, transitionDialog } from './ui.js';
+import { getCues, cueEvents, transitionFor } from './cues.js';
+import { formatCueTime } from './cue-time.js';
 
 export function mountPlayerBar(root) {
   const art = h('a.pb-art', { href: '#' });
@@ -22,7 +24,25 @@ export function mountPlayerBar(root) {
   const buffer = h('div.pb-buffer');
   const knob = h('div.pb-knob');
   const hoverTime = h('div.pb-hovertime');
-  const progress = h('div.pb-progress', h('div.pb-track', buffer, fill, knob), hoverTime);
+  const ticks = h('div.pb-cue-ticks');
+  const progress = h('div.pb-progress', h('div.pb-track', buffer, fill, ticks, knob), hoverTime);
+  const renderTicks = () => {
+    clear(ticks);
+    const track = player.current;
+    const seconds = player.duration || track?.duration / 1000;
+    if (!track || !seconds) return;
+    const data = getCues(track.id);
+    const tick = (t, kind) => {
+      if (t != null && t <= seconds) ticks.append(h('span.pb-cue-tick.' + kind, { style: { left: t / seconds * 100 + '%' } }));
+    };
+    data.cues.forEach(cue => tick(cue.t, 'cue'));
+    tick(data.mixIn, 'mix-in');
+    tick(data.mixOut, 'mix-out');
+  };
+  player.on('track', renderTicks);
+  player.audio.addEventListener('loadedmetadata', renderTicks);
+  cueEvents.on('change', id => { if (String(id) === String(player.current?.id)) renderTicks(); });
+  renderTicks();
 
   const addBtn = iconButton('addToPlaylist', 'Add to playlist', () => addToPlaylistDialog(player.current), 'pb-add');
   const moreBtn = iconButton('more', 'More', (e) => player.current && trackMenu(player.current, e));
@@ -221,6 +241,17 @@ export function mountPlayerBar(root) {
       if (i === player.index) list.append(h('div.queue-label', 'Now playing'));
       if (i === player.index + 1) list.append(h('div.queue-label', 'Next up'));
       list.append(row);
+      const next = player.queue[i + 1];
+      if (next) {
+        const transition = transitionFor(track.id, next.id, player.crossfadeSeconds());
+        const label = transition.custom
+          ? `↘ ${transition.out == null ? 'end' : formatCueTime(transition.out)} → ${formatCueTime(transition.in)} · ${transition.fade}s`
+          : 'Transition';
+        list.append(h('button.queue-transition' + (transition.custom ? '.custom' : ''), {
+          title: `Edit transition: ${track.title} → ${next.title}`,
+          onclick: () => transitionDialog(track, next)
+        }, label));
+      }
     });
     panel.append(list);
     const currentRow = list.querySelector('.current');
@@ -229,6 +260,8 @@ export function mountPlayerBar(root) {
 
   player.on('queue', renderQueue);
   player.on('track', renderQueue);
+  cueEvents.on('change', renderQueue);
+  store.on('settings', renderQueue);
 
   return { toggleQueue };
 }

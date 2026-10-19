@@ -11,7 +11,9 @@ import { initPerformance } from './performance.js';
 import { initUpdates } from './updates.js';
 import { route, startRouter } from './router.js';
 import { mountPlayerBar } from './playerbar.js';
-import { bindServices, iconButton, button, menu, toast, avatar, go, playlistHref } from './ui.js';
+import { bindServices, iconButton, button, menu, toast, avatar, go, playlistHref, addCueHere } from './ui.js';
+import { getCues, setMixIn, setMixOut } from './cues.js';
+import { formatCueTime } from './cue-time.js';
 
 bindServices(store, player, api);
 applyTheme();
@@ -299,6 +301,23 @@ function setupShortcuts(searchInput) {
       return;
     }
     if (typing) return;
+
+    if (!ctrl && !e.altKey && player.current && /^[cio1-9]$/i.test(e.key)) {
+      e.preventDefault();
+      if (e.repeat) return;
+      const key = e.key.toLowerCase();
+      const t = player.audio.currentTime;
+      if (key === 'c') addCueHere(player.current.id, t);
+      else if (key === 'i' || key === 'o') {
+        if (key === 'i') setMixIn(player.current.id, t);
+        else setMixOut(player.current.id, t);
+        toast(`Mix-${key === 'i' ? 'in' : 'out'} set at ${formatCueTime(t)}`);
+      } else {
+        const cue = getCues(player.current.id).cues[Number(key) - 1];
+        if (cue) player.seek(cue.t);
+      }
+      return;
+    }
 
     if (e.code === 'Space') { e.preventDefault(); player.toggle(); }
     else if (e.altKey && e.key === 'ArrowLeft') history.back();

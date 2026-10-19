@@ -37,6 +37,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Shuffle and repeat.** Shuffle covers your whole collection, not just what's loaded. Repeat all or repeat one.
 - **Autoplay.** Related tracks keep playing when your queue runs out.
 - **Crossfade.** Blend from one song into the next, from 0 to 12 seconds.
+- **Cue points and custom transitions.** Press C to bookmark a moment and 1–9 to jump to a cue. Set mix-in and mix-out with I and O, or right-click a waveform. Edit and rename markers from the track menu, or choose exact leave/start times and a fade for each pair in the queue. Custom transitions work even with crossfade off.
 - **Playback speed.** Nightcore and Slowed modes, or a custom speed with optional pitch keeping. Change it with the speed button in the player bar.
 - **Volume normalization.** Loud and quiet tracks play at a similar level.
 - **Resume where you left off.** Reopen the app to your last song, queue and position, paused.

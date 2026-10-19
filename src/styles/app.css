@@ -254,6 +254,31 @@ a.stat:hover { color: var(--text); }
 
 .waveform { position: relative; width: 100%; cursor: pointer; }
 .waveform canvas { display: block; }
+.wave-markers { position: absolute; inset: 0; pointer-events: none; }
+.wave-marker {
+  position: absolute; top: 0; bottom: 0; min-width: 15px; padding: 0 3px;
+  border-left: 2px solid currentColor; color: var(--accent); font-size: 10px;
+  font-weight: 700; text-align: left; display: flex; align-items: flex-start;
+  pointer-events: auto; transform: translateX(-2px); z-index: 1;
+}
+.wave-marker.mix-in { color: var(--text); align-items: center; }
+.wave-marker.mix-out { color: var(--accent2, var(--accent)); align-items: flex-end; }
+.wave-marker:hover, .wave-marker:focus-visible { background: var(--hover-strong); z-index: 2; }
+.pb-cue-ticks { position: absolute; inset: 0; pointer-events: none; }
+.pb-cue-tick { position: absolute; top: -2px; height: 8px; width: 2px; background: var(--accent); }
+.pb-cue-tick.mix-in { background: var(--text); top: -4px; height: 6px; }
+.pb-cue-tick.mix-out { background: var(--accent2, var(--accent)); top: 2px; height: 6px; }
+.queue-transition { display: block; width: 100%; min-height: 24px; padding: 3px 12px; color: var(--muted); font-size: 11px; opacity: .35; }
+.queue-transition.custom, .queue-transition:hover, .queue-transition:focus-visible { opacity: 1; background: var(--hover); }
+.queue-transition.custom { color: var(--accent); }
+.cue-editor, .cue-field, .cue-list { display: flex; flex-direction: column; gap: 10px; }
+.cue-editor { gap: 16px; }
+.cue-editor .modal-actions { flex-wrap: wrap; }
+.cue-fade, .cue-list-row { display: flex; align-items: center; gap: 8px; }
+.cue-fade input[type="range"] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.cue-fade-number { width: 76px; }
+.cue-list-row .input { flex: 1; min-width: 0; }
+.cue-list-row .btn { padding: 5px; font-size: 12px; flex-shrink: 0; }
 .wave-comments { position: absolute; left: 0; right: 0; bottom: 0; height: 0; }
 .wave-comment {
   position: absolute; bottom: -10px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%;

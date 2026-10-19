@@ -1,5 +1,6 @@
 // Playback engine: queue, HLS streaming, shuffle/repeat, media keys (navigator.mediaSession)
 import * as api from './api.js';
+import * as cues from './cues.js';
 import { Emitter, artwork } from './dom.js';
 import { store, settings, saveSettings } from './store.js';
 import { toast } from './ui.js';
@@ -339,20 +340,37 @@ class Player extends Emitter {
     return Number.isFinite(n) ? Math.min(12, Math.max(0, n)) : 0;
   }
 
+  /** How the current song hands over to the next: its mix points (cues.js), or plain crossfade */
+  upcomingTransition() {
+    const prep = this.prepared && this.prepared.loadId === this.loadId ? this.prepared : null;
+    const next = (prep && prep.track) || this.queue[this.index + 1] || null;
+    return cues.transitionFor(this.current.id, next ? next.id : null, this.crossfadeSeconds());
+  }
+
   /** Runs as the song plays: look up the next stream a little early, then start the overlap */
   checkCrossfade() {
-    const cf = this.crossfadeSeconds();
     const audio = this.audio;
-    if (!cf || this.fading || this.loading || this.noCrossfade || !this.current) return;
+    if (this.fading || this.loading || this.noCrossfade || !this.current) return;
     if (this.repeat === 'one' || audio.paused || audio.seeking || !this.normalizer.ctx) return;
     const dur = audio.duration;
     if (!isFinite(dur) || dur <= 0) return;
-    const span = cf * (audio.playbackRate || 1); // media seconds the fade covers
-    if (dur < span * 2) return; // too short to crossfade
-    const remaining = dur - audio.currentTime;
-    if (remaining > span + PREPARE_LEAD) return;
+    const t = this.upcomingTransition();
+    const span = t.fade * (audio.playbackRate || 1); // media seconds the fade covers
+    // a mix-out point wins, unless you've skipped well past it (then the song plays on)
+    let mixAt = t.out != null && t.out < dur - 0.25 && audio.currentTime <= t.out + 3 ? t.out : null;
+    if (mixAt === null) {
+      if (!t.fade) {
+        if (!t.custom) return; // crossfade off and no mix points
+        mixAt = dur - 0.2; // a clean, gapless cut into the next song's mix-in point
+      } else {
+        if (!t.custom && dur < span * 2) return; // too short to crossfade
+        mixAt = dur - span;
+      }
+    }
+    const until = mixAt - audio.currentTime;
+    if (until > PREPARE_LEAD) return;
     if (!this.prepared || this.prepared.loadId !== this.loadId) { this.prepareNext(); return; }
-    if (remaining > span || !this.prepared.stream) return;
+    if (until > 0 || !this.prepared.stream) return;
     this.startCrossfade();
   }
 
@@ -397,7 +415,10 @@ class Player extends Emitter {
     if (!norm.addDeck(incoming.audio)) { this.noCrossfade = true; return; }
     const audio = outgoing.audio;
     const left = (audio.duration - audio.currentTime) / (audio.playbackRate || 1);
-    const seconds = Math.max(0.5, Math.min(this.crossfadeSeconds(), left));
+    // where the next song comes in and how long the overlap lasts (0 = a clean cut)
+    const transition = cues.transitionFor(this.current.id, prep.track.id, this.crossfadeSeconds());
+    const seconds = transition.fade ? Math.max(0.5, Math.min(transition.fade, left)) : 0.1;
+    const startAt = Math.max(0, transition.in || 0);
 
     // move to the next song exactly like next() would
     if (prep.wrap) {
@@ -418,14 +439,14 @@ class Player extends Emitter {
     if (prep.stream.snipped) toast('Only a 30 second preview is available for this track');
     this.active = 1 - this.active;
     norm.setActive(incoming.audio);
-    this.attach(prep.stream, true, 0, incoming, track);
+    this.attach(prep.stream, true, startAt, incoming, track);
     // the fade starts once the new song is really playing, so no silence in the middle of it
     incoming.audio.addEventListener('playing', () => this.beginFade(), { once: true });
     fading.fallback = setTimeout(() => this.beginFade(), 3000);
 
     this.emit('queue');
     this.emit('track', track);
-    this.emit('time', 0, this.duration);
+    this.emit('time', startAt, this.duration);
     this.updateMediaSession();
     this.notify(track);
     this.saveSession();

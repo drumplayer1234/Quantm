@@ -1,6 +1,8 @@
 // Shared UI components. Every view builds its pages from these.
 import { h, clear, compact, duration, timeAgo, artwork, coverOf, onNearBottom } from './dom.js';
 import { icon } from './icons.js';
+import { getCues, addCue, removeCue, renameCue, setMixIn, setMixOut, cueEvents, getPair, setPair, transitionFor } from './cues.js';
+import { formatCueTime, parseCueTime } from './cue-time.js';
 
 // Lazy imports avoid circular-import timing issues (store/player import ui.js)
 let _store, _player, _api;
@@ -180,9 +182,50 @@ export function waveform(track, { height = 60, onPlay, comments = null } = {}) {
   const wrap = h('div.waveform', { style: { height: height + 'px' } });
   const canvas = h('canvas');
   const commentLayer = h('div.wave-comments');
-  wrap.append(canvas, commentLayer);
+  const markers = h('div.wave-markers');
+  wrap.append(canvas, commentLayer, markers);
   let samples = null;
   let hover = -1;
+
+  const trackSeconds = () => player().current?.id === track.id && player().duration ? player().duration : track.duration / 1000;
+  const renderMarkers = () => {
+    clear(markers);
+    const seconds = trackSeconds();
+    if (!seconds) return;
+    const data = getCues(track.id);
+    const marker = (t, label, kind) => {
+      if (t == null || t > seconds) return;
+      markers.append(h('button.wave-marker.' + kind, {
+        style: { left: Math.min(100, t / seconds * 100) + '%' },
+        title: `${label} · ${formatCueTime(t)}`,
+        'aria-label': `${label} at ${formatCueTime(t)}`,
+        onclick: (e) => { e.stopPropagation(); if (player().current?.id === track.id) player().seek(t); }
+      }, label));
+    };
+    data.cues.forEach((cue, i) => marker(cue.t, String(i + 1), 'cue'));
+    marker(data.mixIn, 'IN', 'mix-in');
+    marker(data.mixOut, 'OUT', 'mix-out');
+  };
+  renderMarkers();
+  const offCues = cueEvents.on('change', id => { if (String(id) === String(track.id)) { renderMarkers(); draw(); } });
+
+  wrap.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const r = wrap.getBoundingClientRect();
+    const t = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * trackSeconds();
+    if (!Number.isFinite(t)) return;
+    const data = getCues(track.id);
+    const nearest = data.cues.reduce((best, cue, i) => best < 0 || Math.abs(cue.t - t) < Math.abs(data.cues[best].t - t) ? i : best, -1);
+    menu([
+      { label: `Add cue point here · ${formatCueTime(t)}`, onclick: () => addCueHere(track.id, t) },
+      { label: `Set mix-in here · ${formatCueTime(t)}`, onclick: () => setMixIn(track.id, t) },
+      { label: `Set mix-out here · ${formatCueTime(t)}`, onclick: () => setMixOut(track.id, t) },
+      nearest >= 0 && { label: `Remove nearest cue point · ${formatCueTime(data.cues[nearest].t)}`, onclick: () => removeCue(track.id, nearest) },
+      data.mixIn != null && { label: `Clear mix-in · ${formatCueTime(data.mixIn)}`, onclick: () => setMixIn(track.id, null) },
+      data.mixOut != null && { label: `Clear mix-out · ${formatCueTime(data.mixOut)}`, onclick: () => setMixOut(track.id, null) }
+    ], e);
+  });
 
   const draw = () => {
     const rect = wrap.getBoundingClientRect();
@@ -262,7 +305,7 @@ export function waveform(track, { height = 60, onPlay, comments = null } = {}) {
   wrap.addEventListener('click', (e) => {
     e.stopPropagation();
     const r = wrap.getBoundingClientRect();
-    const fraction = (e.clientX - r.left) / r.width;
+    const fraction = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
     const p = player();
     if (p.current && p.current.id === track.id) {
       p.seek(fraction * p.duration);
@@ -302,6 +345,7 @@ export function waveform(track, { height = 60, onPlay, comments = null } = {}) {
   document.addEventListener('wavestylechange', draw);
   onRemoved(wrap, () => {
     observer.disconnect();
+    offCues();
     offTime();
     document.removeEventListener('themechange', draw);
     document.removeEventListener('wavestylechange', draw);
@@ -761,6 +805,7 @@ export function trackMenu(track, event, opts = {}) {
   menu([
     { label: 'Play next', icon: 'next', onclick: () => p.playNext(track) },
     { label: 'Add to queue', icon: 'queue', onclick: () => p.addToQueue(track) },
+    { label: 'Mix points…', onclick: () => mixPointsDialog(track) },
     { label: 'Add to playlist', icon: 'addToPlaylist', onclick: () => addToPlaylistDialog(track) },
     track.station_urn ? { label: 'Start station', icon: 'station', onclick: () => go('#/station/' + encodeURIComponent(track.station_urn)) } : null,
     'separator',
@@ -778,6 +823,101 @@ export function trackMenu(track, event, opts = {}) {
 // ---------------------------------------------------------------------------
 // Modal dialogs
 // ---------------------------------------------------------------------------
+
+export function addCueHere(id, t) {
+  const number = addCue(id, t);
+  toast(number ? `Cue ${number} added at ${formatCueTime(t)}` : 'All 9 cue slots are used');
+}
+
+function cueTimeField(label, value, placeholder) {
+  const input = h('input.input', { value: value == null ? '' : formatCueTime(value), placeholder, 'aria-label': label });
+  return { input, row: h('label.cue-field', h('span.field-label', label), input) };
+}
+
+function readCueField(field, track) {
+  const value = parseCueTime(field.input.value, track.duration);
+  field.input.setCustomValidity(Number.isNaN(value) ? 'Enter m:ss or seconds within the song’s duration.' : '');
+  if (Number.isNaN(value)) field.input.reportValidity();
+  return value;
+}
+
+export function transitionDialog(from, to) {
+  const pair = getPair(from.id, to.id);
+  const defaults = transitionFor(from.id, to.id, player().crossfadeSeconds());
+  const fade = defaults.custom || defaults.fade ? defaults.fade : 6;
+  const out = cueTimeField(`Leave ${from.title} at`, pair?.out, getCues(from.id).mixOut == null ? 'end' : formatCueTime(getCues(from.id).mixOut));
+  const into = cueTimeField(`Start ${to.title} at`, pair?.in, formatCueTime(getCues(to.id).mixIn || 0));
+  const range = h('input', { type: 'range', min: 0, max: 20, step: 0.5, value: fade, 'aria-label': 'Fade' });
+  const number = h('input.input.cue-fade-number', { type: 'number', min: 0, max: 20, step: 0.5, value: fade, 'aria-label': 'Fade seconds' });
+  range.addEventListener('input', () => { number.value = range.value; });
+  number.addEventListener('input', () => { if (number.value !== '' && number.validity.valid) range.value = number.value; });
+  const save = (songs) => {
+    const leave = readCueField(out, from);
+    if (Number.isNaN(leave)) return;
+    const start = readCueField(into, to);
+    if (Number.isNaN(start)) return;
+    if (number.value === '' || !number.reportValidity()) return;
+    if (songs) {
+      setMixOut(from.id, leave == null ? getCues(from.id).mixOut : leave);
+      setMixIn(to.id, start == null ? getCues(to.id).mixIn : start);
+      setPair(from.id, to.id, null);
+    } else setPair(from.id, to.id, { out: leave, in: start, fade: Number(number.value) });
+    dialog.close();
+  };
+  const dialog = modal(`Transition: ${from.title} → ${to.title}`, h('div.cue-editor',
+    out.row, into.row,
+    h('label.cue-field', h('span.field-label', 'Fade'), h('span.cue-fade', range, number, 's')),
+    h('p.muted.small', 'Blank times use the songs’ mix points. Saving as song mix points uses the default fade; the fade above is saved for this pair only.'),
+    h('div.modal-actions',
+      button('Cancel', () => dialog.close(), 'btn-ghost'),
+      button('Reset', () => { setPair(from.id, to.id, null); dialog.close(); }, 'btn-ghost'),
+      button('Save as the songs’ mix points', () => save(true), 'btn-outline'),
+      button('Save for this pair', () => save(false), 'btn-primary')
+    )
+  ));
+}
+
+export function mixPointsDialog(track) {
+  const data = getCues(track.id);
+  const into = cueTimeField('Mix-in', data.mixIn, '0:00');
+  const out = cueTimeField('Mix-out', data.mixOut, 'end');
+  const list = h('div.cue-list');
+  const render = () => {
+    clear(list);
+    const cues = getCues(track.id).cues;
+    if (!cues.length) list.append(h('p.muted.small', 'No cue points. Press C while playing or right-click a waveform to add one.'));
+    cues.forEach((cue, i) => {
+      const name = h('input.input', { value: cue.label, placeholder: `Cue ${i + 1}`, maxLength: 40, 'aria-label': `Cue ${i + 1} label` });
+      list.append(h('div.cue-list-row',
+        button(`${i + 1} · ${formatCueTime(cue.t)}`, () => {
+          if (player().current?.id === track.id) player().seek(cue.t);
+          else toast('Play this song to jump to its cue points');
+        }, 'btn-ghost'), name,
+        button('Rename', () => renameCue(track.id, i, name.value), 'btn-ghost'),
+        button('Delete', () => removeCue(track.id, i), 'btn-ghost')
+      ));
+    });
+  };
+  render();
+  const off = cueEvents.on('change', id => { if (String(id) === String(track.id)) render(); });
+  const dialog = modal(`Mix points: ${track.title}`, h('div.cue-editor',
+    into.row, out.row, h('p.muted.small', 'Leave a mix point blank to clear it.'),
+    h('h3', 'Cue points'), list,
+    h('div.modal-actions',
+      button('Cancel', () => dialog.close(), 'btn-ghost'),
+      button('Save', () => {
+        const start = readCueField(into, track);
+        if (Number.isNaN(start)) return;
+        const leave = readCueField(out, track);
+        if (Number.isNaN(leave)) return;
+        setMixIn(track.id, start);
+        setMixOut(track.id, leave);
+        dialog.close();
+      }, 'btn-primary')
+    )
+  ), { onClose: off });
+  onRemoved(dialog, off);
+}
 
 export function modal(title, body, { wide = false, onClose } = {}) {
   const close = () => {

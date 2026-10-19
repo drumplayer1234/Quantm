@@ -651,7 +651,8 @@ async function playbackTab(cleanups) {
     card('Crossfade', 'Blend the end of each song into the start of the next. Skipping always cuts cleanly.',
       sliderRow('Crossfade', '0 turns it off. Songs shorter than twice this length play normally.',
         { min: 0, max: 12, step: 0.5, value: Math.min(12, Math.max(0, Number(settings.crossfade) || 0)), unit: 's' },
-        (v) => saveSettings({ crossfade: v }))
+        (v) => saveSettings({ crossfade: v })),
+      h('p.muted.small', 'Custom transitions: press I and O while a song plays to set where it mixes in and out, or edit a transition from the queue. They work even with crossfade off.')
     ),
     visualizerCard(),
     card('Volume', 'The level Quantm plays at. You can also change it from the player bar.',
@@ -811,6 +812,10 @@ const SHORTCUTS = [
     ['Like current track', [['L']]],
     ['Toggle shuffle', [['S']]],
     ['Cycle repeat mode', [['R']]],
+    ['Add cue point', [['C']]],
+    ['Jump to cue point', [['1–9']]],
+    ['Set mix-in', [['I']]],
+    ['Set mix-out', [['O']]],
     ['Playback faster', [['Shift', '>']], 'by 0.05×'],
     ['Playback slower', [['Shift', '<']], 'by 0.05×']
   ] },
