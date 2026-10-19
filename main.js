@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, net, session, shell, clipboard, safeStorage, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, net, session, shell, clipboard, safeStorage, nativeTheme, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -391,9 +391,30 @@ function windowStateFile() {
   return path.join(app.getPath('userData'), 'window-state.json');
 }
 
+/** Saved bounds from a monitor that's gone (or a bigger screen) would open the window off-screen:
+ * keep it on a connected display, or fall back to centered defaults */
+function onScreen(state) {
+  const fallback = { width: 1280, height: 820, maximized: !!state.maximized };
+  try {
+    const areas = screen.getAllDisplays().map(d => d.workArea);
+    const fits = (a) => Number.isFinite(state.x) && Number.isFinite(state.y)
+      && state.x + 120 <= a.x + a.width && state.x + Math.min(state.width, a.width) - 120 >= a.x
+      && state.y >= a.y - 10 && state.y + 40 <= a.y + a.height;
+    const area = areas.find(fits);
+    if (!area) {
+      const main = screen.getPrimaryDisplay().workArea;
+      return Object.assign(fallback, { width: Math.min(fallback.width, main.width), height: Math.min(fallback.height, main.height) });
+    }
+    return Object.assign({}, state, { width: Math.min(state.width, area.width), height: Math.min(state.height, area.height) });
+  } catch (e) {
+    return fallback;
+  }
+}
+
 function createMainWindow() {
   let state = { width: 1280, height: 820 };
   try { state = Object.assign(state, JSON.parse(fs.readFileSync(windowStateFile(), 'utf8'))); } catch (e) { /* defaults */ }
+  state = onScreen(state);
 
   const seeThrough = seeThroughSupported() && !!loadWindowPrefs().seeThrough;
   const blurMethod = seeThrough && process.platform === 'win32' ? resolveBlurMethod() : null;
@@ -435,11 +456,17 @@ function createMainWindow() {
   mainWindow.blurMethod = blurMethod;
 
   if (state.maximized) mainWindow.maximize();
-  mainWindow.once('ready-to-show', () => {
+  let shown = false;
+  const showWindow = () => {
+    if (shown || !mainWindow || mainWindow.isDestroyed()) return;
+    shown = true;
     if (blurMethod === 'classic') applyBlurBehind(mainWindow);
     if (seeThrough) applyRoundedCorners(mainWindow);
     mainWindow.show();
-  });
+  };
+  mainWindow.once('ready-to-show', showWindow);
+  // never stay invisible: if the first paint is slow or never comes (graphics trouble), show anyway
+  setTimeout(showWindow, 4000);
   const sendMaximized = () => mainWindow && mainWindow.webContents.send('window:maximized', mainWindow.isMaximized());
   mainWindow.on('maximize', sendMaximized);
   const sendVisibility = (hidden) => mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.send('window:visibility', hidden);
@@ -673,7 +700,14 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.on('second-instance', () => {
     if (mainWindow) {
+      // opening Quantm again always brings the window back, even if it was hidden or off-screen
       if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
+      const fixed = onScreen(Object.assign(mainWindow.getBounds(), { maximized: mainWindow.isMaximized() }));
+      if (!fixed.maximized && (fixed.x === undefined || fixed.width !== mainWindow.getBounds().width)) {
+        mainWindow.setBounds({ width: fixed.width, height: fixed.height });
+        mainWindow.center();
+      }
       mainWindow.focus();
     }
   });
