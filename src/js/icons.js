@@ -54,6 +54,16 @@ const paths = {
   winMax: '<rect x="5" y="5" width="14" height="14" rx="1.5"/>',
   winRestore: '<rect x="5" y="8" width="11" height="11" rx="1.5"/><path d="M8 8V6.5A1.5 1.5 0 0 1 9.5 5H17.5A1.5 1.5 0 0 1 19 6.5V14.5A1.5 1.5 0 0 1 17.5 16H16"/>',
   cloud: '<path d="M18 10h-1.3A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',
+  chart: '<path d="M3 3v18h18"/><path d="M8 17v-6M13 17V7M18 17v-4"/>',
+  headphones: '<path d="M4 16v-4a8 8 0 0 1 16 0v4"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  flame: '<path d="M12 22c4 0 7-2.7 7-7 0-3-1.6-5-3-6.5-.3 1.8-1.2 2.8-2.2 3 .4-3-.6-6.3-3.3-8.5-.3 3.4-1.8 5-3.2 6.7C5.7 11.3 5 13 5 15c0 4.3 3 7 7 7z"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+  star: '<path d="m12 3 2.7 5.8 6.3.8-4.6 4.3 1.2 6.3-5.6-3.2-5.6 3.2 1.2-6.3L3 9.6l6.3-.8z"/>',
+  trophy: '<path d="M8 4h8v6a4 4 0 0 1-8 0zM8 6H4v2a3 3 0 0 0 4 2.8M16 6h4v2a3 3 0 0 1-4 2.8M12 14v4M8 21h8M10 18h4"/>',
+  compass: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/>',
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
   logo: '<path d="M12.9 16.9A6.4 6.4 0 1 1 17.1 12.5" stroke-width="2.2"/><path d="M14 15.8h1.7l1-2.4 1.2 5.5 1-3.4.8 1h1.6" stroke-width="1.8"/>'
 };
 
@@ -62,4 +72,9 @@ export function icon(name, size = 20) {
   span.className = 'icon icon-' + name;
   span.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || ''}</svg>`;
   return span;
+}
+
+/** The icon as a standalone SVG string in the given color (for drawing onto a canvas) */
+export function iconMarkup(name, size = 24, color = '#fff') {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${paths[name] || ''}</svg>`;
 }

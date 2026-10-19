@@ -10,6 +10,7 @@ import { applyTheme } from './theme.js';
 import { initAppearance } from './appearance.js';
 import { initPerformance } from './performance.js';
 import { initUpdates } from './updates.js';
+import { initStats } from './stats.js';
 import { route, startRouter } from './router.js';
 import { mountPlayerBar } from './playerbar.js';
 import { bindServices, iconButton, button, menu, toast, avatar, go, playlistHref, addCueHere, offlineTrackList } from './ui.js';
@@ -29,6 +30,7 @@ const views = {
   track: () => import('./views/track.js'),
   playlist: () => import('./views/playlist.js'),
   notifications: () => import('./views/notifications.js'),
+  stats: () => import('./views/stats.js'),
   settings: () => import('./views/settings.js')
 };
 
@@ -42,6 +44,7 @@ route('/track/:id/:tab?', views.track);
 route('/playlist/:id', views.playlist);
 route('/station/:urn', views.playlist);
 route('/notifications', views.notifications);
+route('/stats', views.stats);
 route('/settings/:tab?', views.settings);
 
 const app = document.getElementById('app');
@@ -101,6 +104,7 @@ async function showOffline() {
     ));
     mountPlayerBar(app, { offline: true });
     initPerformance();
+    initStats();
   }
 }
 
@@ -149,6 +153,7 @@ function mountShell() {
     { id: 'home', label: 'Home', href: '#/home', icon: 'home' },
     { id: 'feed', label: 'Feed', href: '#/feed', icon: 'feed' },
     { id: 'library', label: 'Library', href: '#/library', icon: 'library' },
+    { id: 'stats', label: 'Stats', href: '#/stats', icon: 'chart' },
     { id: 'trending', label: 'Trending', href: '#/trending', icon: 'trending' }
   ];
   // icons only show when the navigation is a sidebar (Settings → Appearance)
@@ -191,6 +196,7 @@ function mountShell() {
   setupWindowMode(topbar);
   mountPlayerBar(app);
   initUpdates();
+  initStats();
   initAppearance();
   initPerformance();
   player.restoreSession();
