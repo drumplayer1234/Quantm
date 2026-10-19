@@ -105,6 +105,10 @@ export const PRESETS = {
     accent: '#405634', accentText: '#f5f5e9', bg: '#e5e0d5', surface: '#f5f3ea', bar: '#eae7de',
     text: '#292d27', muted: '#565c50', wave: '#949b89', wavePlayed: '#405634'
   },
+  'Terminal Multiplexer': {
+    accent: '#85efa1', accentText: '#061009', bg: '#060c08', surface: '#101e14', bar: '#0b150e',
+    text: '#d4f7dc', muted: '#a1bda7', wave: '#497855', wavePlayed: '#efc478'
+  },
   // colors are replaced live from the playing song's artwork (appearance.js)
   'Album Match': {
     accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
@@ -143,11 +147,12 @@ export const PRESET_STYLES = {
   'Brutalist': 'brutalist',
   'Listening Room': 'listening-room',
   'Pocket Quantm': 'pocket',
+  'Terminal Multiplexer': 'tmux',
   'Album Match': 'album'
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0 };
+export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
 // window.QUANTM_LOCAL_THEMES = { presets, styles, radius } before this module runs
