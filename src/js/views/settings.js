@@ -449,7 +449,10 @@ function windowCard(mode) {
       if (!ok) { input.checked = !on; return; }
       window.native.setSeeThrough(on);
     }),
-    blurRow(mode)
+    blurRow(mode),
+    mode.platform === 'win32' && mode.transparencyEffects === false
+      ? h('p.settings-warning', 'Windows "Transparency effects" is off, so the glass shows as a solid color. Turn it on in Windows Settings → Personalization → Colors. On laptops, Energy Saver can turn it off too.')
+      : null
   );
 }
 
@@ -458,9 +461,9 @@ function blurRow(mode) {
   if (mode.platform !== 'win32') return null;
   const win11 = mode.nativeBackdrop;
   const options = [
-    { id: 'auto', label: 'Automatic (Classic blur)' },
-    { id: 'acrylic', label: win11 ? 'Acrylic (Windows 11, experimental)' : 'Acrylic (Windows 11 only)' },
-    { id: 'mica', label: win11 ? 'Mica (Windows 11, tinted, experimental)' : 'Mica (Windows 11 only)' },
+    { id: 'auto', label: win11 ? 'Automatic (Acrylic)' : 'Automatic (Classic blur)' },
+    { id: 'acrylic', label: win11 ? 'Acrylic' : 'Acrylic (Windows 11 only)' },
+    { id: 'mica', label: win11 ? 'Mica (tinted, no blur)' : 'Mica (Windows 11 only)' },
     { id: 'classic', label: 'Classic blur' }
   ];
   const names = { acrylic: 'Acrylic', mica: 'Mica', classic: 'Classic blur' };

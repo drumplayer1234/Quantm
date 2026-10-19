@@ -321,17 +321,26 @@ function windowsBuild() {
   return process.platform === 'win32' ? parseInt(os.release().split('.')[2], 10) || 0 : 0;
 }
 
-// Classic blur-behind works on Windows 10 and 11 and is the default. Windows 11 22H2+ can also
-// draw acrylic / mica itself (DWM system backdrop); Electron 33 still has quirks with frameless
-// backdrop windows, so those are opt-in.
+// Windows 11 22H2+ draws acrylic / mica itself (DWM system backdrop); the classic blur-behind
+// shows a black window there for some people, so 'auto' uses acrylic on 11 and classic on 10.
 const BLUR_METHODS = ['auto', 'acrylic', 'mica', 'classic'];
 const nativeBackdrop = () => windowsBuild() >= 22621;
 
 function resolveBlurMethod() {
   const chosen = BLUR_METHODS.includes(loadWindowPrefs().blurMethod) ? loadWindowPrefs().blurMethod : 'auto';
-  if (chosen === 'auto') return 'classic';
+  if (chosen === 'auto') return nativeBackdrop() ? 'acrylic' : 'classic';
   if ((chosen === 'acrylic' || chosen === 'mica') && !nativeBackdrop()) return 'classic';
   return chosen;
+}
+
+/** Windows "Transparency effects" setting; when it's off every blur is drawn as a solid color */
+function transparencyEffectsOn() {
+  if (process.platform !== 'win32') return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const key = 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize';
+    require('child_process').execFile('reg', ['query', key, '/v', 'EnableTransparency'], { windowsHide: true, timeout: 3000 },
+      (error, stdout) => resolve(error ? true : !/EnableTransparency\s+REG_DWORD\s+0x0\b/.test(stdout)));
+  });
 }
 
 /** Windows 11: frameless windows lose the rounded corners unless we ask DWM for them */
@@ -537,7 +546,7 @@ handle('window:zoom', (event, factor) => {
   if (mainWindow && value >= 0.5 && value <= 2) mainWindow.webContents.setZoomFactor(value);
 });
 
-handle('window:mode', () => ({
+handle('window:mode', async () => ({
   seeThrough: !!(mainWindow && mainWindow.seeThrough),
   supported: seeThroughSupported(),
   customControls: !!(mainWindow && mainWindow.seeThrough && process.platform !== 'darwin'),
@@ -546,7 +555,8 @@ handle('window:mode', () => ({
   blurMethod: BLUR_METHODS.includes(loadWindowPrefs().blurMethod) ? loadWindowPrefs().blurMethod : 'auto',
   blurInUse: (mainWindow && mainWindow.blurMethod) || null,
   nativeBackdrop: nativeBackdrop(),
-  windowsBuild: windowsBuild()
+  windowsBuild: windowsBuild(),
+  transparencyEffects: await transparencyEffectsOn()
 }));
 
 handle('window:setBlurMethod', async (event, method) => {

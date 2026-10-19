@@ -693,3 +693,8 @@ a.stat:hover { color: var(--text); }
 .track-row.protected { opacity: .55; }
 .track-row.protected .track-art-overlay { display: none; }
 .track-lock { display: inline-flex; vertical-align: -1px; margin-right: 6px; color: var(--muted); }
+
+.settings-warning {
+  margin: 10px 0 0; padding: 10px 12px; border-radius: var(--radius);
+  background: color-mix(in srgb, #f2b705 14%, transparent); color: var(--text); font-size: 13px;
+}
