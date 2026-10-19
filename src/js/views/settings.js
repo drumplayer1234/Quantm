@@ -8,6 +8,7 @@ import { VISUALIZER_STYLES, VISUALIZER_COLORS, VISUALIZER_POSITIONS, VISUALIZER_
 import * as theme from '../theme.js';
 import * as look from '../appearance.js';
 import { pageHeader, button, toast, avatar, confirmDialog, promptDialog } from '../ui.js';
+import { subscribeUpdates, performUpdate, updateStatusText } from '../updates.js';
 
 const TABS = [
   { id: 'theme', label: 'Theme & colors', icon: 'palette' },
@@ -815,7 +816,7 @@ async function shortcutsTab() {
 // About tab
 // ---------------------------------------------------------------------------
 
-async function aboutTab() {
+async function aboutTab(cleanups) {
   let version = '';
   try {
     const info = await window.native.info();
@@ -836,6 +837,7 @@ async function aboutTab() {
         button('View on GitHub', () => window.native.openExternal('https://github.com/drumplayer1234/Quantm'), 'btn-outline', 'external')
       )
     ),
+    updatesCard(cleanups),
     card('Credits', null,
       h('ul.settings-credits',
         h('li', 'Original Soundnode by Michael Lancaster and contributors.'),
@@ -844,4 +846,56 @@ async function aboutTab() {
       h('p.muted.small.settings-foot', 'Not affiliated with SoundCloud.')
     )
   );
+}
+
+function updatesCard(cleanups) {
+  const current = h('p.muted.small');
+  const status = h('p.update-status', { role: 'status' }, 'Reading update status…');
+  const progress = h('progress.update-progress', { max: 100, value: 0, 'aria-label': 'Update download progress', hidden: true });
+  const check = button('Check for updates', () => run('check'), 'btn-outline');
+  const restart = button('Restart to update', () => run('install'), 'btn-primary');
+  const download = button('Download', () => run('download'), 'btn-primary');
+  const actions = h('div.settings-actions', check, restart, download);
+  const automatic = toggleRow('Download updates automatically', 'Install downloaded updates when you close Quantm.', true,
+    on => run('setAuto', on));
+  const checkbox = automatic.querySelector('input');
+  const notice = h('p.muted.small.settings-foot', "This version of Quantm can't update itself. Download the new version from GitHub.");
+  const notes = h('div.update-notes');
+  const details = h('details.update-details', h('summary', "What's new"), notes);
+  let state = null;
+  let busy = false;
+  const sync = (next) => {
+    state = next;
+    const off = state.mode === 'off';
+    current.hidden = off;
+    current.textContent = state.current ? 'Current version: ' + state.current : '';
+    status.textContent = updateStatusText(state);
+    status.classList.toggle('muted', off);
+    progress.hidden = off || state.status !== 'downloading';
+    progress.value = Math.max(0, Math.min(100, state.percent || 0));
+    actions.hidden = off;
+    check.disabled = busy || state.status === 'checking' || state.status === 'downloading';
+    restart.hidden = state.status !== 'ready';
+    restart.disabled = busy;
+    download.hidden = state.status !== 'available' || !(state.mode === 'notify' || (state.mode === 'auto' && !state.auto));
+    download.disabled = busy;
+    automatic.hidden = state.mode !== 'auto';
+    checkbox.checked = !!state.auto;
+    checkbox.disabled = busy;
+    notice.hidden = state.mode !== 'notify';
+    details.hidden = off || !state.notes;
+    notes.textContent = state.notes || '';
+  };
+  async function run(action, value) {
+    busy = true;
+    if (state) sync(state);
+    await performUpdate(action, value);
+    busy = false;
+    if (state) sync(state);
+  }
+  const section = card('Updates', null, current, status, progress, actions, automatic, notice, details);
+  section.classList.add('settings-updates');
+  actions.hidden = automatic.hidden = notice.hidden = details.hidden = true;
+  cleanups.push(subscribeUpdates(sync));
+  return section;
 }

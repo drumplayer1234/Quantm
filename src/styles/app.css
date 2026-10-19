@@ -640,6 +640,25 @@ a.stat:hover { color: var(--text); }
   position: absolute; top: 20px; left: calc(50% + 128px); transform: translateY(-50%); margin: 0; z-index: 1;
 }
 
+/* Update notification stays clear of playback controls and never takes focus. */
+.update-banner {
+  position: fixed; right: 16px; bottom: calc(var(--player-h) + 16px); z-index: 110;
+  width: 340px; max-width: calc(100vw - 32px); padding: 18px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+[data-player="top"] .update-banner { bottom: 16px; }
+.update-banner-title { font-weight: 700; margin-bottom: 6px; overflow-wrap: anywhere; }
+.update-banner-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.update-status { margin-top: 8px; overflow-wrap: anywhere; }
+.update-progress { display: block; width: 100%; height: 4px; margin-top: 12px; border: 0; border-radius: var(--radius); overflow: hidden; accent-color: var(--accent); }
+.update-progress::-webkit-progress-bar { background: var(--hover-strong); }
+.update-progress::-webkit-progress-value { background: var(--accent); }
+.update-details { margin-top: 16px; }
+.update-details summary { cursor: pointer; font-weight: 600; }
+.update-notes { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 10px; color: var(--muted); }
+.settings-updates [hidden] { display: none; }
+
 /* =================================================================== performance
    data-hidden: window minimized (pause everything). data-perf: Performance mode. */
 [data-hidden] *, [data-hidden] *::before, [data-hidden] *::after,

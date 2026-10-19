@@ -32,5 +32,13 @@ contextBridge.exposeInMainWorld('native', {
   onVisibility: (fn) => ipcRenderer.on('window:visibility', (event, hidden) => fn(hidden)),
   // drop decoded images and other caches (used when the window is minimized)
   trimMemory: () => webFrame.clearCache(),
+  updates: {
+    status: () => ipcRenderer.invoke('update:status'),
+    check: () => ipcRenderer.invoke('update:check'),
+    download: () => ipcRenderer.invoke('update:download'),
+    install: () => ipcRenderer.invoke('update:install'),
+    setAuto: (on) => ipcRenderer.invoke('update:setAuto', on),
+    onStatus: (fn) => ipcRenderer.on('update:status', (event, state) => fn(state))
+  },
   info: () => ipcRenderer.invoke('app:info')
 });

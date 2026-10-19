@@ -21,6 +21,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "updater.js",
       "discord.js",
       "src/**/*",
       "build/icon.png",
@@ -80,6 +81,7 @@
     "globals": "15.14.0"
   },
   "dependencies": {
+    "electron-updater": "6.3.9",
     "koffi": "^2.9.0"
   },
   "author": {

@@ -8,6 +8,7 @@ import { player } from './player.js';
 import { applyTheme } from './theme.js';
 import { initAppearance } from './appearance.js';
 import { initPerformance } from './performance.js';
+import { initUpdates } from './updates.js';
 import { route, startRouter } from './router.js';
 import { mountPlayerBar } from './playerbar.js';
 import { bindServices, iconButton, button, menu, toast, avatar, go, playlistHref } from './ui.js';
@@ -159,6 +160,7 @@ function mountShell() {
   app.append(topbar, view);
   setupWindowMode(topbar);
   mountPlayerBar(app);
+  initUpdates();
   initAppearance();
   initPerformance();
   player.restoreSession();

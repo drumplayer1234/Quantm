@@ -11,6 +11,8 @@ npm start
 
 To run a second copy next to an installed Quantm, with its own settings and login, set `QUANTM_PROFILE` to an empty folder first (for example `QUANTM_PROFILE=./.dev-profile npm start`).
 
+To try the updater without a release, run with `QUANTM_UPDATE_TEST=1.0.0` (any older version number): it checks the real GitHub releases using `dev-app-update.yml`. Don't press "Restart to update" from a dev copy, since that installs the release.
+
 There is no build step for day-to-day work. The renderer is plain vanilla JavaScript loaded directly by Electron, so edit a file and restart with `npm start` if a change doesn't show up.
 
 ## Tests and lint

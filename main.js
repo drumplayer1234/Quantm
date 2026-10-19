@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const discord = require('./discord');
+const updates = require('./updater');
 
 const API = 'https://api-v2.soundcloud.com/';
 const LOGIN_PARTITION = 'persist:soundcloud-login';
@@ -555,6 +556,13 @@ handle('shell:open', (event, url) => {
 
 handle('clipboard:write', (event, text) => clipboard.writeText(String(text).slice(0, 100000)));
 
+// Updates (updater.js)
+handle('update:status', () => updates.getState());
+handle('update:check', () => updates.check());
+handle('update:download', () => updates.download());
+handle('update:install', () => updates.install());
+handle('update:setAuto', (event, on) => updates.setAuto(!!on));
+
 handle('app:info', () => ({ version: app.getVersion(), platform: process.platform }));
 
 // resource usage of all Quantm processes (Settings → Performance shows it)
@@ -587,6 +595,15 @@ if (!app.requestSingleInstanceLock()) {
     registerNotificationIdentity();
     auth = loadAuth();
     createMainWindow();
+    updates.init({
+      notify: (state) => mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.send('update:status', state),
+      getPref: (key) => loadWindowPrefs()[key],
+      setPref: (key, value) => {
+        const prefs = loadWindowPrefs();
+        prefs[key] = value;
+        fs.writeFileSync(windowPrefsFile(), JSON.stringify(prefs));
+      }
+    });
   });
 
   // make sure the latest theme and settings are on disk however the app closes

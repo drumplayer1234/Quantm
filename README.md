@@ -40,6 +40,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Playback speed.** Nightcore and Slowed modes, or a custom speed with optional pitch keeping. Change it with the speed button in the player bar.
 - **Volume normalization.** Loud and quiet tracks play at a similar level.
 - **Resume where you left off.** Reopen the app to your last song, queue and position, paused.
+- **Automatic updates.** The installer version downloads new releases in the background and installs them when you restart or close Quantm. The portable and Linux .deb versions tell you when a new version is out. Turn automatic downloads off in Settings → About.
 - **Media keys and system controls.** Use your keyboard's media keys and the Windows and macOS media controls. Desktop notifications show when a new track starts.
 - **Keyboard shortcuts.** Space to play or pause, arrows to seek, Ctrl+arrows to skip or change volume, M to mute, L to like, S to shuffle, R to repeat, Ctrl+F or Ctrl+K to search, Alt+arrows to go back and forward, and `Shift+<` / `Shift+>` for speed.
 
