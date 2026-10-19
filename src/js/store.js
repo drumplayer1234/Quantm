@@ -130,6 +130,7 @@ const defaults = {
   eq: { enabled: false, preset: 'Flat', preamp: 0, gains: [0, 0, 0, 0, 0] },
   resumeSession: true,
   discordStatus: true,
+  themeEffects: 'auto',     // auto (follow the system's reduce-motion setting) | on | off
   performanceMode: false,   // no blur, animations or visualizer
   pauseWhenHidden: true,    // stop visuals and free memory while minimized
   speedMode: 'normal',      // normal | nightcore | slowed | custom

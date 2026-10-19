@@ -8,6 +8,7 @@ import { player } from './player.js';
 import { offline } from './offline.js';
 import { applyTheme } from './theme.js';
 import { initAppearance } from './appearance.js';
+import { initThemeRuntime } from './theme-runtime.js';
 import { initPerformance } from './performance.js';
 import { initUpdates } from './updates.js';
 import { initStats } from './stats.js';
@@ -200,6 +201,7 @@ function mountShell() {
   initAppearance();
   initPerformance();
   player.restoreSession();
+  initThemeRuntime();
   setupDiscord();
 
   document.addEventListener('routechange', (e) => {

@@ -428,6 +428,7 @@ class Player extends Emitter {
     const seconds = transition.fade ? Math.max(0.5, Math.min(transition.fade, left)) : 0.1;
     const startAt = Math.max(0, transition.in || 0);
 
+    const from = this.current;
     // move to the next song exactly like next() would
     if (prep.wrap) {
       if (prep.order) this.queue = prep.order;
@@ -438,7 +439,7 @@ class Player extends Emitter {
     const track = this.current;
     this.loadId++;
     this.releaseDeck(incoming);
-    const fading = this.fading = { outgoing, incoming, seconds, progress: 0, startedAt: null, timer: null, fallback: null };
+    const fading = this.fading = { from, to: track, outgoing, incoming, seconds, progress: 0, startedAt: null, timer: null, fallback: null };
 
     norm.setFade(incoming.audio, 0);
     norm.setFade(outgoing.audio, 1);
@@ -466,6 +467,7 @@ class Player extends Emitter {
     clearTimeout(f.fallback);
     const norm = this.normalizer;
     const left = f.seconds * (1 - f.progress);
+    if (!f.announced) { f.announced = true; this.emit('transition', { phase: 'start', from: f.from, to: f.to }); }
     f.startedAt = norm.ctx.currentTime;
     norm.fadeDeck(f.incoming.audio, true, left, f.progress);
     norm.fadeDeck(f.outgoing.audio, false, left, f.progress);
@@ -489,6 +491,7 @@ class Player extends Emitter {
   finishFade(f) {
     if (this.fading !== f) return;
     this.fading = null;
+    if (f.announced) this.emit('transition', { phase: 'end', from: f.from, to: f.to });
     clearTimeout(f.timer);
     clearTimeout(f.fallback);
     this.releaseDeck(f.outgoing);

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { installBrowser } from './helpers/browser.js';
 
 installBrowser();
-const { route, navigate } = await import('../src/js/router.js');
+const { route, navigate, routeName, setViewOverride, startRouter } = await import('../src/js/router.js');
 const view = document.createElement('div');
 view.id = 'view';
 document.body.append(view);
@@ -58,4 +58,28 @@ test('a late route loader cannot overwrite a newer navigation', async () => {
   resolve({ render() { assert.fail('Stale route rendered'); } });
   await slow;
   assert.equal(view.firstChild.firstChild.textContent, 'home');
+});
+
+test('route names and overrides preserve original routes and render after attachment', async () => {
+  assert.equal(routeName('/home?tab=browse'), 'home');
+  assert.equal(routeName('/user/123/likes'), 'user');
+  assert.equal(routeName(''), 'home');
+  location.hash = '#/home';
+  const rendered = [];
+  const onRendered = event => {
+    assert.equal(event.detail.page.parentNode, view);
+    rendered.push(event.detail.path);
+  };
+  document.addEventListener('routerendered', onRendered);
+  startRouter();
+  await new Promise(resolve => setImmediate(resolve));
+  const override = loader('stage');
+  assert.equal(setViewOverride('home', override), null);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(renders.at(-1).name, 'stage');
+  assert.equal(setViewOverride('home', null), override);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(renders.at(-1).name, 'home');
+  assert.ok(rendered.length >= 3);
+  document.removeEventListener('routerendered', onRendered);
 });

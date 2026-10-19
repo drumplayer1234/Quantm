@@ -194,7 +194,26 @@ async function dominantColor(url) {
 }
 
 /** { vivid, base } colors of an image: the most striking color and the overall average */
-async function imagePalette(url) {
+const palettes = new Map();
+function imagePalette(url) {
+  if (!palettes.has(url)) {
+    if (palettes.size >= 12) palettes.delete(palettes.keys().next().value);
+    palettes.set(url, extractImagePalette(url).catch(error => { palettes.delete(url); throw error; }));
+  }
+  return palettes.get(url);
+}
+
+/** Share Album Match's extraction and cache with packs. */
+export async function currentArtworkPalette() {
+  const track = player.current;
+  const colors = theme.getTheme().colors;
+  const fallback = { vivid: colors.accent, base: colors.surface };
+  const url = artwork(track && (track.artwork_url || track.user?.avatar_url), 't67x67');
+  const palette = url ? await imagePalette(url).catch(() => null) : null;
+  return player.current === track ? palette || fallback : currentArtworkPalette();
+}
+
+async function extractImagePalette(url) {
   const dataUrl = await window.native.image(url);
   if (!dataUrl) return null;
   const img = new Image();

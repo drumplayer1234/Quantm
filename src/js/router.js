@@ -4,6 +4,18 @@ import { clear } from './dom.js';
 import { spinner, errorState } from './ui.js';
 
 const routes = [];
+const overrides = new Map();
+let started = false;
+
+export const routeName = path => path.split('?')[0].split('/').filter(Boolean)[0] || 'home';
+
+export function setViewOverride(name, loaderOrNull) {
+  const previous = overrides.get(name) || null;
+  if (loaderOrNull) overrides.set(name, loaderOrNull);
+  else overrides.delete(name);
+  if (started && routeName(location.hash.replace(/^#/, '')) === name) navigate();
+  return previous;
+}
 
 /** route('/user/:id/:tab?', () => import('./views/user.js')) */
 export function route(pattern, loader) {
@@ -42,7 +54,7 @@ export async function navigate() {
   match.r.keys.forEach((key, i) => { params[key] = match.m[i + 1] ? decodeURIComponent(match.m[i + 1]) : undefined; });
 
   try {
-    const module = await match.r.loader();
+    const module = await (overrides.get(routeName(path)) || match.r.loader)();
     if (id !== renderId) return;
     const page = document.createElement('div');
     page.className = 'page';
@@ -53,6 +65,7 @@ export async function navigate() {
     }
     clear(view).append(page);
     cleanup = typeof result === 'function' ? result : null;
+    document.dispatchEvent(new CustomEvent('routerendered', { detail: { path, query, page } }));
   } catch (error) {
     console.error(error);
     if (id !== renderId) return;
@@ -61,6 +74,7 @@ export async function navigate() {
 }
 
 export function startRouter() {
+  started = true;
   window.addEventListener('hashchange', navigate);
   navigate();
 }

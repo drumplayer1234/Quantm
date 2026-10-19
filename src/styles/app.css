@@ -741,3 +741,7 @@ a.stat:hover { color: var(--text); }
   margin: 10px 0 0; padding: 10px 12px; border-radius: var(--radius);
   background: color-mix(in srgb, #f2b705 14%, transparent); color: var(--text); font-size: 13px;
 }
+
+/* Theme packs own only this non-interactive effects layer. */
+.theme-layer { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+body:has(> .theme-layer) #app { position: relative; z-index: 1; }

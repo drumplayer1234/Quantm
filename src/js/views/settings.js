@@ -3,6 +3,7 @@
 import { h, debounce } from '../dom.js';
 import { icon } from '../icons.js';
 import { store, settings, saveSettings, VISUALIZER_DEFAULTS } from '../store.js';
+import { effectsMode } from '../audio-reactivity.js';
 import { player } from '../player.js';
 import { EQ_PRESETS, presetFor, normalizeEqualizer } from '../equalizer.js';
 import { offline, formatBytes } from '../offline.js';
@@ -526,6 +527,11 @@ async function appearanceTab() {
   const timeInput = (key) => h('input.input.settings-time', { type: 'time', value: schedule[key], onchange: (e) => setSchedule({ [key]: e.target.value }) });
 
   return h('div',
+    card('Theme effects', null,
+      chipRow('Motion and lighting', "Music-reactive lighting and animation in themes that have them. Auto follows Windows' animation setting; Performance mode always turns them off.",
+        [{ id: 'auto', label: 'Auto' }, { id: 'on', label: 'On' }, { id: 'off', label: 'Off' }],
+        effectsMode(settings.themeEffects), (v) => saveSettings({ themeEffects: v }))
+    ),
     card('Layout', 'Arrange Quantm the way you like it.',
       chipRow('Navigation', 'Links in the top bar, or in a sidebar on the left', [{ id: 'top', label: 'Top bar' }, { id: 'sidebar', label: 'Sidebar' }], a.nav, (v) => save({ nav: v })),
       chipRow('Player bar', 'Where the playback controls sit', [{ id: 'bottom', label: 'Bottom' }, { id: 'top', label: 'Top' }], a.playerPosition, (v) => save({ playerPosition: v })),

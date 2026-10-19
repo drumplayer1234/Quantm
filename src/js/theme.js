@@ -106,6 +106,10 @@ export const PRESETS = {
     accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
     text: '#f4f4f4', muted: '#a0a0a0', wave: '#5c5c5c', wavePlayed: '#ff5500'
   },
+  'Listening Room': {
+    accent: '#edbd91', accentText: '#25180f', bg: '#151210', surface: '#25201c', bar: '#1b1714',
+    text: '#f6ede3', muted: '#c3b3a4', wave: '#706052', wavePlayed: '#edbd91'
+  },
   'Mono': {
     accent: '#ffffff', accentText: '#000000', bg: '#000000', surface: '#111111', bar: '#0a0a0a',
     text: '#ffffff', muted: '#8a8a8a', wave: '#333333', wavePlayed: '#ffffff'
@@ -133,11 +137,12 @@ export const PRESET_STYLES = {
   'Windows 98': 'win98',
   'Vinyl': 'vinyl',
   'Brutalist': 'brutalist',
+  'Listening Room': 'listening-room',
   'Album Match': 'album'
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0 };
+export const PRESET_RADIUS = { 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
 // window.QUANTM_LOCAL_THEMES = { presets, styles, radius } before this module runs

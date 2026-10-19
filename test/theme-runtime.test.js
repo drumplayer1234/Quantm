@@ -1,0 +1,76 @@
+import test, { mock } from 'node:test';
+import assert from 'node:assert/strict';
+import { installBrowser } from './helpers/browser.js';
+installBrowser();
+const timer = mock.method(globalThis, 'setInterval', () => 0);
+const { initThemeRuntime, createMoments } = await import('../src/js/theme-runtime.js');
+timer.mock.restore();
+const { Emitter } = await import('../src/js/dom.js');
+const { PACKS } = await import('../src/js/theme-packs.js');
+const flush = () => new Promise(resolve => setImmediate(resolve));
+
+test('moments dedupe actual tracks and play state, forward likes and transitions, and release listeners', () => {
+  const track = { id: 1 };
+  const player = Object.assign(new Emitter(), { current: track, playing: false, queue: [track] });
+  const store = new Emitter();
+  const { moments, destroy } = createMoments(player, store);
+  const seen = [];
+  for (const event of ['trackchange', 'playstate', 'like', 'transition']) moments.on(event, data => seen.push([event, data]));
+  player.emit('track', { id: 1 });
+  player.current = { id: 2 };
+  player.emit('track', player.current);
+  player.emit('track', { id: 2 });
+  player.playing = true;
+  player.emit('state'); player.emit('state');
+  store.emit('change', 'likedTracks');
+  store.emit('change', 'likedTracks', 1, true);
+  player.emit('transition', { phase: 'start', from: track, to: player.current });
+  player.emit('transition', { phase: 'end', from: track, to: player.current });
+  assert.deepEqual(seen.map(([name]) => name), ['trackchange', 'playstate', 'like', 'transition', 'transition']);
+  assert.deepEqual(seen[2][1], { track, liked: true });
+  destroy();
+  player.playing = false; player.emit('state');
+  assert.equal(seen.length, 5);
+});
+
+test('runtime discards late packs, cleans subscriptions and roots, and contains mount errors', async () => {
+  window.matchMedia = () => Object.assign(new EventTarget(), { matches: false });
+  globalThis.cancelAnimationFrame = () => {};
+  let loadSlow;
+  let mounted = 0;
+  let cleaned = 0;
+  let calls = 0;
+  const events = new Emitter();
+  PACKS.slow = { layout: 'slow', load: () => new Promise(resolve => { loadSlow = resolve; }) };
+  PACKS.fast = { layout: 'fast', load: async () => ({ mount(ctx) {
+    mounted++;
+    ctx.on(events, 'event', () => calls++);
+    return () => cleaned++;
+  } }) };
+  PACKS.broken = { layout: 'broken', load: async () => ({ mount() { throw new Error('expected failure'); } }) };
+  const change = style => {
+    document.documentElement.dataset.style = style;
+    document.dispatchEvent(new CustomEvent('themechange'));
+  };
+  document.documentElement.dataset.style = 'slow';
+  initThemeRuntime(); initThemeRuntime();
+  change('fast'); await flush();
+  assert.equal(mounted, 1);
+  assert.equal(document.documentElement.dataset.layout, 'fast');
+  loadSlow({ mount() { assert.fail('Stale pack mounted'); } });
+  await flush();
+  events.emit('event'); assert.equal(calls, 1);
+  change(''); await flush();
+  events.emit('event'); assert.equal(calls, 1);
+  assert.equal(cleaned, 1);
+  assert.equal(document.documentElement.dataset.layout, undefined);
+  assert.equal(document.body.childNodes.filter(node => node.className === 'theme-layer').length, 0);
+  const errors = mock.method(console, 'error', () => {});
+  change('broken'); await flush();
+  assert.equal(errors.mock.calls.length, 1);
+  assert.equal(document.documentElement.dataset.layout, undefined);
+  assert.equal(document.body.childNodes.filter(node => node.className === 'theme-layer').length, 0);
+  errors.mock.restore();
+  change('');
+  delete PACKS.slow; delete PACKS.fast; delete PACKS.broken;
+});
