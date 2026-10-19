@@ -368,7 +368,7 @@ export function trackRow(tracks, index, opts = {}) {
   const locked = !!(_api && _api.isProtected && _api.isProtected(track));
   if (locked) {
     row.classList.add('protected');
-    row.title = "Copy-protected by the label: this track can't play in Quantm yet";
+    row.title = "Copy-protected by the label: Quantm can't play this song. Use Open in SoundCloud to play it there.";
   }
   const cover = h('div.track-art', { style: { backgroundImage: coverOf(track, 't300x300') ? `url("${coverOf(track, 't300x300')}")` : '' } },
     h('div.track-art-overlay', icon('play', 18)));
@@ -388,6 +388,9 @@ export function trackRow(tracks, index, opts = {}) {
   );
 
   const actions = h('div.track-actions',
+    locked && track.permalink_url
+      ? iconButton('external', 'Open in SoundCloud', (e) => { e.stopPropagation(); window.native.openExternal(track.permalink_url); }, 'track-open-sc')
+      : null,
     likeButton(track),
     repostButton(track),
     iconButton('addToPlaylist', 'Add to playlist', () => addToPlaylistDialog(track)),

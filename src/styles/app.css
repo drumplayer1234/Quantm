@@ -715,7 +715,9 @@ a.stat:hover { color: var(--text); }
 .settings-row.disabled { opacity: .45; }
 
 /* copy-protected (DRM-only) tracks: shown, but clearly not playable */
-.track-row.protected { opacity: .55; }
+.track-row.protected .track-art,
+.track-row.protected .track-meta { opacity: .55; }
+.track-open-sc { color: var(--accent); }
 .track-row.protected .track-art-overlay { display: none; }
 .track-lock { display: inline-flex; vertical-align: -1px; margin-right: 6px; color: var(--muted); }
 

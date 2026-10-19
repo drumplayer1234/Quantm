@@ -265,7 +265,7 @@ class Player extends Emitter {
       this.loading = false;
       this.emit('buffering', false);
       toast(error && error.data === 'protected'
-        ? `"${track.title}" is copy-protected by its label and can't play in Quantm yet`
+        ? `"${track.title}" is copy-protected and only plays in SoundCloud's own app. Use Open in SoundCloud on the track.`
         : `Can't play "${track.title}"`, 'error');
       // skip unplayable tracks, but stop if the whole queue is unplayable
       if (this.index < this.queue.length - 1) setTimeout(() => loadId === this.loadId && this.next(true), 800);
