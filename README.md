@@ -51,7 +51,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 **Make it yours**
 
-- **Theme presets.** Color-only themes: SoundCloud Dark, SoundCloud Light, Midnight, Synthwave, Forest and Mono. Full style makeovers that also change shapes, fonts and textures: Y2K (Windows XP and early iTunes), Glass, Neon, Pixel, Minimal, Liquid Glass, Liquid Glass Dark, Hextech, OLED (pure black), E-ink, Industrial and Album Match (the whole palette follows the playing song's artwork).
+- **Theme presets.** Color-only themes: SoundCloud Dark, SoundCloud Light, Midnight, Synthwave, Forest and Mono. Full style makeovers that also change shapes, fonts and textures: Y2K (Windows XP and early iTunes), Glass, Neon, Pixel, Minimal, Liquid Glass, Liquid Glass Dark, Hextech, OLED (pure black), E-ink, Industrial, Frutiger Aero, Terminal, Windows 98, Vinyl, Brutalist and Album Match (the whole palette follows the playing song's artwork).
 - **Custom themes.** Edit every color and the corner roundness, copy a theme to share it or import one, or try the random theme generator.
 - **Day and night schedule.** Switch between a day theme and a night theme automatically.
 - **See-through window.** With Liquid Glass, your desktop shows through the app, blurred, on Windows and macOS. On Windows 11 you can also try the native Acrylic or Mica styles (Settings → Appearance → Window).

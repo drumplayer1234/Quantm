@@ -81,6 +81,26 @@ export const PRESETS = {
     accent: '#f2b705', accentText: '#111111', bg: '#1c1d1f', surface: '#2a2b2e', bar: '#222326',
     text: '#e6e6e3', muted: '#9a9b95', wave: '#3a3b3e', wavePlayed: '#f2b705'
   },
+  'Frutiger Aero': {
+    accent: '#08638b', accentText: '#ffffff', bg: '#e5f4fb', surface: '#f8fcff', bar: '#d9edf8',
+    text: '#143348', muted: '#466173', wave: '#668b9e', wavePlayed: '#32732c'
+  },
+  'Terminal': {
+    accent: '#75f59b', accentText: '#031008', bg: '#030906', surface: '#0a170e', bar: '#061009',
+    text: '#c2ffd0', muted: '#8dc59b', wave: '#39774a', wavePlayed: '#75f59b'
+  },
+  'Windows 98': {
+    accent: '#000080', accentText: '#ffffff', bg: '#c0c0c0', surface: '#dfdfdf', bar: '#c0c0c0',
+    text: '#000000', muted: '#404040', wave: '#808080', wavePlayed: '#000080'
+  },
+  'Vinyl': {
+    accent: '#f1ba7d', accentText: '#25160f', bg: '#1c1410', surface: '#30241c', bar: '#241b15',
+    text: '#fff1da', muted: '#cbb59b', wave: '#806b57', wavePlayed: '#f1ba7d'
+  },
+  'Brutalist': {
+    accent: '#b51d12', accentText: '#ffffff', bg: '#ffffff', surface: '#ffffff', bar: '#ffffff',
+    text: '#000000', muted: '#4b4b4b', wave: '#777777', wavePlayed: '#b51d12'
+  },
   // colors are replaced live from the playing song's artwork (appearance.js)
   'Album Match': {
     accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
@@ -108,11 +128,16 @@ export const PRESET_STYLES = {
   'OLED': 'oled',
   'E-ink': 'eink',
   'Industrial': 'industrial',
+  'Frutiger Aero': 'frutiger-aero',
+  'Terminal': 'terminal',
+  'Windows 98': 'win98',
+  'Vinyl': 'vinyl',
+  'Brutalist': 'brutalist',
   'Album Match': 'album'
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14 };
+export const PRESET_RADIUS = { 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
 // window.QUANTM_LOCAL_THEMES = { presets, styles, radius } before this module runs

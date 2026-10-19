@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync, existsSync } from 'node:fs';
 import { installBrowser } from './helpers/browser.js';
 
 installBrowser();
-const { hexToRgb, luminance, contrast, importTheme, exportTheme, DEFAULT_THEME } = await import('../src/js/theme.js');
+const { hexToRgb, luminance, contrast, importTheme, exportTheme, DEFAULT_THEME, PRESETS, PRESET_STYLES, PRESET_RADIUS, THEME_FIELDS } = await import('../src/js/theme.js');
 
 test('hexToRgb supports full and short hex colors', () => {
   assert.deepEqual(hexToRgb('#ff5500'), [255, 85, 0]);
@@ -38,4 +39,42 @@ test('theme import rejects invalid input and defaults invalid slots', () => {
   assert.equal(imported.style, '');
   assert.equal(imported.colors.unknown, undefined);
   assert.equal(imported.preset, 'Custom');
+});
+
+test('every preset defines all nine editable colors as full hex values', () => {
+  assert.equal(THEME_FIELDS.length, 9);
+  for (const [name, colors] of Object.entries(PRESETS)) {
+    for (const { key } of THEME_FIELDS) {
+      assert.match(colors[key] || '', /^#[0-9a-f]{6}$/i, `${name}: ${key}`);
+    }
+  }
+});
+
+test('every style preset has a stylesheet and an index stylesheet link', () => {
+  const html = readFileSync(new URL('../src/index.html', import.meta.url), 'utf8');
+  const links = [...html.matchAll(/<link\b[^>]*>/g)].map(([link]) => link);
+  for (const [name, style] of Object.entries(PRESET_STYLES)) {
+    assert.ok(PRESETS[name], `${name} is a registered preset`);
+    assert.ok(existsSync(new URL(`../src/styles/themes/${style}.css`, import.meta.url)), style);
+    assert.ok(links.some(link => /rel="stylesheet"/.test(link) && link.includes(`href="styles/themes/${style}.css"`)), `${style} stylesheet link`);
+  }
+});
+
+const makeovers = {
+  'Frutiger Aero': 'frutiger-aero', 'Terminal': 'terminal', 'Windows 98': 'win98',
+  'Vinyl': 'vinyl', 'Brutalist': 'brutalist'
+};
+
+test('new makeovers have readable text and accent labels on their palette surfaces', () => {
+  for (const [name, style] of Object.entries(makeovers)) {
+    assert.equal(PRESET_STYLES[name], style);
+    assert.ok(Number.isFinite(PRESET_RADIUS[name]), `${name} radius`);
+    const c = PRESETS[name];
+    for (const background of ['bg', 'surface', 'bar']) {
+      for (const foreground of ['text', 'muted']) {
+        assert.ok(contrast(c[foreground], c[background]) >= 4.5, `${name}: ${foreground} on ${background}`);
+      }
+    }
+    assert.ok(contrast(c.accentText, c.accent) >= 4.5, `${name}: accent label`);
+  }
 });

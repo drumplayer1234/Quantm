@@ -1,0 +1,156 @@
+/* Vinyl: standalone full style makeover. Colors remain editable in Settings. */
+
+html[data-style="vinyl"] {
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+  --border: color-mix(in srgb, var(--text) 30%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 94%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 90%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: var(--hover);
+  --makeover-edge: 1px solid var(--border);
+  --makeover-shadow: 0 4px 16px color-mix(in srgb, var(--bg) 35%, transparent);
+  --makeover-panel: var(--surface);
+  --makeover-bar: var(--bar);
+  --makeover-button: var(--surface);
+}
+html[data-style="vinyl"] body { background: var(--bg); }
+html[data-style="vinyl"] #view { background: transparent; }
+html[data-style="vinyl"] :focus-visible {
+  outline: 2px solid var(--text); outline-offset: 3px;
+}
+html[data-style="vinyl"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) {
+  font-family: var(--font-display);
+}
+html[data-style="vinyl"] :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
+html[data-style="vinyl"] .topbar,
+html[data-style="vinyl"][data-bg] .topbar {
+  background: var(--makeover-bar); border-bottom: var(--makeover-edge); box-shadow: var(--makeover-shadow);
+}
+html[data-style="vinyl"][data-nav="sidebar"] .nav {
+  background: var(--makeover-bar); border-right: var(--makeover-edge); backdrop-filter: none;
+}
+html[data-style="vinyl"] :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
+html[data-style="vinyl"] :is(.nav-link, .settings-nav-link).active {
+  background: var(--accent); color: var(--accent-text);
+}
+html[data-style="vinyl"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="vinyl"] :is(.search-input, .input) {
+  border: var(--makeover-edge); border-radius: var(--radius); background: var(--surface); color: var(--text);
+}
+html[data-style="vinyl"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
+html[data-style="vinyl"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="vinyl"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
+  border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-button); color: var(--text);
+}
+html[data-style="vinyl"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover {
+  background: var(--hover); color: var(--text); filter: none;
+}
+html[data-style="vinyl"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="vinyl"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+}
+html[data-style="vinyl"] :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
+html[data-style="vinyl"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
+  color: var(--text); border: 2px dashed var(--text); background: var(--surface);
+}
+html[data-style="vinyl"] :is(.play-btn, .card-play, .pb-play) {
+  background: var(--accent); color: var(--accent-text); border: var(--makeover-edge); box-shadow: var(--makeover-shadow);
+}
+html[data-style="vinyl"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
+  background: var(--makeover-panel); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow);
+}
+html[data-style="vinyl"] .card { padding: 12px; }
+html[data-style="vinyl"] .card:hover { background: var(--surface); border-color: var(--accent); }
+html[data-style="vinyl"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="vinyl"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) {
+  border: var(--makeover-edge); border-radius: var(--radius);
+}
+html[data-style="vinyl"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="vinyl"] :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
+html[data-style="vinyl"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="vinyl"] :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
+html[data-style="vinyl"] :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
+/* Keep hero text independent of arbitrary artwork luminance. */
+html[data-style="vinyl"] .hero-bg { display: none; }
+html[data-style="vinyl"] :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+html[data-style="vinyl"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="vinyl"] .tabs { border-bottom: var(--makeover-edge); }
+html[data-style="vinyl"] .tab.active { border-bottom-color: var(--accent); }
+html[data-style="vinyl"] .playerbar,
+html[data-style="vinyl"][data-bg] .playerbar {
+  background: var(--makeover-bar); color: var(--text); border-top: var(--makeover-edge); box-shadow: var(--makeover-shadow);
+}
+html[data-style="vinyl"][data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
+html[data-style="vinyl"] .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
+html[data-style="vinyl"] .pb-fill,
+html[data-style="vinyl"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
+  background: var(--wave-played); border-radius: var(--radius);
+}
+html[data-style="vinyl"] .pb-knob { background: var(--accent); border: 1px solid var(--text); }
+html[data-style="vinyl"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="vinyl"] :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
+  background: var(--surface); color: var(--text); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow);
+}
+html[data-style="vinyl"] :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
+html[data-style="vinyl"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="vinyl"] .menu-item .icon { color: inherit; }
+html[data-style="vinyl"] .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
+html[data-style="vinyl"] .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
+html[data-style="vinyl"] .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--text); }
+html[data-style="vinyl"] .settings-preset { border-color: var(--border); border-radius: var(--radius); }
+html[data-style="vinyl"] .settings-preset.active { border-color: var(--accent); }
+html[data-style="vinyl"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="vinyl"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+html[data-style="vinyl"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+html[data-style="vinyl"] .login { background: transparent; }
+
+html[data-style="vinyl"] {
+  --wood-line: #513728; --sleeve: #e8d8bb; --sleeve-ink: #302419; --sleeve-muted: #61523f;
+  --record: #141210; --groove: #38312a;
+  --makeover-bar: repeating-linear-gradient(2deg, transparent 0 7px, color-mix(in srgb, var(--wood-line) 25%, transparent) 8px 9px), var(--bar);
+}
+html[data-style="vinyl"] body { background: repeating-linear-gradient(1deg, transparent 0 11px, color-mix(in srgb, var(--wood-line) 22%, transparent) 12px 13px), var(--bg); }
+html[data-style="vinyl"] :is(.page-title, .hero-title) { letter-spacing: -.03em; font-weight: 500; }
+html[data-style="vinyl"] .card, html[data-style="vinyl"] .card:hover {
+  background: linear-gradient(110deg, transparent, color-mix(in srgb, var(--sleeve-ink) 5%, transparent)), var(--sleeve); color: var(--sleeve-ink); border: 1px solid var(--sleeve-muted); border-radius: 1px;
+  box-shadow: 3px 4px 0 var(--record); padding: 14px 14px 18px;
+}
+html[data-style="vinyl"] .card :is(.card-sub, .muted, .stat) { color: var(--sleeve-muted); }
+html[data-style="vinyl"] .card a:hover { color: var(--sleeve-ink); }
+html[data-style="vinyl"] .hero-art { position: relative; isolation: isolate; overflow: visible; margin-right: 25px; }
+html[data-style="vinyl"] .hero-art::before {
+  content: ""; position: absolute; inset: 3% -15% 3% 21%; z-index: -1; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, var(--accent) 0 15%, transparent 16%), repeating-radial-gradient(circle, var(--record) 0 2px, var(--groove) 3px 4px);
+  box-shadow: 2px 4px 8px var(--bg);
+}
+html[data-style="vinyl"] .pb-track { height: 7px; background: repeating-linear-gradient(0deg, var(--record) 0 1px, var(--groove) 1px 2px); }
+html[data-style="vinyl"] .pb-fill { background: var(--wave-played); border-bottom: 2px solid var(--wood-line); }
+html[data-style="vinyl"] :is(.play-btn, .pb-play) { box-shadow: 0 0 0 3px var(--record), 0 0 0 4px var(--groove); }
+
+/* Performance mode uses solid materials; native see-through remains opt-in. */
+html[data-style="vinyl"][data-perf] { --makeover-panel: var(--surface); --makeover-bar: var(--bar); --makeover-shadow: none; }
+html[data-style="vinyl"][data-perf] body { background: var(--bg); }
+html[data-style="vinyl"][data-perf] #view::before { display: none; }
+html[data-style="vinyl"][data-perf] *,
+html[data-style="vinyl"][data-perf] *::before,
+html[data-style="vinyl"][data-perf] *::after {
+  animation: none !important; transition: none !important; backdrop-filter: none !important; text-shadow: none !important; filter: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="vinyl"] *, html[data-style="vinyl"] *::before, html[data-style="vinyl"] *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  html[data-style="vinyl"] :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
+}
+
+html[data-style="vinyl"] .card-title .icon { color: var(--sleeve-ink); }
+/* Only the part of the record outside the sleeve is visible. */
+html[data-style="vinyl"] .hero-art::before {
+  left: 100%; right: -15%; border-radius: 0 100% 100% 0 / 0 50% 50% 0;
+  background-size: 220px 220px; background-position: right center;
+}
+html[data-style="vinyl"][data-density="compact"] .hero-art::before { background-size: 160px 160px; }
+html[data-style="vinyl"][data-perf] .hero-art::before { display: none; }
