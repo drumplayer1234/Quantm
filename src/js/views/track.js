@@ -8,7 +8,7 @@ import { player } from '../player.js';
 import {
   hero, spinner, emptyState, errorState, link, userHref, playlistHref, pageHeader, avatar, button,
   iconButton, likeButton, repostButton, followButton, playButton, waveform, userList, trackMenu,
-  addToPlaylistDialog, toast, confirmDialog, go
+  addToPlaylistDialog, toast, confirmDialog, go, downloadButton
 } from '../ui.js';
 
 const fmtDate = (date) => date
@@ -48,6 +48,7 @@ export async function render(page, params) {
     ],
     actions: [
       playButton(() => [track], 0, context, 'play-btn.play-btn-xl'),
+      downloadButton(track, { labeled: true }),
       likeButton(track, { withCount: true }),
       repostButton(track, { withCount: true }),
       button('Add to playlist', () => addToPlaylistDialog(track), 'btn-sm', 'addToPlaylist'),

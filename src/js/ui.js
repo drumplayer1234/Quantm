@@ -1,6 +1,7 @@
 // Shared UI components. Every view builds its pages from these.
 import { h, clear, compact, duration, timeAgo, artwork, coverOf, onNearBottom } from './dom.js';
 import { icon } from './icons.js';
+import { offline } from './offline.js';
 import { getCues, addCue, removeCue, renameCue, setMixIn, setMixOut, cueEvents, getPair, setPair, transitionFor } from './cues.js';
 import { formatCueTime, parseCueTime } from './cue-time.js';
 
@@ -76,6 +77,74 @@ export function iconButton(name, title, onclick, cls = '') {
 
 export function button(label, onclick, cls = '', iconName = null) {
   return h('button.btn' + (cls ? '.' + cls : ''), { onclick: (e) => { e.stopPropagation(); onclick(e); } }, iconName ? icon(iconName, 18) : null, label ? h('span', label) : null);
+}
+
+/** Shared row / track-page control. The main process verifies artist permission. */
+export function downloadButton(track, { labeled = false } = {}) {
+  if (!(_api?.isDownloadable?.(track) || offline.has(track.id))) return null;
+  const btn = h('button.' + (labeled ? 'btn' : 'icon-btn') + '.download-btn', {
+    onclick: (e) => { e.stopPropagation(); downloadAction(track); }
+  });
+  const render = () => {
+    const saved = offline.has(track.id);
+    const downloading = offline.isDownloading(track.id);
+    const p = offline.progressOf(track.id);
+    const percent = p?.total > 0 ? Math.max(0, Math.min(100, Math.floor(p.received / p.total * 100))) : null;
+    const progressText = percent == null ? '…' : percent + '%';
+    btn.hidden = !saved && !_api?.isDownloadable?.(track);
+    btn.title = downloading ? 'Cancel download' : saved ? 'Remove download' : 'Download for offline';
+    btn.setAttribute('aria-label', btn.title);
+    btn.classList.toggle('downloaded', saved);
+    clear(btn).append(downloading ? h('span.download-progress', progressText) : icon(saved ? 'checkCircle' : 'download', 18));
+    if (labeled) {
+      if (downloading) clear(btn);
+      btn.append(h('span', downloading ? 'Downloading ' + progressText : saved ? 'Downloaded' : 'Download'));
+    }
+  };
+  const offs = [offline.on('change', render), offline.on('progress', id => {
+    if (String(id) === String(track.id)) render();
+  })];
+  onRemoved(btn, () => offs.forEach(off => off()));
+  render();
+  return btn;
+}
+
+async function downloadAction(track) {
+  try {
+    if (offline.isDownloading(track.id)) return await offline.cancel(track.id);
+    if (offline.has(track.id)) {
+      if (!await confirmDialog('Remove download?', track.title, 'Remove download', true)) return;
+      await offline.remove(track.id);
+      toast('Removed download');
+    } else if (_api?.isDownloadable?.(track)) {
+      const result = await offline.download(track);
+      toast(result.ok ? `Downloaded ${track.title}` : result.error, result.ok ? 'info' : 'error');
+    }
+  } catch (error) {
+    toast(error.message || 'Download failed', 'error');
+  }
+}
+
+export async function removeAllDownloads() {
+  if (!await confirmDialog('Remove all downloads?', 'Remove all saved tracks from this computer?', 'Remove all downloads', true)) return;
+  try {
+    await offline.removeAll();
+    toast('Removed downloads');
+  } catch (error) {
+    toast(error.message || 'Could not remove downloads', 'error');
+  }
+}
+
+/** Account-free list for startup without a connection. Click or keyboard plays a row. */
+export function offlineTrackList(tracks) {
+  const context = { label: 'Offline', href: '#/library/offline' };
+  return h('div.track-list', tracks.map((track, index) => h('button.offline-track', {
+    onclick: () => player().playList(tracks, index, context)
+  },
+  h('span.track-art', { style: { backgroundImage: coverOf(track, 't300x300') ? `url("${coverOf(track, 't300x300')}")` : '' } }),
+  h('span.track-meta', h('span.track-title', track.title), h('span.muted', track.user?.username || '')),
+  h('span.track-duration', duration(track.full_duration || track.duration))
+  )));
 }
 
 /** Heart that stays in sync with the store everywhere it appears */
@@ -391,6 +460,7 @@ export function trackRow(tracks, index, opts = {}) {
     locked && track.permalink_url
       ? iconButton('external', 'Open in SoundCloud', (e) => { e.stopPropagation(); window.native.openExternal(track.permalink_url); }, 'track-open-sc')
       : null,
+    downloadButton(track),
     likeButton(track),
     repostButton(track),
     iconButton('addToPlaylist', 'Add to playlist', () => addToPlaylistDialog(track)),
@@ -806,6 +876,10 @@ export function closeMenus() {
 export function trackMenu(track, event, opts = {}) {
   const p = player();
   menu([
+    (offline.has(track.id) || _api?.isDownloadable?.(track)) ? {
+      label: offline.isDownloading(track.id) ? 'Cancel download' : offline.has(track.id) ? 'Remove download' : 'Download for offline',
+      icon: offline.has(track.id) ? 'checkCircle' : 'download', onclick: () => downloadAction(track)
+    } : null,
     { label: 'Play next', icon: 'next', onclick: () => p.playNext(track) },
     { label: 'Add to queue', icon: 'queue', onclick: () => p.addToQueue(track) },
     { label: 'Mix points…', onclick: () => mixPointsDialog(track) },

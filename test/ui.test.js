@@ -5,12 +5,91 @@ import { installBrowser, resizeObservers } from './helpers/browser.js';
 installBrowser();
 const { Emitter } = await import('../src/js/dom.js');
 const { cueEvents, addCue, setMixIn, setMixOut, _reset } = await import('../src/js/cues.js');
-const { bindServices, waveform, playButton, trackRow } = await import('../src/js/ui.js');
+const { bindServices, waveform, playButton, trackRow, downloadButton, offlineTrackList } = await import('../src/js/ui.js');
+const { offline } = await import('../src/js/offline.js');
+const { isDownloadable } = await import('../src/js/api.js');
 const player = Object.assign(new Emitter(), { current: null, playing: false });
 const store = Object.assign(new Emitter(), { isLiked: () => false, isReposted: () => false });
-bindServices(store, player, { waveform: async () => null });
+bindServices(store, player, { waveform: async () => null, isDownloadable });
 const tracks = [{ id: 1, title: 'Track', duration: 10000 }];
 const count = emitter => Object.values(emitter.handlers).reduce((total, handlers) => total + handlers.length, 0);
+
+test('download controls honor artist permission, update progress and release row / page subscriptions', async () => {
+  const baseline = count(offline);
+  const track = { ...tracks[0], downloadable: true };
+  assert.equal(downloadButton(tracks[0]), null);
+  assert.equal(downloadButton({ ...track, has_downloads_left: false }), null);
+  const row = trackRow([track], 0);
+  const labeled = downloadButton(track, { labeled: true });
+  const host = document.createElement('div');
+  host.append(row, labeled);
+  document.body.append(host);
+  const control = row.childNodes.at(-1).firstChild;
+  assert.equal(control.title, 'Download for offline');
+  assert.equal(count(offline), baseline + 4);
+  offline.progress.set('1', { received: 42, total: 100 });
+  offline.emit('progress', '1', offline.progressOf(1));
+  assert.equal(control.title, 'Cancel download');
+  assert.equal(control.firstChild.firstChild.textContent, '42%');
+  assert.equal(labeled.firstChild.firstChild.textContent, 'Downloading 42%');
+  offline.progress.set('1', { received: 200, total: 100 });
+  offline.emit('progress', 1);
+  assert.equal(control.firstChild.firstChild.textContent, '100%');
+  offline.progress.set('1', { received: 42, total: 0 });
+  offline.emit('progress', 1);
+  assert.equal(labeled.firstChild.firstChild.textContent, 'Downloading …');
+  offline.progress.delete('1');
+  offline.entries.set('1', { track });
+  offline.emit('change');
+  assert.equal(control.title, 'Remove download');
+  assert.equal(labeled.childNodes.at(-1).firstChild.textContent, 'Downloaded');
+  const savedOnly = downloadButton(tracks[0]);
+  host.append(savedOnly);
+  assert.ok(savedOnly);
+  offline.entries.delete('1');
+  offline.emit('change');
+  assert.equal(savedOnly.hidden, true);
+  host.remove();
+  await Promise.resolve();
+  assert.equal(count(offline), baseline);
+});
+
+test('clicking a downloading control cancels that track', async () => {
+  const original = offline.cancel;
+  const host = document.createElement('div');
+  let canceled;
+  try {
+    offline.cancel = async id => { canceled = id; };
+    offline.progress.set('1', { received: 0, total: 0 });
+    const control = downloadButton({ ...tracks[0], downloadable: true });
+    host.append(control);
+    document.body.append(host);
+    control.dispatchEvent({ type: 'click', stopPropagation() {} });
+    assert.equal(canceled, 1);
+  } finally {
+    offline.cancel = original;
+    offline.progress.delete('1');
+    host.remove();
+    await Promise.resolve();
+  }
+});
+
+test('offline startup rows play their list without account or social subscriptions', () => {
+  const baseline = count(store);
+  const original = player.playList;
+  const listTracks = [...tracks, { id: 2, title: 'Second track', duration: 2000 }];
+  let played;
+  try {
+    player.playList = (...args) => { played = args; };
+    const list = offlineTrackList(listTracks);
+    list.childNodes[1].dispatchEvent({ type: 'click' });
+    assert.deepEqual(played, [listTracks, 1, { label: 'Offline', href: '#/library/offline' }]);
+    assert.equal(count(store), baseline);
+    assert.equal(list.firstChild.childNodes.length, 3);
+  } finally {
+    player.playList = original;
+  }
+});
 
 test('removing a subtree releases waveform, row and button listeners without another player event', async () => {
   const baseline = { player: count(player), store: count(store), theme: document.listenerCount('themechange'), style: document.listenerCount('wavestylechange') };

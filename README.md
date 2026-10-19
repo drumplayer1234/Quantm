@@ -15,6 +15,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 **Listening**
 
+- **Offline downloads.** Tracks whose artist allows downloads can be saved in the artist's original format and played without internet from Library → Offline. Other tracks can't be downloaded.
 - **No ads, ever.** No audio ads, banners or promoted posts. Just your music.
 - **Sign in inside the app.** Log in with your SoundCloud account in a built-in sign-in window, or enter a token manually if that doesn't work. Your token is stored encrypted on your computer.
 - **Home with personalized shelves.** Recently played, mixes, "more of what you like", stations and trending picks, all picked for you.

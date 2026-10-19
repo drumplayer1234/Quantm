@@ -22,6 +22,7 @@
       "main.js",
       "preload.js",
       "updater.js",
+      "offline.js",
       "discord.js",
       "src/**/*",
       "build/icon.png",

@@ -1,6 +1,7 @@
 // Playback engine: queue, HLS streaming, shuffle/repeat, media keys (navigator.mediaSession)
 import * as api from './api.js';
 import * as cues from './cues.js';
+import { offline } from './offline.js';
 import { Emitter, artwork } from './dom.js';
 import { store, settings, saveSettings } from './store.js';
 import { toast } from './ui.js';
@@ -243,6 +244,12 @@ class Player extends Emitter {
     return this.load();
   }
 
+  /** A downloaded file when there is one (works offline, artist's original quality), else the stream */
+  async streamOf(track) {
+    await offline.init();
+    return offline.has(track.id) ? offline.streamFor(track.id) : api.streamFor(track);
+  }
+
   /** Load the current queue entry. autoplay=false is used when restoring the last session */
   async load({ autoplay = true, startAt = 0 } = {}) {
     const track = this.current;
@@ -259,7 +266,7 @@ class Player extends Emitter {
 
     let stream;
     try {
-      stream = await api.streamFor(track);
+      stream = await this.streamOf(track);
     } catch (error) {
       if (loadId !== this.loadId) return;
       this.loading = false;
@@ -391,7 +398,7 @@ class Player extends Emitter {
         prep.track = added ? this.queue[this.index + 1] : null;
       }
       if (!prep.track) { prep.failed = true; return; }
-      const stream = await api.streamFor(prep.track);
+      const stream = await this.streamOf(prep.track);
       if (this.prepared !== prep) return;
       prep.stream = stream;
     } catch (e) {

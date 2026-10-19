@@ -63,6 +63,22 @@ p { margin: 0; }
 
 #app { height: 100%; display: flex; flex-direction: column; }
 
+/* Downloads use static progress text, including in performance mode. */
+.download-btn.downloaded, .hero .download-btn.downloaded { color: var(--accent); }
+.download-btn[hidden], .playerbar [hidden] { display: none; }
+.track-actions:has(.downloaded), .track-actions:has(.download-progress) { opacity: 1; }
+.download-progress { font-size: 10px; font-variant-numeric: tabular-nums; }
+.offline-screen.login { flex: 1; min-height: 0; overflow-y: auto; flex-direction: column; justify-content: flex-start; gap: 24px; padding: 48px 24px; }
+.offline-screen .login-card { flex: none; }
+.offline-downloads { width: min(800px, 100%); }
+.offline-downloads h2 { margin-bottom: 16px; }
+.offline-actions { display: flex; gap: 12px; margin-bottom: 16px; }
+.offline-track { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px; text-align: left; color: var(--text); background: var(--surface); border: 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.offline-track:hover, .offline-track:focus-visible { background: var(--surface-2); }
+.offline-track .track-meta { display: flex; flex-direction: column; flex: 1; }
+.offline-track .track-art, .offline-track .track-duration { flex-shrink: 0; }
+html[data-perf] .download-btn { animation: none; transition: none; }
+
 .topbar {
   height: var(--topbar-h);
   flex: none;

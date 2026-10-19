@@ -222,6 +222,11 @@ export const resolve = (url) => get('resolve', { url });
 const PLAYABLE = new Set(['progressive', 'hls']);
 const playable = (t) => PLAYABLE.has(t.format && t.format.protocol);
 
+/** The artist turned on SoundCloud's download button and downloads are left */
+export function isDownloadable(track) {
+  return !!(track && track.downloadable && track.has_downloads_left !== false);
+}
+
 /** true when SoundCloud only offers copy-protected streams for this track */
 export function isProtected(track) {
   const all = (track && track.media && track.media.transcodings) || [];

@@ -8,7 +8,7 @@ import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref,
 import { getCues, cueEvents, transitionFor } from './cues.js';
 import { formatCueTime } from './cue-time.js';
 
-export function mountPlayerBar(root) {
+export function mountPlayerBar(root, { offline = false } = {}) {
   const art = h('a.pb-art', { href: '#' });
   const title = h('a.pb-title', { href: '#' });
   const artist = h('div.pb-artist');
@@ -46,6 +46,7 @@ export function mountPlayerBar(root) {
 
   const addBtn = iconButton('addToPlaylist', 'Add to playlist', () => addToPlaylistDialog(player.current), 'pb-add');
   const moreBtn = iconButton('more', 'More', (e) => player.current && trackMenu(player.current, e));
+  addBtn.hidden = moreBtn.hidden = offline;
   const queueBtn = iconButton('queue', 'Queue', () => toggleQueue(), 'pb-queue-btn');
   const speedBtn = h('button.pb-speed', { title: 'Playback speed', 'aria-label': 'Playback speed', onclick: (e) => { e.stopPropagation(); speedMenu(e); } });
   const volIcon = iconButton('volume', 'Mute (M)', () => player.toggleMute());
@@ -172,7 +173,8 @@ export function mountPlayerBar(root) {
     title.href = trackHref(track);
     title.title = track.title;
     clear(artist).append(track.user ? link(userHref(track.user), track.user.username) : '');
-    clear(likeSlot).append(likeButton(track));
+    clear(likeSlot);
+    if (!offline) likeSlot.append(likeButton(track));
     total.textContent = duration(track.duration);
     document.title = `${track.title} · ${track.user ? track.user.username : ''} — Quantm`;
   });

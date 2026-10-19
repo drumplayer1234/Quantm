@@ -4,10 +4,11 @@ import { h, debounce } from '../dom.js';
 import { icon } from '../icons.js';
 import { store, settings, saveSettings, VISUALIZER_DEFAULTS } from '../store.js';
 import { player } from '../player.js';
+import { offline, formatBytes } from '../offline.js';
 import { VISUALIZER_STYLES, VISUALIZER_COLORS, VISUALIZER_POSITIONS, VISUALIZER_LIMITS } from '../visualizer.js';
 import * as theme from '../theme.js';
 import * as look from '../appearance.js';
-import { pageHeader, button, toast, avatar, confirmDialog, promptDialog } from '../ui.js';
+import { pageHeader, button, toast, avatar, confirmDialog, promptDialog, removeAllDownloads } from '../ui.js';
 import { subscribeUpdates, performUpdate, updateStatusText } from '../updates.js';
 
 const TABS = [
@@ -616,6 +617,16 @@ async function performanceTab(cleanups) {
 // ---------------------------------------------------------------------------
 
 async function playbackTab(cleanups) {
+  await offline.init();
+  const downloadsSummary = h('p.muted');
+  const removeDownloads = button('Remove all downloads', removeAllDownloads, 'btn-outline');
+  const refreshDownloads = () => {
+    const count = offline.tracks().length;
+    downloadsSummary.textContent = `${count} ${count === 1 ? 'track' : 'tracks'} · ${formatBytes(offline.totalBytes)}`;
+    removeDownloads.disabled = !count;
+  };
+  refreshDownloads();
+  cleanups.push(offline.on('change', refreshDownloads));
   const pct = () => Math.round(settings.volume * 100);
   const volume = rangeControl({ min: 0, max: 100, value: pct(), unit: '%', label: 'Default volume' }, (v) => player.setVolume(v / 100));
 
@@ -646,6 +657,10 @@ async function playbackTab(cleanups) {
         (on) => saveSettings({ resumeSession: on })),
       toggleRow('Normalize volume', 'Even out loud and quiet tracks so every song plays at a similar level.', settings.normalize !== false,
         (on) => player.setNormalize(on))
+    ),
+    card('Downloads', null, downloadsSummary,
+      h('div.settings-actions', button('Open downloads folder', () => offline.openFolder(), 'btn-outline'), removeDownloads),
+      h('p.muted.small', "Only tracks whose artist allows downloads can be downloaded. Files are kept in the artist's original format.")
     ),
     speedCard(cleanups),
     card('Crossfade', 'Blend the end of each song into the start of the next. Skipping always cuts cleanly.',

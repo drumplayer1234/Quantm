@@ -6,6 +6,10 @@ const fs = require('fs');
 const os = require('os');
 const discord = require('./discord');
 const updates = require('./updater');
+const offline = require('./offline');
+
+// downloaded tracks are served to the page as quantm-offline://...; must be set up before ready
+offline.registerScheme();
 
 const API = 'https://api-v2.soundcloud.com/';
 const LOGIN_PARTITION = 'persist:soundcloud-login';
@@ -622,6 +626,24 @@ handle('shell:open', (event, url) => {
 
 handle('clipboard:write', (event, text) => clipboard.writeText(String(text).slice(0, 100000)));
 
+// Offline downloads (offline.js): only tracks whose artist allows downloads
+const sendOffline = (progress) => mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.send('offline:progress', progress);
+handle('offline:list', () => offline.list());
+handle('offline:download', async (event, id) => {
+  try {
+    return { ok: true, entry: await offline.download(apiRequest, id, sendOffline) };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+});
+handle('offline:cancel', (event, id) => offline.cancel(id));
+handle('offline:remove', (event, id) => offline.remove(id));
+handle('offline:removeAll', () => offline.removeAll());
+handle('offline:openFolder', () => {
+  fs.mkdirSync(offline.folder(), { recursive: true });
+  return shell.openPath(offline.folder());
+});
+
 // Updates (updater.js)
 handle('update:status', () => updates.getState());
 handle('update:check', () => updates.check());
@@ -660,6 +682,7 @@ if (!app.requestSingleInstanceLock()) {
     nativeTheme.themeSource = 'dark';
     registerNotificationIdentity();
     auth = loadAuth();
+    offline.handleScheme();
     createMainWindow();
     updates.init({
       notify: (state) => mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.send('update:status', state),

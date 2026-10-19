@@ -5,13 +5,14 @@ import { settings } from './store.js';
 import { icon } from './icons.js';
 import { store } from './store.js';
 import { player } from './player.js';
+import { offline } from './offline.js';
 import { applyTheme } from './theme.js';
 import { initAppearance } from './appearance.js';
 import { initPerformance } from './performance.js';
 import { initUpdates } from './updates.js';
 import { route, startRouter } from './router.js';
 import { mountPlayerBar } from './playerbar.js';
-import { bindServices, iconButton, button, menu, toast, avatar, go, playlistHref, addCueHere } from './ui.js';
+import { bindServices, iconButton, button, menu, toast, avatar, go, playlistHref, addCueHere, offlineTrackList } from './ui.js';
 import { getCues, setMixIn, setMixOut } from './cues.js';
 import { formatCueTime } from './cue-time.js';
 
@@ -55,17 +56,28 @@ async function boot() {
     // offline is not a logged-out state: keep the login and retry when the connection is back
     return showOffline();
   }
+  await offline.init();
   mountShell();
 }
 
-function showOffline() {
+async function showOffline() {
   clear(app);
-  const retry = () => {
-    window.removeEventListener('online', retry);
-    boot();
+  let retrying = false;
+  const retry = async () => {
+    if (retrying) return;
+    retrying = true;
+    try {
+      await store.init();
+      location.reload();
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) location.reload();
+      else toast('Still unable to reach SoundCloud', 'error');
+    } finally {
+      retrying = false;
+    }
   };
   window.addEventListener('online', retry);
-  app.append(h('div.login',
+  const screen = h('div.login.offline-screen',
     h('div.login-drag'),
     h('div.login-card',
       h('div.login-logo', icon('logo', 64)),
@@ -73,7 +85,23 @@ function showOffline() {
       h('p.muted', "Quantm couldn't reach SoundCloud. It will reconnect on its own when your connection is back."),
       button('Try again', retry, 'btn-primary.btn-lg')
     )
-  ));
+  );
+  app.append(screen);
+  await offline.init();
+  const tracks = offline.tracks();
+  if (tracks.length) {
+    const context = { label: 'Offline', href: '#/library/offline' };
+    screen.append(h('section.offline-downloads',
+      h('h2', 'Play your downloads'),
+      h('div.offline-actions',
+        button('Play', () => player.playList(tracks, 0, context), 'btn-primary', 'play'),
+        button('Shuffle', () => player.shufflePlay(tracks, context), 'btn-outline', 'shuffle')
+      ),
+      offlineTrackList(tracks)
+    ));
+    mountPlayerBar(app, { offline: true });
+    initPerformance();
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -4,9 +4,10 @@ import { h, clear, onNearBottom } from '../dom.js';
 import { icon } from '../icons.js';
 import { store } from '../store.js';
 import { player } from '../player.js';
+import { offline, formatBytes } from '../offline.js';
 import {
   pageHeader, tabs, shelf, trackList, userList, playlistCard, spinner, emptyState, errorState,
-  button, toast, promptDialog
+  button, toast, promptDialog, staticTrackList, removeAllDownloads
 } from '../ui.js';
 
 const TABS = [
@@ -16,7 +17,8 @@ const TABS = [
   { id: 'albums', label: 'Albums', href: '#/library/albums' },
   { id: 'stations', label: 'Stations', href: '#/library/stations' },
   { id: 'following', label: 'Following', href: '#/library/following' },
-  { id: 'history', label: 'History', href: '#/library/history' }
+  { id: 'history', label: 'History', href: '#/library/history' },
+  { id: 'offline', label: 'Offline', href: '#/library/offline' }
 ];
 
 const likesContext = { label: 'Likes', href: '#/library/likes' };
@@ -45,7 +47,30 @@ export async function render(page, params) {
   if (active === 'likes') return likes(content);
   if (active === 'following') return following(content);
   if (active === 'history') return history(content);
+  if (active === 'offline') return offlineTab(content);
   return libraryTab(content, active);
+}
+
+async function offlineTab(content) {
+  await offline.init();
+  const context = { label: 'Offline', href: '#/library/offline' };
+  const refresh = () => {
+    const tracks = offline.tracks();
+    const play = button('Play', () => player.playList(offline.tracks(), 0, context), 'btn-primary', 'play');
+    const shuffle = button('Shuffle', () => player.shufflePlay(offline.tracks(), context), 'btn-outline', 'shuffle');
+    const remove = button('Remove all', removeAllDownloads, 'btn-outline');
+    play.disabled = shuffle.disabled = remove.disabled = !tracks.length;
+    clear(content).append(
+      h('div.library-head',
+        h('div.library-head-art', icon('download', 34)),
+        h('div.library-head-text', h('h2.library-head-title', 'Offline'), h('div.muted', `${tracks.length} ${tracks.length === 1 ? 'track' : 'tracks'} · ${formatBytes(offline.totalBytes)}`)),
+        h('div.library-head-actions', play, shuffle, button('Open folder', () => offline.openFolder(), 'btn-outline'), remove)
+      ),
+      staticTrackList(tracks, { context, empty: 'No downloads yet. Tracks whose artist allows downloads have a download button.' })
+    );
+  };
+  refresh();
+  return offline.on('change', refresh);
 }
 
 // ---------------------------------------------------------------------------
