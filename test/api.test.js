@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installBrowser } from './helpers/browser.js';
-import { Pager, ApiError, isPromoted, idOf, streamFor, cacheTrack, tracksByIds } from '../src/js/api.js';
+import { Pager, ApiError, isPromoted, isProtected, idOf, streamFor, cacheTrack, tracksByIds } from '../src/js/api.js';
 
 installBrowser();
 const ok = data => ({ ok: true, data });
@@ -133,4 +133,21 @@ test('hydrating more tracks than the cache limit preserves order, duplicates and
   assert.deepEqual((await tracksByIds(ids)).map(track => track.id), ids);
   assert.equal(batches.length, 42);
   assert.ok(batches.every(batch => batch.length <= 50));
+});
+
+test('DRM-only tracks are detected and streamFor refuses them before requesting a stream', async t => {
+  const enc = (protocol) => ({ url: 'https://api/' + protocol, format: { protocol, mime_type: 'audio/mp4' } });
+  const drmOnly = { id: 9, media: { transcodings: [enc('cbc-encrypted-hls'), enc('ctr-encrypted-hls')] } };
+  assert.equal(isProtected(drmOnly), true);
+  assert.equal(isProtected({ media: { transcodings: [enc('ctr-encrypted-hls'), enc('hls')] } }), false);
+  assert.equal(isProtected({ media: { transcodings: [] } }), false);
+  assert.equal(isProtected({}), false);
+
+  const calls = [];
+  t.mock.method(window.native, 'api', async (request) => {
+    calls.push(request.resource);
+    return ok(Object.assign({ track_authorization: 'auth' }, drmOnly));
+  });
+  await assert.rejects(streamFor({ id: 9 }), (error) => error instanceof ApiError && error.data === 'protected');
+  assert.deepEqual(calls, ['tracks/9']);
 });

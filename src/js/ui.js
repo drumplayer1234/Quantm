@@ -321,11 +321,17 @@ export function trackRow(tracks, index, opts = {}) {
   const track = tracks[index];
   const p = player();
   const row = h('div.track-row', { dataset: { id: track.id } });
+  const locked = !!(_api && _api.isProtected && _api.isProtected(track));
+  if (locked) {
+    row.classList.add('protected');
+    row.title = "Copy-protected by the label: this track can't play in Quantm yet";
+  }
   const cover = h('div.track-art', { style: { backgroundImage: coverOf(track, 't300x300') ? `url("${coverOf(track, 't300x300')}")` : '' } },
     h('div.track-art-overlay', icon('play', 18)));
 
   const meta = h('div.track-meta',
-    h('a.track-title', { href: trackHref(track), onclick: (e) => e.stopPropagation() }, track.title),
+    h('a.track-title', { href: trackHref(track), onclick: (e) => e.stopPropagation() },
+      locked ? h('span.track-lock', icon('lock', 12)) : null, track.title),
     h('div.track-sub',
       track.user ? link(userHref(track.user), track.user.username, 'muted') : null,
       opts.reason ? h('span.track-reason', opts.reason) : null

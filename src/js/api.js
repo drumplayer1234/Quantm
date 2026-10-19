@@ -217,6 +217,17 @@ export const resolve = (url) => get('resolve', { url });
 // Playback: SoundCloud serves HLS (AAC preferred, MP3 fallback)
 // ---------------------------------------------------------------------------
 
+// Some label tracks only come as DRM-encrypted HLS (cbc-/ctr-encrypted-hls), which needs a
+// Widevine/FairPlay module that Quantm's Electron doesn't have
+const PLAYABLE = new Set(['progressive', 'hls']);
+const playable = (t) => PLAYABLE.has(t.format && t.format.protocol);
+
+/** true when SoundCloud only offers copy-protected streams for this track */
+export function isProtected(track) {
+  const all = (track && track.media && track.media.transcodings) || [];
+  return all.length > 0 && !all.some(playable);
+}
+
 function rank(transcoding) {
   const { protocol, mime_type: mime } = transcoding.format;
   if (protocol === 'progressive') return 0;
@@ -230,7 +241,8 @@ export async function streamFor(trackOrId) {
   // always refetch: track_authorization expires
   const fresh = await get('tracks/' + id);
   cacheTrack(fresh);
-  const all = (fresh.media && fresh.media.transcodings) || [];
+  if (isProtected(fresh)) throw new ApiError(403, 'protected');
+  const all = ((fresh.media && fresh.media.transcodings) || []).filter(playable);
   const full = all.filter(t => !t.snipped);
   const candidates = (full.length ? full : all).slice().sort((a, b) => rank(a) - rank(b));
   if (!candidates.length) throw new ApiError(403, 'This track is not available for streaming');

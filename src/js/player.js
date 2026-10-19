@@ -263,7 +263,9 @@ class Player extends Emitter {
       if (loadId !== this.loadId) return;
       this.loading = false;
       this.emit('buffering', false);
-      toast(`Can't play "${track.title}"`, 'error');
+      toast(error && error.data === 'protected'
+        ? `"${track.title}" is copy-protected by its label and can't play in Quantm yet`
+        : `Can't play "${track.title}"`, 'error');
       // skip unplayable tracks, but stop if the whole queue is unplayable
       if (this.index < this.queue.length - 1) setTimeout(() => loadId === this.loadId && this.next(true), 800);
       return;
