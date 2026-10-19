@@ -2,6 +2,10 @@ name: Release
 
 # Builds installers for Windows, macOS and Linux and attaches them to a
 # GitHub Release. Push a tag such as v1.0.1 to start a release.
+#
+# Windows code signing (free, SignPath Foundation) switches on once the repository has the
+# variable SIGNPATH_ORGANIZATION_ID and the secret SIGNPATH_API_TOKEN. Until then Windows
+# builds are unsigned, as before. See CODE_SIGNING.md.
 on:
   push:
     tags:
@@ -35,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
 
     steps:
       - name: Checkout
@@ -78,9 +82,126 @@ jobs:
           NODE
           gh release upload "$GITHUB_REF_NAME" "dist/SHA256SUMS-${RELEASE_OS}.txt" --clobber
 
+  # Windows runs after macOS/Linux so the release already exists
+  windows:
+    needs: [test, release]
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SIGNING: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # --- unsigned (no SignPath set up yet) ---
+      - name: Build and publish (unsigned)
+        if: env.SIGNING != 'true'
+        run: npx electron-builder --win --publish always
+
+      # --- signed: 1) sign the app files, 2) build installers from them, 3) sign the installers ---
+      - name: Build the app folder
+        if: env.SIGNING == 'true'
+        run: npx electron-builder --win --dir --publish never
+
+      - name: Upload the unsigned app for signing
+        if: env.SIGNING == 'true'
+        id: unsigned-app
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-app
+          path: dist/win-unpacked/
+          if-no-files-found: error
+
+      - name: Sign the app (SignPath)
+        if: env.SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'Quantm' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: app
+          github-artifact-id: ${{ steps.unsigned-app.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-app
+
+      - name: Build the installers from the signed app
+        if: env.SIGNING == 'true'
+        shell: bash
+        run: |
+          rm -rf dist
+          npx electron-builder --win nsis portable --prepackaged signed-app --publish never
+
+      - name: Upload the unsigned installers for signing
+        if: env.SIGNING == 'true'
+        id: unsigned-installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-installers
+          path: dist/*.exe
+          if-no-files-found: error
+
+      - name: Sign the installers (SignPath)
+        if: env.SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'Quantm' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: installers
+          github-artifact-id: ${{ steps.unsigned-installers.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-installers
+
+      - name: Publish the signed installers
+        if: env.SIGNING == 'true'
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SETUP="Quantm-Setup-${VERSION}.exe"
+          cp signed-installers/*.exe dist/
+          # the signed installer has new bytes: make the auto-updater manifest match it
+          node .github/scripts/signed-latest-yml.js dist/latest.yml "dist/${SETUP}"
+          # the blockmap describes the unsigned file; without it updates download in full
+          rm -f dist/*.blockmap
+          gh release upload "$GITHUB_REF_NAME" "dist/${SETUP}" "dist/Quantm-${VERSION}-Portable.exe" dist/latest.yml --clobber
+
+      - name: Generate and upload installer checksums
+        shell: bash
+        env:
+          RELEASE_OS: windows-latest
+        run: |
+          node <<'NODE'
+          const { createHash } = require('node:crypto');
+          const { createReadStream, readdirSync, writeFileSync } = require('node:fs');
+          (async () => {
+            const files = readdirSync('dist').filter(name => /\.(exe|dmg|AppImage|deb)$/.test(name)).sort();
+            if (!files.length) throw new Error('No installers found in dist');
+            const lines = [];
+            for (const name of files) {
+              const hash = createHash('sha256');
+              for await (const chunk of createReadStream(`dist/${name}`)) hash.update(chunk);
+              lines.push(`${hash.digest('hex')}  ${name}`);
+            }
+            writeFileSync(`dist/SHA256SUMS-${process.env.RELEASE_OS}.txt`, lines.join('\n') + '\n');
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
+          gh release upload "$GITHUB_REF_NAME" "dist/SHA256SUMS-${RELEASE_OS}.txt" --clobber
+
   # electron-builder doesn't write notes when it publishes straight away, so add them afterwards
   notes:
-    needs: release
+    needs: [release, windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

@@ -146,6 +146,10 @@ src/
 
 - **Some label songs can't play in Quantm.** A number of major-label songs on SoundCloud are copy-protected (DRM) and only play in SoundCloud's official app and website. Quantm can't play them, even if you pay for SoundCloud Go. They're marked with a lock icon, are skipped in the queue, and have an **Open in SoundCloud** button so you can play them there.
 
+## Code signing
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org). See the [code signing policy](CODE_SIGNING.md) for what is signed, who approves it, and the privacy policy.
+
 ## Disclaimer
 
 Quantm is an unofficial project. It is not affiliated with, endorsed by, or sponsored by SoundCloud.
