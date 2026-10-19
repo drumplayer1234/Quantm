@@ -6,6 +6,8 @@
 // build can't replace themselves, so they announce the new version and link to the download.
 
 const { app, net, shell } = require('electron');
+const fs = require('fs');
+const path = require('path');
 
 const RELEASES_PAGE = 'https://github.com/drumplayer1234/Quantm/releases/latest';
 const LATEST_API = 'https://api.github.com/repos/drumplayer1234/Quantm/releases/latest';
@@ -27,6 +29,8 @@ function set(partial) {
 function detectMode() {
   const testing = !app.isPackaged && process.env.QUANTM_UPDATE_TEST;
   if (!app.isPackaged && !testing) return 'off';
+  // package managers (Scoop removes this file) update Quantm themselves: only announce new versions
+  if (app.isPackaged && !fs.existsSync(path.join(process.resourcesPath, 'app-update.yml'))) return 'notify';
   if (process.platform === 'win32' && !process.env.PORTABLE_EXECUTABLE_DIR) return 'auto';
   if (process.platform === 'linux' && process.env.APPIMAGE) return 'auto';
   return 'notify';
