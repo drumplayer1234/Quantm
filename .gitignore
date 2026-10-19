@@ -8,3 +8,5 @@ auth.json
 # personal themes, never published
 src/js/local-themes.js
 src/styles/themes/local/
+# personal to-do list
+TODO.md
