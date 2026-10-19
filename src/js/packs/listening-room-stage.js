@@ -4,7 +4,7 @@ import { store, settings, safeParse } from '../store.js';
 import * as api from '../api.js';
 import { icon } from '../icons.js';
 import { motionAllowed } from '../audio-reactivity.js';
-import { button, iconButton, likeButton, addToPlaylistDialog, trackMenu, link, trackHref, userHref, toast, errorState } from '../ui.js';
+import { button, iconButton, likeButton, addToPlaylistDialog, trackMenu, link, trackHref, userHref, toast, errorState, isLocked, openInSoundCloud } from '../ui.js';
 
 export function render(container) {
   container.classList.add('lr-stage');
@@ -152,9 +152,14 @@ export function render(container) {
     const start = Math.max(0, player.index);
     player.queue.slice(start, start + 51).forEach((track, offset) => {
       const index = start + offset;
-      const row = h('button.lr-queue-row', { onclick: () => player.jump(index), 'aria-current': index === player.index ? 'true' : null },
-        h('span.lr-queue-number', String(index + 1)),
-        h('span.lr-queue-meta', h('span', track.title), h('span.muted', track.user?.username || '')),
+      // a label-protected song opens in SoundCloud instead (jumping to it would only skip it)
+      const locked = isLocked(track);
+      const row = h('button.lr-queue-row', {
+        onclick: () => locked ? openInSoundCloud(track) : player.jump(index), 'aria-current': index === player.index ? 'true' : null,
+        title: locked ? `Copy-protected by the label: open "${track.title}" in SoundCloud` : null
+      },
+        h('span.lr-queue-number', locked ? icon('lock', 12) : String(index + 1)),
+        h('span.lr-queue-meta', h('span', track.title), h('span.muted', locked ? 'Open in SoundCloud' : track.user?.username || '')),
         h('span.muted', duration(track.duration)));
       row.classList.toggle('current', index === player.index);
       queue.append(row);

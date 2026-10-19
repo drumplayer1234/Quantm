@@ -1,6 +1,6 @@
 /* Terminal: standalone full style makeover. Colors remain editable in Settings. */
 
-:is(html[data-style="terminal"], html[data-style="tmux"]) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) {
   --font: Consolas, "Liberation Mono", "Courier New", monospace;
   --font-display: var(--font);
   --border: color-mix(in srgb, var(--text) 30%, var(--surface));
@@ -14,125 +14,125 @@
   --makeover-bar: var(--bar);
   --makeover-button: var(--surface);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) body { background: var(--bg); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) #view { background: transparent; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :focus-visible {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) body { background: var(--bg); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) #view { background: transparent; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :focus-visible {
   outline: 2px solid var(--text); outline-offset: 3px;
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) {
   font-family: var(--font-display);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .topbar,
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-bg] .topbar {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .topbar,
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-bg] .topbar {
   background: var(--makeover-bar); border-bottom: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-nav="sidebar"] .nav {
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-nav="sidebar"] .nav {
   background: var(--makeover-bar); border-right: var(--makeover-edge); backdrop-filter: none;
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.nav-link, .settings-nav-link).active {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.nav-link, .settings-nav-link).active {
   background: var(--accent); color: var(--accent-text);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .settings-nav-link.active .icon { color: inherit; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.search-input, .input) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .settings-nav-link.active .icon { color: inherit; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.search-input, .input) {
   border: var(--makeover-edge); border-radius: var(--radius); background: var(--surface); color: var(--text);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
   border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-button); color: var(--text);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover {
   background: var(--hover); color: var(--text); filter: none;
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.btn-primary, .hero .btn-primary, .chip.active),
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.btn-primary, .hero .btn-primary, .chip.active),
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
   background: var(--accent); color: var(--accent-text); border-color: var(--accent);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
   color: var(--text); border: 2px dashed var(--text); background: var(--surface);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.play-btn, .card-play, .pb-play) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.play-btn, .card-play, .pb-play) {
   background: var(--accent); color: var(--accent-text); border: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
   background: var(--makeover-panel); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .card { padding: 12px; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .card:hover { background: var(--surface); border-color: var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .card:focus-within .card-play { opacity: 1; transform: none; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .card { padding: 12px; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .card:hover { background: var(--surface); border-color: var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .card:focus-within .card-play { opacity: 1; transform: none; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) {
   border: var(--makeover-edge); border-radius: var(--radius);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.track-row, .queue-row):hover { background: var(--hover); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.track-row, .queue-row):hover { background: var(--hover); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
 /* Keep hero text independent of arbitrary artwork luminance. */
-:is(html[data-style="terminal"], html[data-style="tmux"]) .hero-bg { display: none; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .tabs { border-bottom: var(--makeover-edge); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .tab.active { border-bottom-color: var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .playerbar,
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-bg] .playerbar {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .hero-bg { display: none; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .tabs { border-bottom: var(--makeover-edge); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .tab.active { border-bottom-color: var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .playerbar,
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-bg] .playerbar {
   background: var(--makeover-bar); color: var(--text); border-top: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .pb-fill,
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .pb-fill,
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
   background: var(--wave-played); border-radius: var(--radius);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .pb-knob { background: var(--accent); border: 1px solid var(--text); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .pb-visualizer { opacity: 1; filter: none; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .pb-knob { background: var(--accent); border: 1px solid var(--text); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .pb-visualizer { opacity: 1; filter: none; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
   background: var(--surface); color: var(--text); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow);
 }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .menu-item .icon { color: inherit; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--text); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .settings-preset { border-color: var(--border); border-radius: var(--radius); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .settings-preset.active { border-color: var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) ::-webkit-scrollbar-track { background: var(--bg); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .login { background: transparent; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .menu-item .icon { color: inherit; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--text); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .settings-preset { border-color: var(--border); border-radius: var(--radius); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .settings-preset.active { border-color: var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) ::-webkit-scrollbar-track { background: var(--bg); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .login { background: transparent; }
 
-:is(html[data-style="terminal"], html[data-style="tmux"]) { --makeover-edge: 1px dashed var(--border); --makeover-shadow: none; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) body { background: repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in srgb, var(--accent) 3%, transparent) 3px 4px), var(--bg); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.page-title, .hero-title) { text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent); font-weight: 500; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.page-title, .shelf-title)::before { content: "> "; color: var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .btn::before { content: "["; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .btn::after { content: "]"; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .nav-link.active::after { content: "_"; animation: terminal-cursor 1.4s steps(2, jump-none) infinite; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) { --makeover-edge: 1px dashed var(--border); --makeover-shadow: none; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) body { background: repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in srgb, var(--accent) 3%, transparent) 3px 4px), var(--bg); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.page-title, .hero-title) { text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent); font-weight: 500; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.page-title, .shelf-title)::before { content: "> "; color: var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .btn::before { content: "["; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .btn::after { content: "]"; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .nav-link.active::after { content: "_"; animation: terminal-cursor 1.4s steps(2, jump-none) infinite; }
 @keyframes terminal-cursor { to { opacity: 0; } }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.btn, .nav-link, .tab, .field-label) { text-transform: uppercase; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.play-btn, .card-play, .pb-play) { border-radius: 0; }
-:is(html[data-style="terminal"], html[data-style="tmux"]) :is(.card-art, .hero-art, .pb-art) { box-shadow: 3px 3px 0 var(--bg); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .pb-track { height: 9px; border: 1px dashed var(--accent); }
-:is(html[data-style="terminal"], html[data-style="tmux"]) .pb-fill { background: repeating-linear-gradient(90deg, var(--wave-played) 0 5px, var(--bg) 5px 7px); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.btn, .nav-link, .tab, .field-label) { text-transform: uppercase; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.play-btn, .card-play, .pb-play) { border-radius: 0; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.card-art, .hero-art, .pb-art) { box-shadow: 3px 3px 0 var(--bg); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .pb-track { height: 9px; border: 1px dashed var(--accent); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"]) .pb-fill { background: repeating-linear-gradient(90deg, var(--wave-played) 0 5px, var(--bg) 5px 7px); }
 
 /* Performance mode uses solid materials; native see-through remains opt-in. */
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-perf] { --makeover-panel: var(--surface); --makeover-bar: var(--bar); --makeover-shadow: none; }
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-perf] body { background: var(--bg); }
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-perf] #view::before { display: none; }
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-perf] *,
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-perf] *::before,
-:is(html[data-style="terminal"], html[data-style="tmux"])[data-perf] *::after {
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-perf] { --makeover-panel: var(--surface); --makeover-bar: var(--bar); --makeover-shadow: none; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-perf] body { background: var(--bg); }
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-perf] #view::before { display: none; }
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-perf] *,
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-perf] *::before,
+:is(html[data-style="terminal"], html[data-base-style="terminal"])[data-perf] *::after {
   animation: none !important; transition: none !important; backdrop-filter: none !important; text-shadow: none !important; filter: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  :is(html[data-style="terminal"], html[data-style="tmux"]) *, :is(html[data-style="terminal"], html[data-style="tmux"]) *::before, :is(html[data-style="terminal"], html[data-style="tmux"]) *::after {
+  :is(html[data-style="terminal"], html[data-base-style="terminal"]) *, :is(html[data-style="terminal"], html[data-base-style="terminal"]) *::before, :is(html[data-style="terminal"], html[data-base-style="terminal"]) *::after {
     animation: none !important; transition: none !important; scroll-behavior: auto !important;
   }
 }
 @media (forced-colors: active) {
-  :is(html[data-style="terminal"], html[data-style="tmux"]) :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
+  :is(html[data-style="terminal"], html[data-base-style="terminal"]) :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
 }

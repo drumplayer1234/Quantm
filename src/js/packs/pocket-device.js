@@ -1,7 +1,7 @@
 import { h, clear, artwork, duration } from '../dom.js';
 import * as api from '../api.js';
 import { icon } from '../icons.js';
-import { button, likeButton, go, errorState } from '../ui.js';
+import { button, likeButton, go, errorState, isLocked, openInSoundCloud } from '../ui.js';
 import { motionAllowed } from '../audio-reactivity.js';
 import { angleDelta, wheelSteps, moveSelection, feedItems } from './pocket-input.js';
 
@@ -138,8 +138,10 @@ export function renderDevice(container, ctx) {
   function entries(screenState, items) {
     screenState.data = items;
     const tracks = items.filter(item => item.kind !== 'playlist' && item.kind !== 'system-playlist');
-    screenState.items = items.map(item => ({ label: item.title || 'Untitled', action: () => {
+    // label-protected songs show a lock; Select opens them in SoundCloud
+    screenState.items = items.map(item => ({ label: (isLocked(item) ? '[locked] ' : '') + (item.title || 'Untitled'), action: () => {
       if (item.kind === 'playlist' || item.kind === 'system-playlist') openPlaylist(item);
+      else if (isLocked(item)) openInSoundCloud(item);
       else {
         player.playList(tracks, tracks.indexOf(item), { label: screenState.title, href: screenState.href });
         showNow();

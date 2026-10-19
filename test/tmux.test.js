@@ -38,13 +38,13 @@ test('event log timestamps are fixed width and track names cannot inject log lin
 test('spectrum is bounded, silent when stopped, and separates the three bands', () => {
   const zero = spectrumText();
   assert.equal(zero.includes('█'), false);
-  assert.equal(zero.includes('▓'), false);
+  assert.ok(zero.endsWith('VU [' + '·'.repeat(20) + ']'));
   assert.equal(spectrumText({ bass: 1, level: 1, playing: false }), zero);
   const bass = spectrumText({ bass: 1, mid: 0, treble: 0, level: 10, playing: true });
   const rows = bass.split('\n');
   assert.equal(rows.length, 8);
   assert.ok(rows.slice(0, 5).every(row => row.length === 24 && row.slice(8).trim() === ''));
-  assert.ok(rows[7].includes('▓'.repeat(20)));
+  assert.ok(rows[7].includes('█'.repeat(20)));
   assert.doesNotThrow(() => spectrumText({ bass: Infinity, mid: NaN, treble: -2, level: -1, playing: true }));
 });
 
@@ -61,7 +61,8 @@ test('tmux registers its pack, palette, radius, and stylesheet link', async () =
   assert.ok(contrast(c.accentText, c.accent) >= 4.5);
   assert.ok(existsSync(new URL('../src/styles/themes/tmux.css', import.meta.url)));
   const html = readFileSync(new URL('../src/index.html', import.meta.url), 'utf8');
-  assert.match(html, /<link rel="stylesheet" href="styles\/themes\/listening-room.css">\s*<link rel="stylesheet" href="styles\/themes\/tmux.css">/);
+  assert.ok(html.indexOf('themes/tmux.css"') > html.indexOf('themes/listening-room.css"'));
   const terminal = readFileSync(new URL('../src/styles/themes/terminal.css', import.meta.url), 'utf8');
-  assert.match(terminal, /:is\(html\[data-style="terminal"\], html\[data-style="tmux"\]\)/);
+  // tmux builds on the Terminal makeover through the base-style marker
+  assert.match(terminal, /:is\(html\[data-style="terminal"\], html\[data-base-style="terminal"\]\)/);
 });

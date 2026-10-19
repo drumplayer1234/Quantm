@@ -48,7 +48,7 @@ html[data-style="tmux"] .tmux-queue-row { display: grid; grid-template-columns: 
 html[data-style="tmux"] .tmux-queue-row > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html[data-style="tmux"] .tmux-queue-row.current { color: var(--accent); background: var(--surface); box-shadow: inset 2px 0 var(--accent); }
 html[data-style="tmux"] :is(.tmux-queue-row:hover, .tmux-track-title:hover) { background: var(--hover); }
-html[data-style="tmux"] .tmux-spectrum { color: var(--tmux-amber); padding: 0 14px 8px; font-size: 12px; line-height: 1.25; margin: 0; overflow: hidden; user-select: none; }
+html[data-style="tmux"] .tmux-spectrum { color: var(--tmux-amber); padding: 0 14px 8px; font-size: 12px; line-height: 1.5; margin: 0; overflow: hidden; user-select: none; }
 html[data-style="tmux"] .tmux-divider { display: grid; place-items: center; color: var(--accent); cursor: col-resize; touch-action: none; user-select: none; min-height: 10px; min-width: 10px; }
 html[data-style="tmux"] .tmux-divider[aria-orientation="horizontal"] { cursor: row-resize; }
 html[data-style="tmux"] .tmux-divider:hover { background: var(--hover); }
@@ -74,7 +74,7 @@ html[data-style="tmux"] .tmux-shell [hidden] { display: none; }
   html[data-style="tmux"] .tmux-status { gap: 8px; }
 }
 @media (max-width: 900px) {
-  html[data-style="tmux"] { --player-h: 118px; }
+  html[data-style="tmux"] { --player-h: 142px; }
   html[data-style="tmux"] .playerbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 12px; padding: 6px 12px; }
   html[data-style="tmux"] .pb-center { grid-column: 1 / -1; grid-row: 2; }
   html[data-style="tmux"] .pb-right { min-width: 0; gap: 3px; }

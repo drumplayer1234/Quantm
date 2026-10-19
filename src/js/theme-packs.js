@@ -1,7 +1,8 @@
-// Pack ids are style ids, so custom presets can reuse a pack.
+// Pack ids are style ids, so custom presets can reuse a pack. A pack's `base` names the makeover
+// stylesheet it builds on: html[data-base-style] is set to it while the pack is active.
 export const PACKS = {
   'pocket': { layout: 'device', load: () => import('./packs/pocket.js') },
-  'tmux': { layout: 'panes', load: () => import('./packs/tmux.js') },
+  'tmux': { layout: 'panes', base: 'terminal', load: () => import('./packs/tmux.js') },
   'listening-room': { layout: 'stage', load: () => import('./packs/listening-room.js') },
   ...((typeof window !== 'undefined' && window.QUANTM_LOCAL_THEMES?.packs) || {})
 };

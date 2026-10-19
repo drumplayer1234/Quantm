@@ -1,6 +1,6 @@
 /* Frutiger Aero: standalone full style makeover. Colors remain editable in Settings. */
 
-html[data-style="frutiger-aero"] {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) {
   --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   --font-display: var(--font);
   --border: color-mix(in srgb, var(--text) 30%, var(--surface));
@@ -14,132 +14,132 @@ html[data-style="frutiger-aero"] {
   --makeover-bar: var(--bar);
   --makeover-button: var(--surface);
 }
-html[data-style="frutiger-aero"] body { background: var(--bg); }
-html[data-style="frutiger-aero"] #view { background: transparent; }
-html[data-style="frutiger-aero"] :focus-visible {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) body { background: var(--bg); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) #view { background: transparent; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :focus-visible {
   outline: 2px solid var(--text); outline-offset: 3px;
 }
-html[data-style="frutiger-aero"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) {
   font-family: var(--font-display);
 }
-html[data-style="frutiger-aero"] :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
-html[data-style="frutiger-aero"] .topbar,
-html[data-style="frutiger-aero"][data-bg] .topbar {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .topbar,
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-bg] .topbar {
   background: var(--makeover-bar); border-bottom: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-html[data-style="frutiger-aero"][data-nav="sidebar"] .nav {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-nav="sidebar"] .nav {
   background: var(--makeover-bar); border-right: var(--makeover-edge); backdrop-filter: none;
 }
-html[data-style="frutiger-aero"] :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
-html[data-style="frutiger-aero"] :is(.nav-link, .settings-nav-link).active {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.nav-link, .settings-nav-link).active {
   background: var(--accent); color: var(--accent-text);
 }
-html[data-style="frutiger-aero"] .settings-nav-link.active .icon { color: inherit; }
-html[data-style="frutiger-aero"] :is(.search-input, .input) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .settings-nav-link.active .icon { color: inherit; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.search-input, .input) {
   border: var(--makeover-edge); border-radius: var(--radius); background: var(--surface); color: var(--text);
 }
-html[data-style="frutiger-aero"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
-html[data-style="frutiger-aero"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
-html[data-style="frutiger-aero"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
   border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-button); color: var(--text);
 }
-html[data-style="frutiger-aero"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover {
   background: var(--hover); color: var(--text); filter: none;
 }
-html[data-style="frutiger-aero"] :is(.btn-primary, .hero .btn-primary, .chip.active),
-html[data-style="frutiger-aero"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.btn-primary, .hero .btn-primary, .chip.active),
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
   background: var(--accent); color: var(--accent-text); border-color: var(--accent);
 }
-html[data-style="frutiger-aero"] :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
-html[data-style="frutiger-aero"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
   color: var(--text); border: 2px dashed var(--text); background: var(--surface);
 }
-html[data-style="frutiger-aero"] :is(.play-btn, .card-play, .pb-play) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.play-btn, .card-play, .pb-play) {
   background: var(--accent); color: var(--accent-text); border: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-html[data-style="frutiger-aero"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
   background: var(--makeover-panel); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow);
 }
-html[data-style="frutiger-aero"] .card { padding: 12px; }
-html[data-style="frutiger-aero"] .card:hover { background: var(--surface); border-color: var(--accent); }
-html[data-style="frutiger-aero"] .card:focus-within .card-play { opacity: 1; transform: none; }
-html[data-style="frutiger-aero"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .card { padding: 12px; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .card:hover { background: var(--surface); border-color: var(--accent); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .card:focus-within .card-play { opacity: 1; transform: none; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) {
   border: var(--makeover-edge); border-radius: var(--radius);
 }
-html[data-style="frutiger-aero"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
-html[data-style="frutiger-aero"] :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
-html[data-style="frutiger-aero"] :is(.track-row, .queue-row):hover { background: var(--hover); }
-html[data-style="frutiger-aero"] :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
-html[data-style="frutiger-aero"] :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.track-row, .queue-row):hover { background: var(--hover); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
 /* Keep hero text independent of arbitrary artwork luminance. */
-html[data-style="frutiger-aero"] .hero-bg { display: none; }
-html[data-style="frutiger-aero"] :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
-html[data-style="frutiger-aero"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
-html[data-style="frutiger-aero"] .tabs { border-bottom: var(--makeover-edge); }
-html[data-style="frutiger-aero"] .tab.active { border-bottom-color: var(--accent); }
-html[data-style="frutiger-aero"] .playerbar,
-html[data-style="frutiger-aero"][data-bg] .playerbar {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .hero-bg { display: none; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .tabs { border-bottom: var(--makeover-edge); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .tab.active { border-bottom-color: var(--accent); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .playerbar,
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-bg] .playerbar {
   background: var(--makeover-bar); color: var(--text); border-top: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-html[data-style="frutiger-aero"][data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
-html[data-style="frutiger-aero"] .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
-html[data-style="frutiger-aero"] .pb-fill,
-html[data-style="frutiger-aero"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .pb-fill,
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
   background: var(--wave-played); border-radius: var(--radius);
 }
-html[data-style="frutiger-aero"] .pb-knob { background: var(--accent); border: 1px solid var(--text); }
-html[data-style="frutiger-aero"] .pb-visualizer { opacity: 1; filter: none; }
-html[data-style="frutiger-aero"] :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .pb-knob { background: var(--accent); border: 1px solid var(--text); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .pb-visualizer { opacity: 1; filter: none; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
   background: var(--surface); color: var(--text); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow);
 }
-html[data-style="frutiger-aero"] :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
-html[data-style="frutiger-aero"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
-html[data-style="frutiger-aero"] .menu-item .icon { color: inherit; }
-html[data-style="frutiger-aero"] .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
-html[data-style="frutiger-aero"] .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
-html[data-style="frutiger-aero"] .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--text); }
-html[data-style="frutiger-aero"] .settings-preset { border-color: var(--border); border-radius: var(--radius); }
-html[data-style="frutiger-aero"] .settings-preset.active { border-color: var(--accent); }
-html[data-style="frutiger-aero"] ::-webkit-scrollbar-track { background: var(--bg); }
-html[data-style="frutiger-aero"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
-html[data-style="frutiger-aero"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-html[data-style="frutiger-aero"] .login { background: transparent; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .menu-item .icon { color: inherit; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--text); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .settings-preset { border-color: var(--border); border-radius: var(--radius); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .settings-preset.active { border-color: var(--accent); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) ::-webkit-scrollbar-track { background: var(--bg); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .login { background: transparent; }
 
-html[data-style="frutiger-aero"] {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) {
   --aero-white: #ffffff; --aero-blue: #b8e5fa; --aero-green: #d6efbc;
   --makeover-panel: linear-gradient(145deg, color-mix(in srgb, var(--surface) 96%, transparent), color-mix(in srgb, var(--surface) 92%, transparent));
   --makeover-bar: linear-gradient(var(--surface), var(--bar));
   --makeover-button: linear-gradient(var(--aero-white) 0 46%, var(--bar) 49%, var(--surface));
   --makeover-shadow: inset 0 1px 0 var(--aero-white), 0 5px 16px color-mix(in srgb, var(--accent) 16%, transparent);
 }
-html[data-style="frutiger-aero"] body {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) body {
   background: radial-gradient(circle at 84% 16%, var(--aero-white) 0 2%, transparent 2.2%), radial-gradient(circle at 90% 22%, var(--aero-white) 0 .7%, transparent .9%), radial-gradient(ellipse at 10% 100%, var(--aero-green), transparent 65%), linear-gradient(145deg, var(--aero-blue), var(--bg) 60%);
 }
-html[data-style="frutiger-aero"] :is(.card, .feed-card, .settings-card, .login-card) { backdrop-filter: blur(12px); }
-html[data-style="frutiger-aero"] :is(.page-title, .hero-title) { font-weight: 500; letter-spacing: -.04em; }
-html[data-style="frutiger-aero"] :is(.play-btn, .card-play, .pb-play) {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.card, .feed-card, .settings-card, .login-card) { backdrop-filter: blur(12px); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.page-title, .hero-title) { font-weight: 500; letter-spacing: -.04em; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.play-btn, .card-play, .pb-play) {
   background: radial-gradient(ellipse at 50% 12%, var(--aero-white), transparent 55%), linear-gradient(var(--aero-blue), var(--aero-green)); color: var(--text);
   box-shadow: inset 0 1px 2px var(--aero-white), var(--makeover-shadow);
 }
-html[data-style="frutiger-aero"] :is(.card-art, .hero-art) { border: 3px solid var(--surface); }
-html[data-style="frutiger-aero"] .pb-fill { background: linear-gradient(var(--wave-played), var(--accent)); box-shadow: inset 0 1px 0 var(--surface); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.card-art, .hero-art) { border: 3px solid var(--surface); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .pb-fill { background: linear-gradient(var(--wave-played), var(--accent)); box-shadow: inset 0 1px 0 var(--surface); }
 
 /* Performance mode uses solid materials; native see-through remains opt-in. */
-html[data-style="frutiger-aero"][data-perf] { --makeover-panel: var(--surface); --makeover-bar: var(--bar); --makeover-shadow: none; }
-html[data-style="frutiger-aero"][data-perf] body { background: var(--bg); }
-html[data-style="frutiger-aero"][data-perf] #view::before { display: none; }
-html[data-style="frutiger-aero"][data-perf] *,
-html[data-style="frutiger-aero"][data-perf] *::before,
-html[data-style="frutiger-aero"][data-perf] *::after {
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-perf] { --makeover-panel: var(--surface); --makeover-bar: var(--bar); --makeover-shadow: none; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-perf] body { background: var(--bg); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-perf] #view::before { display: none; }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-perf] *,
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-perf] *::before,
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"])[data-perf] *::after {
   animation: none !important; transition: none !important; backdrop-filter: none !important; text-shadow: none !important; filter: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  html[data-style="frutiger-aero"] *, html[data-style="frutiger-aero"] *::before, html[data-style="frutiger-aero"] *::after {
+  :is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) *, :is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) *::before, :is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) *::after {
     animation: none !important; transition: none !important; scroll-behavior: auto !important;
   }
 }
 @media (forced-colors: active) {
-  html[data-style="frutiger-aero"] :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
+  :is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
 }
 
-html[data-style="frutiger-aero"] .btn { box-shadow: var(--makeover-shadow); }
+:is(html[data-style="frutiger-aero"], html[data-base-style="frutiger-aero"]) .btn { box-shadow: var(--makeover-shadow); }

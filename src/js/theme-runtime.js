@@ -53,7 +53,10 @@ export function initThemeRuntime() {
     if (dispose) dispose();
     dispose = null;
     delete document.documentElement.dataset.layout;
+    delete document.documentElement.dataset.baseStyle;
     if (!pack) return;
+    // set before loading so the base makeover applies without a flash
+    if (pack.base) document.documentElement.dataset.baseStyle = pack.base;
     const cleanups = [];
     let alive = true;
     const root = h('div.theme-layer', { 'aria-hidden': 'true' });
@@ -78,6 +81,7 @@ export function initThemeRuntime() {
       unmount();
       dispose = null;
       delete document.documentElement.dataset.layout;
+      delete document.documentElement.dataset.baseStyle;
     };
     const guard = fn => (...args) => {
       if (!alive) return;

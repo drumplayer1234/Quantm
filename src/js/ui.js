@@ -426,6 +426,17 @@ export function waveform(track, { height = 60, onPlay, comments = null } = {}) {
 // Track rows / lists
 // ---------------------------------------------------------------------------
 
+export const LOCKED_HINT = "Copy-protected by the label: Quantm can't play this song. Use Open in SoundCloud to play it there.";
+
+/** Label-protected songs only play in SoundCloud's own app */
+export function isLocked(track) {
+  return !!(_api && _api.isProtected && _api.isProtected(track));
+}
+
+export function openInSoundCloud(track) {
+  if (track && track.permalink_url) window.native.openExternal(track.permalink_url);
+}
+
 /**
  * A row in a track list. tracks + index give it a play queue.
  * opts: { context, showArt, showWave, number, extraActions: (track) => [elements] }
@@ -434,10 +445,10 @@ export function trackRow(tracks, index, opts = {}) {
   const track = tracks[index];
   const p = player();
   const row = h('div.track-row', { dataset: { id: track.id } });
-  const locked = !!(_api && _api.isProtected && _api.isProtected(track));
+  const locked = isLocked(track);
   if (locked) {
     row.classList.add('protected');
-    row.title = "Copy-protected by the label: Quantm can't play this song. Use Open in SoundCloud to play it there.";
+    row.title = LOCKED_HINT;
   }
   const cover = h('div.track-art', { style: { backgroundImage: coverOf(track, 't300x300') ? `url("${coverOf(track, 't300x300')}")` : '' } },
     h('div.track-art-overlay', icon('play', 18)));
@@ -458,7 +469,7 @@ export function trackRow(tracks, index, opts = {}) {
 
   const actions = h('div.track-actions',
     locked && track.permalink_url
-      ? iconButton('external', 'Open in SoundCloud', (e) => { e.stopPropagation(); window.native.openExternal(track.permalink_url); }, 'track-open-sc')
+      ? iconButton('external', 'Open in SoundCloud', (e) => { e.stopPropagation(); openInSoundCloud(track); }, 'track-open-sc')
       : null,
     downloadButton(track),
     likeButton(track),

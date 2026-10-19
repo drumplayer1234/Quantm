@@ -27,5 +27,5 @@ export function spectrumText({ bass = 0, mid = 0, treble = 0, level = 0, playing
   const heights = Array.from({ length: 24 }, (_, i) => Math.round(bands[Math.floor(i / 8)] * (5 - (i % 4) * 0.5)));
   const rows = Array.from({ length: 5 }, (_, row) => heights.map(n => n >= 5 - row ? '█' : ' ').join(''));
   const vu = Math.round((playing ? unit(level) : 0) * 20);
-  return [...rows, '────────────────────────', ' BASS    MID     TREBLE', `VU [${'▓'.repeat(vu)}${'░'.repeat(20 - vu)}]`].join('\n');
+  return [...rows, '────────────────────────', ' BASS    MID     TREBLE', `VU [${'█'.repeat(vu)}${'·'.repeat(20 - vu)}]`].join('\n');
 }

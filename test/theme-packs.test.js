@@ -6,7 +6,8 @@ const { packFor, listPacks } = await import('../src/js/theme-packs.js');
 const { PRESETS, PRESET_STYLES, PRESET_RADIUS, contrast } = await import('../src/js/theme.js');
 
 test('packs are keyed by registered style and unknown ids have no pack', () => {
-  assert.deepEqual(listPacks(), ['listening-room']);
+  assert.deepEqual([...listPacks()].sort(), ['listening-room', 'pocket', 'tmux']);
+  assert.equal(packFor('tmux').base, 'terminal');
   assert.equal(packFor('listening-room').layout, 'stage');
   assert.equal(typeof packFor('listening-room').load, 'function');
   for (const id of listPacks()) assert.ok(Object.values(PRESET_STYLES).includes(id));

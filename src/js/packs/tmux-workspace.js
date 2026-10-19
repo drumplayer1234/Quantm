@@ -1,5 +1,5 @@
 import { h, clear, duration } from '../dom.js';
-import { button } from '../ui.js';
+import { button, isLocked, openInSoundCloud } from '../ui.js';
 import * as api from '../api.js';
 import { paneSize, spectrumText } from './tmux-helpers.js';
 
@@ -113,6 +113,10 @@ export function renderWorkspace(container, ctx, logs, write) {
     const href = active === 'history' ? '#/library/history' : active === 'likes' ? '#/library/likes' : '#/feed';
     Promise.resolve(player.playList(list, index, { label: active, href })).catch(error => { if (alive) write(`error: ${error.message}`); });
   }
+  function openLocked(track) {
+    openInSoundCloud(track);
+    write(`opened in SoundCloud (label-protected): ${track.title}`);
+  }
   function selectRow(index, focus = true) {
     selected = Math.max(0, Math.min(tracks().length - 1, index));
     [...body.children].forEach((row, i) => {
@@ -124,7 +128,12 @@ export function renderWorkspace(container, ctx, logs, write) {
   function drawBrowser() {
     clear(body);
     tracks().forEach((track, index) => {
-      const title = h('button.tmux-track-title', { title: `${track.title} · Enter to play`, onclick: () => { selectRow(index); play(index); }, onfocus: () => selectRow(index, false) }, track.title || 'Untitled');
+      // label-protected songs open in SoundCloud instead of playing
+      const locked = isLocked(track);
+      const title = h('button.tmux-track-title', {
+        title: locked ? `${track.title} · copy-protected by the label · Enter opens it in SoundCloud` : `${track.title} · Enter to play`,
+        onclick: () => { selectRow(index); if (locked) openLocked(track); else play(index); }, onfocus: () => selectRow(index, false)
+      }, locked ? `[locked ↗] ${track.title || 'Untitled'}` : track.title || 'Untitled');
       body.append(h('tr', h('td', String(index + 1).padStart(2, '0')), h('td', title), h('td', { title: track.user?.username || '' }, track.user?.username || 'Unknown'), h('td', duration(track.duration))));
     });
     selectRow(selected, false);
@@ -179,8 +188,9 @@ export function renderWorkspace(container, ctx, logs, write) {
       const current = index === player.index;
       const row = h('button.tmux-queue-row', {
         dataset: { index }, 'aria-current': current ? 'true' : null,
-        title: `${track.title} · Enter to jump`, onclick: () => player.jump(index)
-      }, h('span', current ? '▶' : String(index + 1)), h('span', track.title), h('span', duration(track.duration)));
+        title: isLocked(track) ? `${track.title} · copy-protected by the label · Enter opens it in SoundCloud` : `${track.title} · Enter to jump`,
+        onclick: () => isLocked(track) ? openLocked(track) : player.jump(index)
+      }, h('span', current ? '▶' : String(index + 1)), h('span', isLocked(track) ? `[locked ↗] ${track.title}` : track.title), h('span', duration(track.duration)));
       row.classList.toggle('current', current);
       queueList.append(row);
     });

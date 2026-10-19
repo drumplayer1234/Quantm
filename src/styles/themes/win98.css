@@ -1,6 +1,6 @@
 /* Windows 98: standalone full style makeover. Colors remain editable in Settings. */
 
-html[data-style="win98"] {
+:is(html[data-style="win98"], html[data-base-style="win98"]) {
   --font: Tahoma, Verdana, sans-serif;
   --font-display: var(--font);
   --border: color-mix(in srgb, var(--text) 30%, var(--surface));
@@ -14,142 +14,142 @@ html[data-style="win98"] {
   --makeover-bar: var(--bar);
   --makeover-button: var(--surface);
 }
-html[data-style="win98"] body { background: var(--bg); }
-html[data-style="win98"] #view { background: transparent; }
-html[data-style="win98"] :focus-visible {
+:is(html[data-style="win98"], html[data-base-style="win98"]) body { background: var(--bg); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) #view { background: transparent; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :focus-visible {
   outline: 2px solid var(--text); outline-offset: 3px;
 }
-html[data-style="win98"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) {
   font-family: var(--font-display);
 }
-html[data-style="win98"] :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
-html[data-style="win98"] .topbar,
-html[data-style="win98"][data-bg] .topbar {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .topbar,
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-bg] .topbar {
   background: var(--makeover-bar); border-bottom: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-html[data-style="win98"][data-nav="sidebar"] .nav {
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-nav="sidebar"] .nav {
   background: var(--makeover-bar); border-right: var(--makeover-edge); backdrop-filter: none;
 }
-html[data-style="win98"] :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
-html[data-style="win98"] :is(.nav-link, .settings-nav-link).active {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.nav-link, .settings-nav-link).active {
   background: var(--accent); color: var(--accent-text);
 }
-html[data-style="win98"] .settings-nav-link.active .icon { color: inherit; }
-html[data-style="win98"] :is(.search-input, .input) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) .settings-nav-link.active .icon { color: inherit; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.search-input, .input) {
   border: var(--makeover-edge); border-radius: var(--radius); background: var(--surface); color: var(--text);
 }
-html[data-style="win98"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
-html[data-style="win98"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
-html[data-style="win98"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
   border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-button); color: var(--text);
 }
-html[data-style="win98"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover {
   background: var(--hover); color: var(--text); filter: none;
 }
-html[data-style="win98"] :is(.btn-primary, .hero .btn-primary, .chip.active),
-html[data-style="win98"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn-primary, .hero .btn-primary, .chip.active),
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
   background: var(--accent); color: var(--accent-text); border-color: var(--accent);
 }
-html[data-style="win98"] :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
-html[data-style="win98"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
   color: var(--text); border: 2px dashed var(--text); background: var(--surface);
 }
-html[data-style="win98"] :is(.play-btn, .card-play, .pb-play) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.play-btn, .card-play, .pb-play) {
   background: var(--accent); color: var(--accent-text); border: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-html[data-style="win98"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
   background: var(--makeover-panel); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow);
 }
-html[data-style="win98"] .card { padding: 12px; }
-html[data-style="win98"] .card:hover { background: var(--surface); border-color: var(--accent); }
-html[data-style="win98"] .card:focus-within .card-play { opacity: 1; transform: none; }
-html[data-style="win98"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) .card { padding: 12px; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .card:hover { background: var(--surface); border-color: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .card:focus-within .card-play { opacity: 1; transform: none; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) {
   border: var(--makeover-edge); border-radius: var(--radius);
 }
-html[data-style="win98"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
-html[data-style="win98"] :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
-html[data-style="win98"] :is(.track-row, .queue-row):hover { background: var(--hover); }
-html[data-style="win98"] :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
-html[data-style="win98"] :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.track-row, .queue-row):hover { background: var(--hover); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
 /* Keep hero text independent of arbitrary artwork luminance. */
-html[data-style="win98"] .hero-bg { display: none; }
-html[data-style="win98"] :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
-html[data-style="win98"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
-html[data-style="win98"] .tabs { border-bottom: var(--makeover-edge); }
-html[data-style="win98"] .tab.active { border-bottom-color: var(--accent); }
-html[data-style="win98"] .playerbar,
-html[data-style="win98"][data-bg] .playerbar {
+:is(html[data-style="win98"], html[data-base-style="win98"]) .hero-bg { display: none; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .tabs { border-bottom: var(--makeover-edge); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .tab.active { border-bottom-color: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .playerbar,
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-bg] .playerbar {
   background: var(--makeover-bar); color: var(--text); border-top: var(--makeover-edge); box-shadow: var(--makeover-shadow);
 }
-html[data-style="win98"][data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
-html[data-style="win98"] .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
-html[data-style="win98"] .pb-fill,
-html[data-style="win98"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .pb-fill,
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
   background: var(--wave-played); border-radius: var(--radius);
 }
-html[data-style="win98"] .pb-knob { background: var(--accent); border: 1px solid var(--text); }
-html[data-style="win98"] .pb-visualizer { opacity: 1; filter: none; }
-html[data-style="win98"] :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) .pb-knob { background: var(--accent); border: 1px solid var(--text); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .pb-visualizer { opacity: 1; filter: none; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
   background: var(--surface); color: var(--text); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow);
 }
-html[data-style="win98"] :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
-html[data-style="win98"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
-html[data-style="win98"] .menu-item .icon { color: inherit; }
-html[data-style="win98"] .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
-html[data-style="win98"] .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
-html[data-style="win98"] .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--text); }
-html[data-style="win98"] .settings-preset { border-color: var(--border); border-radius: var(--radius); }
-html[data-style="win98"] .settings-preset.active { border-color: var(--accent); }
-html[data-style="win98"] ::-webkit-scrollbar-track { background: var(--bg); }
-html[data-style="win98"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
-html[data-style="win98"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-html[data-style="win98"] .login { background: transparent; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .menu-item .icon { color: inherit; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--text); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .settings-preset { border-color: var(--border); border-radius: var(--radius); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .settings-preset.active { border-color: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) ::-webkit-scrollbar-track { background: var(--bg); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .login { background: transparent; }
 
-html[data-style="win98"] {
+:is(html[data-style="win98"], html[data-base-style="win98"]) {
   --win-light: #ffffff; --win-shadow: #808080; --win-dark: #000000; --win-blue: #084b9b;
   --makeover-shadow: inset 1px 1px 0 var(--win-light), inset -1px -1px 0 var(--win-dark), 1px 1px 0 var(--win-shadow);
   --makeover-button: var(--bar); --makeover-edge: 1px solid var(--win-shadow);
 }
-html[data-style="win98"] :is(.topbar, .modal-head, .queue-head) {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.topbar, .modal-head, .queue-head) {
   background: linear-gradient(90deg, var(--accent), var(--win-blue)); color: var(--accent-text);
 }
-html[data-style="win98"] .topbar :is(.logo, .nav-link, .icon-btn) { color: var(--accent-text); }
-html[data-style="win98"] .topbar .icon-btn { background: var(--accent); }
-html[data-style="win98"] .topbar .nav-link.active { outline: 1px dotted currentColor; outline-offset: -3px; }
-html[data-style="win98"] :is(.btn, .icon-btn, .chip, .play-btn, .card-play, .pb-play) { border-radius: 0; box-shadow: var(--makeover-shadow); }
-html[data-style="win98"] :is(.btn, .icon-btn):active { box-shadow: inset 1px 1px 0 var(--win-dark), inset -1px -1px 0 var(--win-light); transform: translate(1px, 1px); }
-html[data-style="win98"] :is(.input, .search-input, .track-list) { background: var(--win-light); box-shadow: inset 1px 1px 0 var(--win-dark), inset -1px -1px 0 var(--win-light); }
-html[data-style="win98"] :is(.card, .settings-card, .hero, .modal, .menu, .queue-panel) { border-radius: 0; }
-html[data-style="win98"] .track-row:nth-child(even) { background: var(--surface); }
-html[data-style="win98"] :is(.page-title, .hero-title) { font-size: 28px; letter-spacing: 0; }
-html[data-style="win98"] .pb-track { height: 10px; box-shadow: inset 1px 1px 0 var(--win-dark); }
-html[data-style="win98"] .pb-fill { background: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 8px); }
-html[data-style="win98"] ::-webkit-scrollbar { width: 16px; }
-html[data-style="win98"] ::-webkit-scrollbar-thumb { background: var(--bar); border: 2px outset var(--surface); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .topbar :is(.logo, .nav-link, .icon-btn) { color: var(--accent-text); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .topbar .icon-btn { background: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .topbar .nav-link.active { outline: 1px dotted currentColor; outline-offset: -3px; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn, .icon-btn, .chip, .play-btn, .card-play, .pb-play) { border-radius: 0; box-shadow: var(--makeover-shadow); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn, .icon-btn):active { box-shadow: inset 1px 1px 0 var(--win-dark), inset -1px -1px 0 var(--win-light); transform: translate(1px, 1px); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.input, .search-input, .track-list) { background: var(--win-light); box-shadow: inset 1px 1px 0 var(--win-dark), inset -1px -1px 0 var(--win-light); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.card, .settings-card, .hero, .modal, .menu, .queue-panel) { border-radius: 0; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .track-row:nth-child(even) { background: var(--surface); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.page-title, .hero-title) { font-size: 28px; letter-spacing: 0; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .pb-track { height: 10px; box-shadow: inset 1px 1px 0 var(--win-dark); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .pb-fill { background: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 8px); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) ::-webkit-scrollbar { width: 16px; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) ::-webkit-scrollbar-thumb { background: var(--bar); border: 2px outset var(--surface); }
 
 /* Performance mode uses solid materials; native see-through remains opt-in. */
-html[data-style="win98"][data-perf] { --makeover-panel: var(--surface); --makeover-bar: var(--bar); --makeover-shadow: none; }
-html[data-style="win98"][data-perf] body { background: var(--bg); }
-html[data-style="win98"][data-perf] #view::before { display: none; }
-html[data-style="win98"][data-perf] *,
-html[data-style="win98"][data-perf] *::before,
-html[data-style="win98"][data-perf] *::after {
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-perf] { --makeover-panel: var(--surface); --makeover-bar: var(--bar); --makeover-shadow: none; }
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-perf] body { background: var(--bg); }
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-perf] #view::before { display: none; }
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-perf] *,
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-perf] *::before,
+:is(html[data-style="win98"], html[data-base-style="win98"])[data-perf] *::after {
   animation: none !important; transition: none !important; backdrop-filter: none !important; text-shadow: none !important; filter: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  html[data-style="win98"] *, html[data-style="win98"] *::before, html[data-style="win98"] *::after {
+  :is(html[data-style="win98"], html[data-base-style="win98"]) *, :is(html[data-style="win98"], html[data-base-style="win98"]) *::before, :is(html[data-style="win98"], html[data-base-style="win98"]) *::after {
     animation: none !important; transition: none !important; scroll-behavior: auto !important;
   }
 }
 @media (forced-colors: active) {
-  html[data-style="win98"] :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
+  :is(html[data-style="win98"], html[data-base-style="win98"]) :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
 }
 
-html[data-style="win98"] .topbar .nav-link:hover { background: var(--accent); }
-html[data-style="win98"] :is(.tag-pill, .tab, .settings-switch-track, .settings-switch-knob) { border-radius: 0; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .topbar .nav-link:hover { background: var(--accent); }
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.tag-pill, .tab, .settings-switch-track, .settings-switch-knob) { border-radius: 0; }
 
-html[data-style="win98"] :is(.btn-primary, .hero .btn-primary, .play-btn, .card-play, .pb-play),
-html[data-style="win98"] :is(.btn-primary, .hero .btn-primary):hover {
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn-primary, .hero .btn-primary, .play-btn, .card-play, .pb-play),
+:is(html[data-style="win98"], html[data-base-style="win98"]) :is(.btn-primary, .hero .btn-primary):hover {
   background: var(--bar); color: var(--text); border-color: var(--win-shadow);
 }
-html[data-style="win98"] .btn-primary { outline: 1px dotted var(--text); outline-offset: -5px; }
+:is(html[data-style="win98"], html[data-base-style="win98"]) .btn-primary { outline: 1px dotted var(--text); outline-offset: -5px; }

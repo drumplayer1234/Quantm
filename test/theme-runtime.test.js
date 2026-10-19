@@ -42,12 +42,12 @@ test('runtime discards late packs, cleans subscriptions and roots, and contains 
   let calls = 0;
   const events = new Emitter();
   PACKS.slow = { layout: 'slow', load: () => new Promise(resolve => { loadSlow = resolve; }) };
-  PACKS.fast = { layout: 'fast', load: async () => ({ mount(ctx) {
+  PACKS.fast = { layout: 'fast', base: 'terminal', load: async () => ({ mount(ctx) {
     mounted++;
     ctx.on(events, 'event', () => calls++);
     return () => cleaned++;
   } }) };
-  PACKS.broken = { layout: 'broken', load: async () => ({ mount() { throw new Error('expected failure'); } }) };
+  PACKS.broken = { layout: 'broken', base: 'win98', load: async () => ({ mount() { throw new Error('expected failure'); } }) };
   const change = style => {
     document.documentElement.dataset.style = style;
     document.dispatchEvent(new CustomEvent('themechange'));
@@ -57,6 +57,7 @@ test('runtime discards late packs, cleans subscriptions and roots, and contains 
   change('fast'); await flush();
   assert.equal(mounted, 1);
   assert.equal(document.documentElement.dataset.layout, 'fast');
+  assert.equal(document.documentElement.dataset.baseStyle, 'terminal');
   loadSlow({ mount() { assert.fail('Stale pack mounted'); } });
   await flush();
   events.emit('event'); assert.equal(calls, 1);
@@ -64,11 +65,13 @@ test('runtime discards late packs, cleans subscriptions and roots, and contains 
   events.emit('event'); assert.equal(calls, 1);
   assert.equal(cleaned, 1);
   assert.equal(document.documentElement.dataset.layout, undefined);
+  assert.equal(document.documentElement.dataset.baseStyle, undefined);
   assert.equal(document.body.childNodes.filter(node => node.className === 'theme-layer').length, 0);
   const errors = mock.method(console, 'error', () => {});
   change('broken'); await flush();
   assert.equal(errors.mock.calls.length, 1);
   assert.equal(document.documentElement.dataset.layout, undefined);
+  assert.equal(document.documentElement.dataset.baseStyle, undefined);
   assert.equal(document.body.childNodes.filter(node => node.className === 'theme-layer').length, 0);
   errors.mock.restore();
   change('');
