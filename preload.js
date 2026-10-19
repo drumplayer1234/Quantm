@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('native', {
   setTitleBar: (color, symbolColor) => ipcRenderer.invoke('window:titlebar', { color, symbolColor }),
   windowMode: () => ipcRenderer.invoke('window:mode'),
   setSeeThrough: (on) => ipcRenderer.invoke('window:setSeeThrough', on),
+  setBlurMethod: (method) => ipcRenderer.invoke('window:setBlurMethod', method),
   windowControl: (action) => ipcRenderer.invoke('window:control', action),
   onMaximized: (fn) => ipcRenderer.on('window:maximized', (event, value) => fn(value)),
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),

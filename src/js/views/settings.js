@@ -448,8 +448,33 @@ function windowCard(mode) {
       const ok = await confirmDialog(on ? 'Make the window see-through?' : 'Turn off see-through?', 'Quantm will restart to apply this. Music stops for a moment.', 'Restart now');
       if (!ok) { input.checked = !on; return; }
       window.native.setSeeThrough(on);
-    })
+    }),
+    blurRow(mode)
   );
+}
+
+/** Windows: which blur the see-through window uses (Windows 11 has its own acrylic and mica) */
+function blurRow(mode) {
+  if (mode.platform !== 'win32') return null;
+  const win11 = mode.nativeBackdrop;
+  const options = [
+    { id: 'auto', label: 'Automatic (Classic blur)' },
+    { id: 'acrylic', label: win11 ? 'Acrylic (Windows 11, experimental)' : 'Acrylic (Windows 11 only)' },
+    { id: 'mica', label: win11 ? 'Mica (Windows 11, tinted, experimental)' : 'Mica (Windows 11 only)' },
+    { id: 'classic', label: 'Classic blur' }
+  ];
+  const names = { acrylic: 'Acrylic', mica: 'Mica', classic: 'Classic blur' };
+  const desc = mode.seeThrough && mode.blurInUse
+    ? `Using ${names[mode.blurInUse]}. If the window looks wrong or lags while dragging, try another style.`
+    : 'Used when the see-through window is on.';
+  return selectRow('Blur style', desc, options, mode.blurMethod, async (value) => {
+    if (mode.seeThrough) {
+      const ok = await confirmDialog('Change the blur style?', 'Quantm will restart to apply this. Music stops for a moment.', 'Restart now');
+      if (!ok) return;
+    }
+    await window.native.setBlurMethod(value);
+    if (!mode.seeThrough) toast('Saved. It applies when the see-through window is on.');
+  });
 }
 
 async function appearanceTab() {

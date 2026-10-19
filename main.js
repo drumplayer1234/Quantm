@@ -316,6 +316,39 @@ function seeThroughSupported() {
   return process.platform === 'win32' || process.platform === 'darwin';
 }
 
+/** Windows build number (19045 = Windows 10 22H2, 22000+ = Windows 11, 22621+ = 11 22H2) */
+function windowsBuild() {
+  return process.platform === 'win32' ? parseInt(os.release().split('.')[2], 10) || 0 : 0;
+}
+
+// Classic blur-behind works on Windows 10 and 11 and is the default. Windows 11 22H2+ can also
+// draw acrylic / mica itself (DWM system backdrop); Electron 33 still has quirks with frameless
+// backdrop windows, so those are opt-in.
+const BLUR_METHODS = ['auto', 'acrylic', 'mica', 'classic'];
+const nativeBackdrop = () => windowsBuild() >= 22621;
+
+function resolveBlurMethod() {
+  const chosen = BLUR_METHODS.includes(loadWindowPrefs().blurMethod) ? loadWindowPrefs().blurMethod : 'auto';
+  if (chosen === 'auto') return 'classic';
+  if ((chosen === 'acrylic' || chosen === 'mica') && !nativeBackdrop()) return 'classic';
+  return chosen;
+}
+
+/** Windows 11: frameless windows lose the rounded corners unless we ask DWM for them */
+function applyRoundedCorners(win) {
+  if (windowsBuild() < 22000) return;
+  try {
+    const koffi = require('koffi');
+    const dwmapi = koffi.load('dwmapi.dll');
+    const setAttribute = dwmapi.func('long __stdcall DwmSetWindowAttribute(void *hwnd, uint32 attr, int *value, uint32 size)');
+    const hwnd = koffi.decode(win.getNativeWindowHandle(), 'void *');
+    // 33 = DWMWA_WINDOW_CORNER_PREFERENCE, 2 = DWMWCP_ROUND
+    setAttribute(hwnd, 33, [2], 4);
+  } catch (error) {
+    console.error('Rounded corners unavailable', error);
+  }
+}
+
 /** Windows 10/11: ask the compositor to blur behind the window (SetWindowCompositionAttribute) */
 function applyBlurBehind(win) {
   if (process.platform !== 'win32') return false;
@@ -350,11 +383,15 @@ function createMainWindow() {
   try { state = Object.assign(state, JSON.parse(fs.readFileSync(windowStateFile(), 'utf8'))); } catch (e) { /* defaults */ }
 
   const seeThrough = seeThroughSupported() && !!loadWindowPrefs().seeThrough;
+  const blurMethod = seeThrough && process.platform === 'win32' ? resolveBlurMethod() : null;
   const chrome = seeThrough
     // transparent windows can't use the native title bar buttons: the page draws its own
     ? (process.platform === 'darwin'
       ? { titleBarStyle: 'hidden', trafficLightPosition: { x: 16, y: 20 }, vibrancy: 'under-window', visualEffectState: 'active', backgroundColor: '#00000000' }
-      : { frame: false, transparent: true, backgroundColor: '#00000000' })
+      : (blurMethod === 'classic'
+        ? { frame: false, transparent: true, backgroundColor: '#00000000' }
+        // native backdrop: DWM draws acrylic/mica behind the transparent page
+        : { frame: false, backgroundColor: '#00000000', backgroundMaterial: blurMethod }))
     : {
       backgroundColor: '#121212',
       titleBarStyle: 'hidden',
@@ -382,10 +419,12 @@ function createMainWindow() {
     }
   }, chrome));
   mainWindow.seeThrough = seeThrough;
+  mainWindow.blurMethod = blurMethod;
 
   if (state.maximized) mainWindow.maximize();
   mainWindow.once('ready-to-show', () => {
-    if (seeThrough) applyBlurBehind(mainWindow);
+    if (blurMethod === 'classic') applyBlurBehind(mainWindow);
+    if (seeThrough) applyRoundedCorners(mainWindow);
     mainWindow.show();
   });
   const sendMaximized = () => mainWindow && mainWindow.webContents.send('window:maximized', mainWindow.isMaximized());
@@ -503,8 +542,25 @@ handle('window:mode', () => ({
   supported: seeThroughSupported(),
   customControls: !!(mainWindow && mainWindow.seeThrough && process.platform !== 'darwin'),
   maximized: !!(mainWindow && mainWindow.isMaximized()),
-  platform: process.platform
+  platform: process.platform,
+  blurMethod: BLUR_METHODS.includes(loadWindowPrefs().blurMethod) ? loadWindowPrefs().blurMethod : 'auto',
+  blurInUse: (mainWindow && mainWindow.blurMethod) || null,
+  nativeBackdrop: nativeBackdrop(),
+  windowsBuild: windowsBuild()
 }));
+
+handle('window:setBlurMethod', async (event, method) => {
+  if (!BLUR_METHODS.includes(method)) return false;
+  const prefs = loadWindowPrefs();
+  prefs.blurMethod = method;
+  fs.writeFileSync(windowPrefsFile(), JSON.stringify(prefs));
+  if (!(mainWindow && mainWindow.seeThrough)) return true;
+  // the window has to be recreated with the new material
+  await session.defaultSession.flushStorageData();
+  app.relaunch();
+  app.quit();
+  return true;
+});
 
 // saving the choice restarts the app, since a window can't become transparent later
 handle('window:setSeeThrough', async (event, on) => {
