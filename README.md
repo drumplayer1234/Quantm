@@ -75,7 +75,7 @@ Grab the latest build from the [**Releases** page](https://github.com/drumplayer
 
 - **Windows:** `Quantm-Setup-x.y.z.exe` ⭐ **recommended**: installs Quantm with Start Menu and Desktop shortcuts, starts fastest, and can be uninstalled from Windows Settings.
   - `Quantm-x.y.z-Portable.exe`: runs without installing, handy for trying it out or on PCs where you can't install apps. It starts a little slower, and your settings are still saved on that PC.
-- **macOS:** the `.dmg` disk image.
+- **macOS:** `.dmg` disk image — `-arm64.dmg` for Apple Silicon (M1 and newer) or `-x64.dmg` for Intel Macs.
 - **Linux:** the `AppImage` (runs anywhere) or the `.deb` package (Debian and Ubuntu).
 
 Or install with a package manager on Windows:
