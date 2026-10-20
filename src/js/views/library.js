@@ -1,5 +1,6 @@
 // Library: everything you've saved (soundcloud.com/you/library)
 import * as api from '../api.js';
+import { quantmTab } from './local-playlist.js';
 import { h, clear, onNearBottom } from '../dom.js';
 import { icon } from '../icons.js';
 import { store } from '../store.js';
@@ -13,6 +14,7 @@ import {
 const TABS = [
   { id: 'overview', label: 'Overview', href: '#/library' },
   { id: 'likes', label: 'Likes', href: '#/library/likes' },
+  { id: 'quantm', label: 'Quantm', href: '#/library/quantm' },
   { id: 'playlists', label: 'Playlists', href: '#/library/playlists' },
   { id: 'albums', label: 'Albums', href: '#/library/albums' },
   { id: 'stations', label: 'Stations', href: '#/library/stations' },
@@ -43,6 +45,7 @@ export async function render(page, params) {
     content
   );
 
+  if (active === 'quantm') return quantmTab(content);
   if (active === 'overview') return overview(content);
   if (active === 'likes') return likes(content);
   if (active === 'following') return following(content);

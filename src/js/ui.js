@@ -1,6 +1,7 @@
 // Shared UI components. Every view builds its pages from these.
 import { h, clear, compact, duration, timeAgo, artwork, coverOf, onNearBottom } from './dom.js';
 import { icon } from './icons.js';
+import * as localPlaylists from './local-playlists.js';
 import { offline } from './offline.js';
 import { getCues, addCue, removeCue, renameCue, setMixIn, setMixOut, cueEvents, getPair, setPair, transitionFor } from './cues.js';
 import { formatCueTime, parseCueTime } from './cue-time.js';
@@ -489,7 +490,14 @@ export function trackRow(tracks, index, opts = {}) {
     actions
   ].filter(Boolean));
 
-  const play = () => p.toggleOrPlay(tracks, index, opts.context);
+  const play = () => {
+    if (track.unavailable) return toast('This track is unavailable');
+    return opts.onPlay ? opts.onPlay(track) : p.toggleOrPlay(tracks, index, opts.context);
+  };
+  if (track.unavailable) {
+    row.classList.add('qplaylist-unavailable');
+    row.querySelector('.track-sub').append(h('span.muted.small', 'Unavailable'));
+  }
   row.addEventListener('dblclick', play);
   cover.addEventListener('click', (e) => { e.stopPropagation(); play(); });
   row.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(track, e, opts); });
@@ -895,6 +903,7 @@ export function trackMenu(track, event, opts = {}) {
     { label: 'Add to queue', icon: 'queue', onclick: () => p.addToQueue(track) },
     { label: 'Mix points…', onclick: () => mixPointsDialog(track) },
     { label: 'Add to playlist', icon: 'addToPlaylist', onclick: () => addToPlaylistDialog(track) },
+    { label: 'Add to Quantm playlist', icon: 'playlist', onclick: () => addToPlaylistDialog(track) },
     track.station_urn ? { label: 'Start station', icon: 'station', onclick: () => go('#/station/' + encodeURIComponent(track.station_urn)) } : null,
     'separator',
     { label: store().isLiked(track) ? 'Unlike' : 'Like', icon: 'heart', onclick: () => store().toggleLike(track) },
@@ -1062,6 +1071,32 @@ export function promptDialog(title, { label = '', value = '', placeholder = '', 
  */
 export async function addToPlaylistDialog(track) {
   if (!track) return;
+  const localList = h('div.atp-list');
+  const renderLocal = () => {
+    clear(localList);
+    localPlaylists.list().forEach(pl => {
+      const has = pl.tracks.some(t => t.id === track.id);
+      localList.append(h('button.atp-row' + (has ? '.added' : ''), {
+        onclick: () => {
+          try {
+            const added = localPlaylists.toggleTrack(pl.id, track);
+            toast(added ? `Added to "${pl.title}"` : `Removed from "${pl.title}"`);
+          } catch (error) { toast(error.message, 'error'); }
+        }
+      }, icon('playlist', 18), h('div.atp-row-meta', h('div.strong', pl.title), h('div.muted.small', `${pl.tracks.length} tracks`)),
+      h('span.atp-state', icon(has ? 'check' : 'plus', 18))));
+    });
+  };
+  renderLocal();
+  const offLocal = localPlaylists.events.on('change', renderLocal);
+  const newLocal = button('New Quantm playlist', async () => {
+    const title = await promptDialog('New Quantm playlist', { label: 'Title', confirmLabel: 'Create & add' });
+    if (!title) return;
+    try {
+      const pl = localPlaylists.create(title, [track]);
+      toast(`Added to "${pl.title}"`);
+    } catch (error) { toast(error.message, 'error'); }
+  }, 'btn-outline', 'plus');
   const listEl = h('div.atp-list', spinner());
   const filter = h('input.input', { placeholder: 'Find a playlist' });
   const titleInput = h('input.input', { placeholder: 'New playlist title' });
@@ -1085,6 +1120,9 @@ export async function addToPlaylistDialog(track) {
   const dialog = modal('Add to playlist', h('div.atp',
     h('div.atp-track', h('div.atp-art', { style: { backgroundImage: coverOf(track, 't67x67') ? `url("${coverOf(track, 't67x67')}")` : '' } }),
       h('div', h('div.strong', track.title), h('div.muted.small', track.user ? track.user.username : ''))),
+    h('h3', 'Quantm playlists (on this PC)'),
+    localList, newLocal,
+    h('h3', 'SoundCloud playlists'),
     filter,
     listEl,
     h('div.atp-create',
@@ -1093,6 +1131,8 @@ export async function addToPlaylistDialog(track) {
       h('label.checkbox', privateBox, ' Make it private')
     )
   ));
+
+  onRemoved(dialog, offLocal);
 
   let playlists;
   try {

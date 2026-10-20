@@ -43,6 +43,7 @@ route('/search', views.search);
 route('/user/:id/:tab?', views.user);
 route('/track/:id/:tab?', views.track);
 route('/playlist/:id', views.playlist);
+route('/qplaylist/:id', () => import('./views/local-playlist.js'));
 route('/station/:urn', views.playlist);
 route('/notifications', views.notifications);
 route('/stats', views.stats);

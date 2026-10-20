@@ -28,6 +28,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Full search.** Find tracks, people, albums and playlists, with suggestions as you type. Paste any soundcloud.com link to jump straight to it.
 - **Artist profiles.** Popular tracks, tracks, albums, playlists, reposts, likes, followers and following, plus the artist's bio.
 - **Track pages.** Full waveform, timed comments (post and delete your own), related tracks, and who liked or reposted.
+- **Quantm playlists.** Playlists saved on this computer with instant edits and JSON export/import; not synced to SoundCloud.
 - **Playlist editing.** Create, rename, make private or public, delete, drag to reorder, and remove tracks.
 - **Stations.** Start a station based on any track.
 - **Notifications.** Likes, reposts, comments and new followers.

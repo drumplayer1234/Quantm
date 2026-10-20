@@ -1,6 +1,7 @@
 // Playlist / album / station page (soundcloud.com/artist/sets/name)
 // Routes: #/playlist/:id and #/station/:urn
 import * as api from '../api.js';
+import * as localPlaylists from '../local-playlists.js';
 import { h, clear, coverOf, artwork, compact, linkify } from '../dom.js';
 import { icon } from '../icons.js';
 import { store } from '../store.js';
@@ -62,6 +63,20 @@ export async function render(page, params) {
       player.playList(tracks, Math.floor(Math.random() * tracks.length), context);
     }, 'btn-sm', 'shuffle')
   ];
+  if (!isStation) {
+    const copy = button('Copy to Quantm', async () => {
+      copy.disabled = true;
+      try {
+        // api.playlist hydrates every ID in batches and preserves playlist order.
+        const full = await api.playlist(data.id);
+        const local = localPlaylists.create(full.title, full.tracks);
+        toast(`Created "${local.title}" on this PC`);
+        location.hash = '#/qplaylist/' + local.id;
+      } catch (error) { toast(error.message || 'Could not copy playlist', 'error'); }
+      finally { copy.disabled = false; }
+    }, 'btn-sm', 'playlist');
+    actions.push(copy);
+  }
   if (!isStation && !isMine) actions.push(likeButton(data, { withCount: true }), repostButton(data, { withCount: true }));
   if (data.permalink_url) {
     actions.push(
