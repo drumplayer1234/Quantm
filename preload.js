@@ -11,6 +11,10 @@ contextBridge.exposeInMainWorld('native', {
     setManual: (token, clientId) => ipcRenderer.invoke('auth:setManual', { token, clientId })
   },
   api: (request) => ipcRenderer.invoke('api:request', request),
+  prefs: {
+    load: () => ipcRenderer.sendSync('prefs:load'),
+    save: (entries) => ipcRenderer.invoke('prefs:save', entries)
+  },
   json: (url) => ipcRenderer.invoke('net:json', url),
   image: (url) => ipcRenderer.invoke('net:image', url),
   setZoom: (factor) => ipcRenderer.invoke('window:zoom', factor),

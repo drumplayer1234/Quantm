@@ -500,6 +500,42 @@ function createMainWindow() {
 // IPC
 // ---------------------------------------------------------------------------
 
+// Settings safety net (see src/js/persist.js): the page mirrors its quantm.* keys into this file as
+// they change, written synchronously, so a forced close can't undo a change the way it can in localStorage.
+const prefsFile = () => path.join(app.getPath('userData'), 'settings-backup.json');
+let prefsBackup = null;
+
+function loadPrefsBackup() {
+  if (prefsBackup) return prefsBackup;
+  try {
+    const data = JSON.parse(fs.readFileSync(prefsFile(), 'utf8'));
+    prefsBackup = data && data.keys && typeof data.keys === 'object' && !Array.isArray(data.keys) ? data.keys : {};
+  } catch (e) {
+    prefsBackup = {};
+  }
+  return prefsBackup;
+}
+
+function savePrefsBackup(entries) {
+  if (!entries || typeof entries !== 'object' || Array.isArray(entries)) return false;
+  const keys = loadPrefsBackup();
+  for (const [key, value] of Object.entries(entries)) {
+    if (!/^quantm\.[\w.-]{1,80}$/.test(key)) continue;
+    if (value === null) delete keys[key];
+    else if (typeof value === 'string' && value.length <= 2 * 1024 * 1024) keys[key] = value;
+  }
+  const text = JSON.stringify({ version: 1, savedAt: Date.now(), keys });
+  if (text.length > 8 * 1024 * 1024) return false;
+  const file = prefsFile();
+  try {
+    fs.writeFileSync(file + '.tmp', text);
+    fs.renameSync(file + '.tmp', file);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 /** Only Quantm's own page (file://, in the main window) may use the bridge */
 function fromApp(event) {
   const frame = event.senderFrame;
@@ -524,6 +560,10 @@ function sndcdnUrl(value) {
 }
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+// read synchronously by persist.js before the app's modules look at their settings
+ipcMain.on('prefs:load', (event) => { event.returnValue = fromApp(event) ? loadPrefsBackup() : {}; });
+handle('prefs:save', (event, entries) => savePrefsBackup(entries));
 
 handle('auth:status', () => ({ loggedIn: !!auth }));
 handle('auth:login', () => openLogin());
