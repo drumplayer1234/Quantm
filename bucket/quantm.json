@@ -1,12 +1,12 @@
 {
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "A free, open-source and customizable desktop client for SoundCloud (unofficial)",
     "homepage": "https://github.com/drumplayer1234/Quantm",
     "license": "GPL-3.0-only",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/drumplayer1234/Quantm/releases/download/v1.1.0/Quantm-Setup-1.1.0.exe#/dl.7z",
-            "hash": "4edf5dcaa7f1f8927a9d35f530930319d30acb0df4368f3054c818a032dc239a"
+            "url": "https://github.com/drumplayer1234/Quantm/releases/download/v1.1.1/Quantm-Setup-1.1.1.exe#/dl.7z",
+            "hash": "90950cbd726a8e50893987a46ef99538f0cc1474bd0e6aaa35c8b529c5defd6c"
         }
     },
     "installer": {
