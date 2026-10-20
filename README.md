@@ -45,6 +45,8 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Cue points and custom transitions.** Press C to bookmark a moment and 1–9 to jump to a cue. Set mix-in and mix-out with I and O, or right-click a waveform. Edit and rename markers from the track menu, or choose exact leave/start times and a fade for each pair in the queue. Custom transitions work even with crossfade off.
 - **Playback speed.** Nightcore and Slowed modes, or a custom speed with optional pitch keeping. Change it with the speed button in the player bar.
 - **Volume normalization.** Loud and quiet tracks play at a similar level.
+- **Equalizer.** Five bands plus preamp, with presets like Bass boost, Vocal, Electronic and Late night (Settings → Playback, or the EQ button in the player bar).
+- **Sleep timer.** Stop after 15 to 90 minutes or at the end of the song, with a gentle fade out (moon button in the player bar).
 - **Resume where you left off.** Reopen the app to your last song, queue and position, paused.
 - **Automatic updates.** The installer version downloads new releases in the background and installs them when you restart or close Quantm. The portable and Linux .deb versions tell you when a new version is out. Turn automatic downloads off in Settings → About.
 - **Media keys and system controls.** Use your keyboard's media keys and the Windows and macOS media controls. Desktop notifications show when a new track starts.
@@ -53,6 +55,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 **Make it yours**
 
 - **Theme presets.** Color-only themes: SoundCloud Dark, SoundCloud Light, Midnight, Synthwave, Forest and Mono. Full style makeovers that also change shapes, fonts and textures: Y2K (Windows XP and early iTunes), Glass, Neon, Pixel, Minimal, Liquid Glass, Liquid Glass Dark, Hextech, OLED (pure black), E-ink, Industrial, Frutiger Aero, Terminal, Windows 98, Vinyl, Brutalist and Album Match (the whole palette follows the playing song's artwork).
+- **Overhaul themes.** Themes that change the whole experience, not just the look: **Listening Room** turns Home into a stage with giant artwork and soft light from the cover that breathes with the music; **Pocket Quantm** is a retro handheld player with a working click wheel; **Terminal Multiplexer** is a workstation of resizable panes, an ASCII spectrum, an event log and a `:` command prompt. Motion and music-reactive lighting follow Settings → Appearance → Theme effects (Auto, On or Off) and stay off in Performance mode.
 - **Custom themes.** Edit every color and the corner roundness, copy a theme to share it or import one, or try the random theme generator.
 - **Day and night schedule.** Switch between a day theme and a night theme automatically.
 - **See-through window.** With Liquid Glass, your desktop shows through the app, blurred, on Windows and macOS. On Windows 11 you can also try the native Acrylic or Mica styles (Settings → Appearance → Window).
@@ -69,7 +72,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Discord status.** Show "Listening to Quantm" with the song, artist, artwork and a progress bar, plus a "Listen on SoundCloud" button. Needs the Discord desktop app, and you can turn it off.
 - **Performance page.** Live CPU and memory readouts, Performance mode (no blur or animations), visuals paused while minimized, and a hardware acceleration switch. Light enough to leave running while you game.
 - **Remembers your setup.** Your themes and settings carry over every time you restart.
-- **Installers for every platform.** Windows Setup (recommended) and a portable version, plus macOS `.dmg` and Linux AppImage and `.deb` packages.
+- **Installers for every platform.** Windows Setup (recommended) and a portable version, plus macOS `.dmg` for Apple Silicon and Intel, and Linux AppImage and `.deb` packages.
 
 ## Download
 

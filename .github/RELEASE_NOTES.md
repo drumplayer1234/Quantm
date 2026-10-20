@@ -1,5 +1,15 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.1.1
+
+- **Quantm playlists.** Playlists saved on your computer with instant adds and removes, drag to reorder, and export/import. Copy any SoundCloud playlist into Quantm with one click.
+- **Equalizer and sleep timer.** A 5-band equalizer with presets, and a sleep timer that fades out after a set time or at the end of the song.
+- **Listening stats.** Hours, plays, streaks, top tracks, artists and genres, badges, and a shareable stats card. Counted on your computer only.
+- **Overhaul themes:** Listening Room, Pocket Quantm and Terminal Multiplexer, plus Theme effects (Auto/On/Off) in Settings → Appearance.
+- **New makeover themes:** Brutalist, Vinyl, Frutiger Aero, Terminal and Windows 98.
+- **Intel Macs** get their own download next to Apple Silicon.
+- Quantm can no longer open off-screen or invisible, and copy-protected songs show a lock with **Open in SoundCloud** everywhere.
+
 ## What's new in 1.1
 
 - **Automatic updates.** From now on Quantm updates itself (Settings → About). Coming from 1.0.x? Install this version once with the Setup file below; after that, updates arrive on their own.
