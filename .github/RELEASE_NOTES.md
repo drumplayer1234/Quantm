@@ -1,5 +1,9 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.1.3
+
+- **Quantm has a new home:** https://github.com/quantm-app/Quantm. Old links still work, and updates keep arriving automatically.
+
 ## What's new in 1.1.2
 
 - **Your settings stay put through updates.** If Quantm was still open when an update installed, recent changes to your theme and settings could be lost. Quantm now keeps a backup of them and restores anything that went missing.
