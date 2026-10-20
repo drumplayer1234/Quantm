@@ -9,8 +9,8 @@ const { app, net, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-const RELEASES_PAGE = 'https://github.com/drumplayer1234/Quantm/releases/latest';
-const LATEST_API = 'https://api.github.com/repos/drumplayer1234/Quantm/releases/latest';
+const RELEASES_PAGE = 'https://github.com/quantm-app/Quantm/releases/latest';
+const LATEST_API = 'https://api.github.com/repos/quantm-app/Quantm/releases/latest';
 const FIRST_CHECK = 15 * 1000;
 const CHECK_EVERY = 6 * 60 * 60 * 1000;
 

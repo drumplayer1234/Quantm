@@ -931,7 +931,7 @@ async function aboutTab(cleanups) {
       ),
       h('p.settings-about-text', 'Quantm is free, open source (GPL-3.0) and has no ads. A successor to Soundnode.'),
       h('div.settings-actions',
-        button('View on GitHub', () => window.native.openExternal('https://github.com/drumplayer1234/Quantm'), 'btn-outline', 'external')
+        button('View on GitHub', () => window.native.openExternal('https://github.com/quantm-app/Quantm'), 'btn-outline', 'external')
       )
     ),
     updatesCard(cleanups),

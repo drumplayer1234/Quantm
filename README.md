@@ -7,7 +7,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 **🚫 No ads.** No audio ads between songs, no banners, and no promoted tracks in your feed. Free and open source.
 
 
-[**Download Quantm**](https://github.com/drumplayer1234/Quantm/releases/latest)
+[**Download Quantm**](https://github.com/quantm-app/Quantm/releases/latest)
 
 ![Quantm SoundCloud desktop client showing the glass theme, music library, and playback controls](docs/images/quantm-home.png)
 
@@ -76,7 +76,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 ## Download
 
-Grab the latest build from the [**Releases** page](https://github.com/drumplayer1234/Quantm/releases/latest):
+Grab the latest build from the [**Releases** page](https://github.com/quantm-app/Quantm/releases/latest):
 
 - **Windows:** `Quantm-Setup-x.y.z.exe` ⭐ **recommended**: installs Quantm with Start Menu and Desktop shortcuts, starts fastest, and can be uninstalled from Windows Settings.
   - `Quantm-x.y.z-Portable.exe`: runs without installing, handy for trying it out or on PCs where you can't install apps. It starts a little slower, and your settings are still saved on that PC.
@@ -86,7 +86,7 @@ Grab the latest build from the [**Releases** page](https://github.com/drumplayer
 Or install with a package manager on Windows:
 
 ```powershell
-scoop bucket add quantm https://github.com/drumplayer1234/Quantm
+scoop bucket add quantm https://github.com/quantm-app/Quantm
 scoop install quantm/quantm
 ```
 

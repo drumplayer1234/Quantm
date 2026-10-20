@@ -95,14 +95,14 @@
   "author": {
     "name": "Quantm",
     "email": "54776242+drumplayer1234@users.noreply.github.com",
-    "url": "https://github.com/drumplayer1234/Quantm"
+    "url": "https://github.com/quantm-app/Quantm"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/drumplayer1234/Quantm.git"
+    "url": "https://github.com/quantm-app/Quantm.git"
   },
-  "homepage": "https://github.com/drumplayer1234/Quantm",
+  "homepage": "https://github.com/quantm-app/Quantm",
   "bugs": {
-    "url": "https://github.com/drumplayer1234/Quantm/issues"
+    "url": "https://github.com/quantm-app/Quantm/issues"
   }
 }
