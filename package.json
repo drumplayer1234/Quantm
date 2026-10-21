@@ -1,7 +1,7 @@
 {
   "name": "quantm",
   "productName": "Quantm",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Quantm",
   "main": "main.js",
   "scripts": {

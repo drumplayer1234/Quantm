@@ -1,5 +1,9 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.1.7
+
+- **Easier manual sign-in.** If the normal sign-in doesn't work for you, "Enter a token manually" now only needs your oauth_token. Leave the client_id empty and Quantm finds one itself.
+
 ## What's new in 1.1.6
 
 - **See-through window on Windows 11** stays see-through after you minimize Quantm and bring it back, instead of turning black.
