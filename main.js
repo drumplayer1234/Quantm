@@ -454,6 +454,8 @@ function createMainWindow() {
   }, chrome));
   mainWindow.seeThrough = seeThrough;
   mainWindow.blurMethod = blurMethod;
+  // fully transparent windows get no Aero Snap from Windows: snap them ourselves
+  if (blurMethod === 'classic') require('./window-snap').enableSnapping(mainWindow, screen);
 
   if (state.maximized) mainWindow.maximize();
   let shown = false;

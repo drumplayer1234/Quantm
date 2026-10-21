@@ -23,6 +23,7 @@
       "preload.js",
       "updater.js",
       "offline.js",
+      "window-snap.js",
       "discord.js",
       "src/**/*",
       "build/icon.png",
