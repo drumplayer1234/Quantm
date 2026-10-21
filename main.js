@@ -481,6 +481,16 @@ function createMainWindow() {
   mainWindow.on('restore', () => sendVisibility(false));
   mainWindow.on('show', () => sendVisibility(false));
   mainWindow.on('unmaximize', sendMaximized);
+  // Windows 11 drops the acrylic/mica backdrop when the window is maximized or restored, leaving it
+  // black (an Electron bug fixed in later versions): put the backdrop back after each change
+  if (blurMethod && blurMethod !== 'classic' && mainWindow.setBackgroundMaterial) {
+    const reapplyBackdrop = () => setTimeout(() => {
+      if (!mainWindow || mainWindow.isDestroyed()) return;
+      mainWindow.setBackgroundMaterial('none');
+      mainWindow.setBackgroundMaterial(blurMethod);
+    }, 60);
+    ['maximize', 'unmaximize', 'restore', 'enter-full-screen', 'leave-full-screen'].forEach(name => mainWindow.on(name, reapplyBackdrop));
+  }
 
   const saveState = () => {
     if (!mainWindow || mainWindow.isMinimized()) return;

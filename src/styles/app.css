@@ -417,7 +417,7 @@ a.stat:hover { color: var(--text); }
 /* ------------------------------------------------------------------ player bar */
 
 .playerbar {
-  height: var(--player-h); flex: none; display: grid; grid-template-columns: minmax(200px, 1fr) minmax(360px, 2fr) minmax(200px, 1fr);
+  height: var(--player-h); flex: none; display: grid; grid-template-columns: minmax(180px, 1fr) minmax(300px, 2fr) minmax(max-content, 1fr);
   align-items: center; gap: 16px; padding: 0 16px; background: var(--bar); border-top: 1px solid var(--border);
   position: relative; z-index: 30; transition: transform .25s;
 }
@@ -456,6 +456,7 @@ a.stat:hover { color: var(--text); }
 .pb-progress:hover .pb-hovertime { opacity: 1; }
 .pb-right { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
 .pb-volume { flex: none; width: 100px; }
+@media (max-width: 1100px) { .pb-volume { width: 64px; } }
 .pb-queue-btn.active { color: var(--accent); }
 
 /* ------------------------------------------------------------------ queue panel */
