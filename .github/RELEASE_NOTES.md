@@ -1,5 +1,11 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.1.5
+
+- **Player bar buttons work in smaller windows.** In windows narrower than about 1180 pixels (common on laptops with display scaling), the speed, EQ and more buttons didn't respond to clicks. Fixed for every theme.
+- **See-through window on Windows 11** no longer turns black after maximizing.
+- **Snap to screen edges in see-through mode.** Drag Quantm to the top of the screen to maximize it, to a side for half the screen, or to a corner for a quarter.
+
 ## What's new in 1.1.4
 
 - **Shuffle really covers everything.** Shuffling Likes or a big playlist now loads the whole list first, so even the first song can come from anywhere in it.
