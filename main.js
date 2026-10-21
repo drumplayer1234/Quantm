@@ -468,6 +468,10 @@ function createMainWindow() {
   // never stay invisible: if the first paint is slow or never comes (graphics trouble), show anyway
   setTimeout(showWindow, 4000);
   const sendMaximized = () => mainWindow && mainWindow.webContents.send('window:maximized', mainWindow.isMaximized());
+  // macOS swipe gestures (also what side-button tools send) go back and forward
+  mainWindow.on('swipe', (event, direction) => {
+    if (direction === 'left' || direction === 'right') mainWindow.webContents.send('nav:history', direction === 'left' ? 'back' : 'forward');
+  });
   mainWindow.on('maximize', sendMaximized);
   const sendVisibility = (hidden) => mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.send('window:visibility', hidden);
   mainWindow.on('minimize', () => sendVisibility(true));

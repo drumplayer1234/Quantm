@@ -168,8 +168,18 @@ class Player extends Emitter {
   }
 
   /** Turn shuffle on and start a random track; the whole collection gets shuffled in */
-  shufflePlay(tracks, context = null) {
-    const playable = tracks.filter(t => t && t.kind !== 'playlist');
+  async shufflePlay(tracks, context = null) {
+    let playable = tracks.filter(t => t && t.kind !== 'playlist');
+    // load the whole list first, so the first song is random across all of it, not just the loaded page
+    if (context && context.loadAll) {
+      const slow = setTimeout(() => toast('Loading the whole list to shuffle…'), 700);
+      try {
+        const all = (await context.loadAll()).filter(t => t && t.kind !== 'playlist');
+        if (all.length > playable.length) playable = all;
+      } catch (e) { /* shuffle what's loaded */ } finally {
+        clearTimeout(slow);
+      }
+    }
     if (!playable.length) return;
     if (!this.shuffle) {
       this.shuffle = true;

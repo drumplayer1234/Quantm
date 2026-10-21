@@ -105,6 +105,7 @@ function profileHero(user, playContext) {
     ],
     actions: [
       button('Play', play, 'btn-primary', 'play'),
+      user.station_urn ? button('Station', () => { location.hash = '#/station/' + encodeURIComponent(user.station_urn); }, 'btn-outline', 'station') : null,
       followButton(user),
       iconButton('link', 'Copy link', () => { window.native.copy(user.permalink_url); toast('Link copied'); }),
       iconButton('external', 'Open on SoundCloud', () => window.native.openExternal(user.permalink_url))

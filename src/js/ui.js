@@ -526,11 +526,29 @@ export function trackList(pager, opts = {}) {
   const spinnerEl = spinner();
   list.append(spinnerEl);
 
-  // the play context can load every remaining page, so shuffle covers the whole collection
+  // the play context can load the whole collection, so shuffle covers all of it. Fetch it in big
+  // pages without drawing every row (1,000 likes is ~5 requests instead of ~34); fall back to paging the list.
   let loading = null;
+  let everything = null;
   const loadAll = async () => {
-    while (!pager.done) await loadMore();
-    return tracks;
+    if (pager.done) return tracks;
+    if (everything) return everything;
+    try {
+      const fast = new _api.Pager(pager.resource, Object.assign({}, pager.params, { limit: 200 }), pager.map);
+      fast.afterLoad = pager.afterLoad;
+      const all = [];
+      const seen = new Set();
+      for (let pages = 0; !fast.done && pages < 100; pages++) {
+        for (const t of await fast.next()) {
+          if (t && t.kind === 'track' && !seen.has(t.id)) { seen.add(t.id); all.push(t); }
+        }
+      }
+      everything = all;
+      return all;
+    } catch (e) {
+      while (!pager.done) await loadMore();
+      return tracks;
+    }
   };
   opts = Object.assign({}, opts, { context: Object.assign({}, opts.context, { loadAll }) });
   list.loadAll = loadAll;
@@ -832,10 +850,18 @@ export function tabs(list, active) {
 /** Big hero header for track / playlist / user pages, blurred artwork behind */
 export function hero({ image, round = false, eyebrow, title, subtitle, meta, actions, banner }) {
   const bg = banner || image;
+  const art = h('div.hero-art' + (round ? '.round' : ''), { style: { backgroundImage: image ? `url("${image}")` : '' } });
+  if (image) {
+    Object.assign(art, { tabIndex: 0, title: 'View full size' });
+    art.setAttribute('role', 'button');
+    art.classList.add('zoomable');
+    art.addEventListener('click', () => showArtwork(image));
+    art.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showArtwork(image); } });
+  }
   return h('section.hero',
     h('div.hero-bg', { style: { backgroundImage: bg ? `url("${bg}")` : '' } }),
     h('div.hero-inner',
-      h('div.hero-art' + (round ? '.round' : ''), { style: { backgroundImage: image ? `url("${image}")` : '' } }),
+      art,
       h('div.hero-text',
         eyebrow ? h('div.hero-eyebrow', eyebrow) : null,
         h('h1.hero-title', title),
@@ -845,6 +871,26 @@ export function hero({ image, round = false, eyebrow, title, subtitle, meta, act
       )
     )
   );
+}
+
+/** Artwork at its original upload size (falls back to the 500px version, which always exists) */
+export function showArtwork(url) {
+  const fallback = artwork(url, 't500x500');
+  const candidates = [artwork(url, 'original'), artwork(url, 'original').replace(/\.jpg$/, '.png'), fallback];
+  const img = h('img.artwork-full', { alt: 'Artwork', draggable: false });
+  let attempt = 0;
+  img.addEventListener('error', () => { if (++attempt < candidates.length) img.src = candidates[attempt]; });
+  img.src = candidates[0];
+  const close = () => {
+    overlay.classList.remove('show');
+    document.removeEventListener('keydown', onKey, true);
+    setTimeout(() => overlay.remove(), 200);
+  };
+  const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  const overlay = h('div.artwork-overlay', { onclick: close, title: 'Click or press Esc to close' }, img);
+  document.addEventListener('keydown', onKey, true);
+  document.body.append(overlay);
+  requestAnimationFrame(() => overlay.classList.add('show'));
 }
 
 export function spinner() {

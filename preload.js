@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('native', {
   setBlurMethod: (method) => ipcRenderer.invoke('window:setBlurMethod', method),
   windowControl: (action) => ipcRenderer.invoke('window:control', action),
   onMaximized: (fn) => ipcRenderer.on('window:maximized', (event, value) => fn(value)),
+  onNavigate: (fn) => ipcRenderer.on('nav:history', (event, direction) => fn(direction === 'back' ? 'back' : 'forward')),
   openExternal: (url) => ipcRenderer.invoke('shell:open', url),
   copy: (text) => ipcRenderer.invoke('clipboard:write', text),
   discord: {

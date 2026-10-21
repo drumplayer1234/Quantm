@@ -359,6 +359,8 @@ function setupShortcuts(searchInput) {
     if (e.code === 'Space') { e.preventDefault(); player.toggle(); }
     else if (e.altKey && e.key === 'ArrowLeft') history.back();
     else if (e.altKey && e.key === 'ArrowRight') history.forward();
+    else if (ctrl && e.key === '[') { e.preventDefault(); history.back(); }
+    else if (ctrl && e.key === ']') { e.preventDefault(); history.forward(); }
     else if (ctrl && e.key === 'ArrowRight') { e.preventDefault(); player.next(); }
     else if (ctrl && e.key === 'ArrowLeft') { e.preventDefault(); player.prev(); }
     else if (e.key === 'ArrowRight') player.seekBy(10);
@@ -377,6 +379,8 @@ function setupShortcuts(searchInput) {
     if (e.button === 3) history.back();
     if (e.button === 4) history.forward();
   });
+  // macOS: trackpad swipes and side-button tools (e.g. Sensible Side Buttons) arrive as swipes
+  if (window.native.onNavigate) window.native.onNavigate((direction) => (direction === 'back' ? history.back() : history.forward()));
 }
 
 boot();

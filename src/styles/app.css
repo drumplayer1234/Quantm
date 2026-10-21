@@ -742,6 +742,17 @@ a.stat:hover { color: var(--text); }
   background: color-mix(in srgb, #f2b705 14%, transparent); color: var(--text); font-size: 13px;
 }
 
+/* full-size artwork viewer */
+.hero-art.zoomable { cursor: zoom-in; }
+.hero-art.zoomable:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.artwork-overlay {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 32px;
+  background: color-mix(in srgb, #000 82%, transparent); cursor: zoom-out; opacity: 0; transition: opacity .2s;
+}
+.artwork-overlay.show { opacity: 1; }
+.artwork-full { max-width: min(92vw, 1200px); max-height: 88vh; object-fit: contain; border-radius: var(--radius); box-shadow: 0 30px 90px #000a; }
+[data-perf] .artwork-overlay { transition: none; }
+
 /* Theme packs own only this non-interactive effects layer. */
 .theme-layer { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
 body:has(> .theme-layer) #app { position: relative; z-index: 1; }
