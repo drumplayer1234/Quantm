@@ -1,5 +1,12 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.1.4
+
+- **Shuffle really covers everything.** Shuffling Likes or a big playlist now loads the whole list first, so even the first song can come from anywhere in it.
+- **Artist stations.** Start a station from any artist page.
+- **Back and forward on Mac.** Cmd+[ and Cmd+], trackpad swipes, and mouse side-button tools like Sensible Side Buttons now work.
+- **Full-size artwork.** Click the big cover on a track, playlist or artist page to see it at its original size.
+
 ## What's new in 1.1.3
 
 - **Quantm has a new home:** https://github.com/quantm-app/Quantm. Old links still work, and updates keep arriving automatically.
