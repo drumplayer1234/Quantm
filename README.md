@@ -20,17 +20,17 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Offline downloads.** Tracks whose artist allows downloads can be saved in the artist's original format and played without internet from Library → Offline. Other tracks can't be downloaded.
 - **Listening stats.** See your hours, plays, streaks, top tracks, artists and genres by week, month or year, earn badges, and save a shareable stats card as an image. Everything is counted on your computer and never uploaded.
 - **No ads, ever.** No audio ads, banners or promoted posts. Just your music.
-- **Sign in inside the app.** Log in with your SoundCloud account in a built-in sign-in window, or enter a token manually if that doesn't work. Your token is stored encrypted on your computer.
+- **Sign in inside the app.** Log in with your SoundCloud account in a built-in sign-in window, or enter your oauth_token manually if that doesn't work (the client_id is optional, Quantm finds one). Your token is stored encrypted on your computer.
 - **Home with personalized shelves.** Recently played, mixes, "more of what you like", stations and trending picks, all picked for you.
 - **Feed.** New posts and reposts from the people you follow.
 - **Library.** Your likes, playlists, albums, stations, listening history and who you follow.
 - **Trending charts.** See what's popular across all music, or browse 30 genres.
 - **Full search.** Find tracks, people, albums and playlists, with suggestions as you type. Paste any soundcloud.com link to jump straight to it.
-- **Artist profiles.** Popular tracks, tracks, albums, playlists, reposts, likes, followers and following, plus the artist's bio.
-- **Track pages.** Full waveform, timed comments (post and delete your own), related tracks, and who liked or reposted.
-- **Quantm playlists.** Playlists saved on this computer with instant edits and JSON export/import; not synced to SoundCloud.
+- **Artist profiles.** Popular tracks, tracks, albums, playlists, reposts, likes, followers and following, plus the artist's bio. Start a station of the artist's sound in one click.
+- **Track pages.** Full waveform, timed comments (post and delete your own), related tracks, and who liked or reposted. Click the cover art to see it at its original size.
+- **Quantm playlists.** Playlists saved on this computer with instant adds and removes, drag to reorder, and JSON export/import to move them between computers. Copy any SoundCloud playlist into Quantm with one click. Not synced to SoundCloud.
 - **Playlist editing.** Create, rename, make private or public, delete, drag to reorder, and remove tracks.
-- **Stations.** Start a station based on any track.
+- **Stations.** Start a station based on any track or artist.
 - **Notifications.** Likes, reposts, comments and new followers.
 - **Like, repost and follow from anywhere.** No need to visit the artist's page first.
 
@@ -39,7 +39,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **High-quality HLS streaming.** Smooth, high-quality playback of SoundCloud's streams.
 - **Add to playlist from the player bar.** Save the track that's playing in one click.
 - **Queue.** See what's next, drag tracks to reorder them, play next, or add to the queue.
-- **Shuffle and repeat.** Shuffle covers your whole collection, not just what's loaded. Repeat all or repeat one.
+- **Shuffle and repeat.** Shuffle loads your whole collection first, so even a 1,000-song Likes list shuffles from all of it. Repeat all or repeat one.
 - **Autoplay.** Related tracks keep playing when your queue runs out.
 - **Crossfade.** Blend from one song into the next, from 0 to 12 seconds.
 - **Cue points and custom transitions.** Press C to bookmark a moment and 1–9 to jump to a cue. Set mix-in and mix-out with I and O, or right-click a waveform. Edit and rename markers from the track menu, or choose exact leave/start times and a fade for each pair in the queue. Custom transitions work even with crossfade off.
@@ -50,7 +50,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Resume where you left off.** Reopen the app to your last song, queue and position, paused.
 - **Automatic updates.** The installer version downloads new releases in the background and installs them when you restart or close Quantm. The portable and Linux .deb versions tell you when a new version is out. Turn automatic downloads off in Settings → About.
 - **Media keys and system controls.** Use your keyboard's media keys and the Windows and macOS media controls. Desktop notifications show when a new track starts.
-- **Keyboard shortcuts.** Space to play or pause, arrows to seek, Ctrl+arrows to skip or change volume, M to mute, L to like, S to shuffle, R to repeat, Ctrl+F or Ctrl+K to search, Alt+arrows to go back and forward, and `Shift+<` / `Shift+>` for speed.
+- **Keyboard shortcuts.** Space to play or pause, arrows to seek, Ctrl+arrows to skip or change volume, M to mute, L to like, S to shuffle, R to repeat, Ctrl+F or Ctrl+K to search, Alt+arrows, Ctrl/Cmd+[ and ], your mouse's side buttons or a Mac trackpad swipe to go back and forward, and `Shift+<` / `Shift+>` for speed.
 
 **Make it yours**
 
@@ -58,7 +58,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Overhaul themes.** Themes that change the whole experience, not just the look: **Listening Room** turns Home into a stage with giant artwork and soft light from the cover that breathes with the music; **Pocket Quantm** is a retro handheld player with a working click wheel; **Terminal Multiplexer** is a workstation of resizable panes, an ASCII spectrum, an event log and a `:` command prompt. Motion and music-reactive lighting follow Settings → Appearance → Theme effects (Auto, On or Off) and stay off in Performance mode.
 - **Custom themes.** Edit every color and the corner roundness, copy a theme to share it or import one, or try the random theme generator.
 - **Day and night schedule.** Switch between a day theme and a night theme automatically.
-- **See-through window.** With Liquid Glass, your desktop shows through the app, blurred, on Windows and macOS. On Windows 11 you can also try the native Acrylic or Mica styles (Settings → Appearance → Window).
+- **See-through window.** With Liquid Glass, your desktop shows through the app, blurred, on Windows and macOS. On Windows 11 you can also try the native Acrylic or Mica styles (Settings → Appearance → Window). Drag the see-through window to a screen edge to snap it: top to maximize, sides for half the screen, corners for a quarter.
 - **Layout.** Top bar or sidebar navigation, player bar at the top or bottom, compact density, and the option to hide play counts and genre tags.
 - **Backgrounds.** Use your own picture or the playing song's artwork, with dimming and blur.
 - **Matching accent color.** The accent color follows the artwork of the song that's playing.
@@ -71,7 +71,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 - **Discord status.** Show "Listening to Quantm" with the song, artist, artwork and a progress bar, plus a "Listen on SoundCloud" button. Needs the Discord desktop app, and you can turn it off.
 - **Performance page.** Live CPU and memory readouts, Performance mode (no blur or animations), visuals paused while minimized, and a hardware acceleration switch. Light enough to leave running while you game.
-- **Remembers your setup.** Your themes and settings carry over every time you restart.
+- **Remembers your setup.** Your themes and settings carry over every time you restart, and survive updates: Quantm keeps a backup and restores anything that went missing.
 - **Installers for every platform.** Windows Setup (recommended) and a portable version, plus macOS `.dmg` for Apple Silicon and Intel, and Linux AppImage and `.deb` packages.
 
 ## Download
