@@ -1,5 +1,9 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.1.6
+
+- **See-through window on Windows 11** stays see-through after you minimize Quantm and bring it back, instead of turning black.
+
 ## What's new in 1.1.5
 
 - **Player bar buttons work in smaller windows.** In windows narrower than about 1180 pixels (common on laptops with display scaling), the speed, EQ and more buttons didn't respond to clicks. Fixed for every theme.
