@@ -592,9 +592,16 @@ handle('auth:logout', async () => {
   await session.fromPartition(LOGIN_PARTITION).clearStorageData();
   return true;
 });
-handle('auth:setManual', (event, { token, clientId } = {}) => {
-  if (typeof token !== 'string' || !token.trim() || token.length > 512 || !/^[a-zA-Z0-9]{32}$/.test((clientId || '').trim())) return false;
-  saveAuth({ token: token.trim(), clientId: clientId.trim() });
+// manual sign-in: the token is required; the client_id is optional because Quantm can find a public one itself
+handle('auth:setManual', async (event, { token, clientId } = {}) => {
+  if (typeof token !== 'string' || !token.trim() || token.length > 512 || /\s/.test(token.trim())) return false;
+  let id = typeof clientId === 'string' ? clientId.trim() : '';
+  if (id && !/^[a-zA-Z0-9]{32}$/.test(id)) return false;
+  if (!id) {
+    try { id = await scrapeClientId(); } catch (e) { return false; }
+    if (!/^[a-zA-Z0-9]{32}$/.test(id || '')) return false;
+  }
+  saveAuth({ token: token.trim(), clientId: id });
   return true;
 });
 

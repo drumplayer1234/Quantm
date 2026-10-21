@@ -117,14 +117,14 @@ async function showOffline() {
 function showLogin(message) {
   clear(app);
   const tokenInput = h('input.input', { placeholder: 'oauth_token cookie value' });
-  const clientInput = h('input.input', { placeholder: 'client_id (32 characters)' });
+  const clientInput = h('input.input', { placeholder: 'client_id (optional, found automatically)' });
   const manual = h('div.login-manual.hidden',
-    h('p.muted.small', 'Copy the "oauth_token" cookie from soundcloud.com (DevTools → Application → Cookies) and a client_id from any api-v2.soundcloud.com request.'),
+    h('p.muted.small', 'Copy the "oauth_token" cookie from soundcloud.com (DevTools → Application → Cookies). The client_id is optional: leave it empty and Quantm finds one.'),
     tokenInput, clientInput,
     button('Save and continue', async () => {
       const ok = await window.native.auth.setManual(tokenInput.value, clientInput.value);
       if (ok) location.reload();
-      else toast('Check both values and try again', 'error');
+      else toast(clientInput.value.trim() ? 'Check both values and try again' : "Couldn't sign in with that token. Check it and try again", 'error');
     }, 'btn-primary')
   );
 
