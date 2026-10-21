@@ -484,12 +484,16 @@ function createMainWindow() {
   // Windows 11 drops the acrylic/mica backdrop when the window is maximized or restored, leaving it
   // black (an Electron bug fixed in later versions): put the backdrop back after each change
   if (blurMethod && blurMethod !== 'classic' && mainWindow.setBackgroundMaterial) {
-    const reapplyBackdrop = () => setTimeout(() => {
-      if (!mainWindow || mainWindow.isDestroyed()) return;
+    const apply = () => {
+      if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isMinimized()) return;
       mainWindow.setBackgroundMaterial('none');
       mainWindow.setBackgroundMaterial(blurMethod);
-    }, 60);
-    ['maximize', 'unmaximize', 'restore', 'enter-full-screen', 'leave-full-screen'].forEach(name => mainWindow.on(name, reapplyBackdrop));
+    };
+    // once right away and once after Windows' maximize / restore-from-taskbar animation has finished
+    const reapplyBackdrop = () => { setTimeout(apply, 60); setTimeout(apply, 450); };
+    ['maximize', 'unmaximize', 'restore', 'show', 'enter-full-screen', 'leave-full-screen'].forEach(name => mainWindow.on(name, reapplyBackdrop));
+    // coming back from the taskbar also focuses the window; one quick re-apply covers that path too
+    mainWindow.on('focus', () => setTimeout(apply, 60));
   }
 
   const saveState = () => {
