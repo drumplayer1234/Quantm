@@ -48,7 +48,7 @@ export class BeatWatcher {
       const t = audio.currentTime;
       // a seek backwards (or a new song on the deck) starts the recording over
       if (samples.length && t < samples[samples.length - 1].t - 0.5) samples.length = 0;
-      samples.push({ t, v: energy.low, h: energy.high });
+      samples.push({ t, v: energy.low, h: energy.high, f: energy.full });
       if (samples[0].t < t - KEEP_SECONDS - 5) {
         const keep = samples.findIndex(s => s.t >= t - KEEP_SECONDS);
         samples.splice(0, keep);
@@ -60,6 +60,18 @@ export class BeatWatcher {
   heard(audio) {
     const samples = this.watched.get(audio);
     return samples && samples.length > 1 ? samples[samples.length - 1].t - samples[0].t : 0;
+  }
+
+  /** Average energy of the last `seconds` the deck played, ignoring quiet breaks (like the loudness meter's gate), or null */
+  loudness(audio, seconds = 20) {
+    const samples = this.watched.get(audio);
+    if (!samples || samples.length < 100) return null;
+    const end = samples[samples.length - 1].t;
+    const values = samples.filter(s => s.t >= end - seconds && s.f > 1e-7).map(s => s.f);
+    if (values.length < 100) return null;
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const loud = values.filter(v => v > mean * 0.1);
+    return loud.reduce((a, b) => a + b, 0) / loud.length;
   }
 
   /** Beat grid from the last `seconds` the deck played, in media time; null if there's no clear beat */
@@ -93,12 +105,13 @@ export function alignedStart(match, outgoingTime, from) {
   return from + shift * match.gridIn.period;
 }
 
-/** How many media seconds the mix should last for a song at this tempo: 32 beats, or 16 for slow songs; 6-16 s */
+export const MAX_MIX_SECONDS = 24;
+/** How many media seconds the mix should last at this tempo: the longest of 64, 32 or 16 beats that fits in 24 s */
 export function mixSeconds(grid, rate = 1) {
   if (!grid) return 8;
   const beat = grid.period / rate;
-  const n = beat * 32 <= 16 ? 32 : 16;
-  return Math.min(16, Math.max(6, n * beat)) * rate;
+  const n = [64, 32, 16].find(beats => beats * beat <= MAX_MIX_SECONDS) || 16;
+  return Math.min(MAX_MIX_SECONDS, Math.max(6, n * beat)) * rate;
 }
 
 /** Keeps the incoming song's beats on the outgoing song's by nudging its speed, like a DJ riding the pitch fader */

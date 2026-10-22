@@ -70,10 +70,11 @@ test('EQ graph covers both decks before the limiter and bypasses preamp as well 
   const second = {};
   assert.equal(normalizer.addDeck(second), true);
   for (const deck of [normalizer.decks.get(audio), normalizer.decks.get(second)]) {
-    // fade → Auto mix bass shelf → normalize gain
+    // fade → Auto mix bass shelf → the deck's loudness gain → mix
     assert.equal(deck.fade.outputs[0], deck.bass);
     assert.equal(deck.bass.type, 'lowshelf');
-    assert.equal(deck.bass.outputs[0], gain);
+    assert.equal(deck.bass.outputs[0], deck.level);
+    assert.equal(deck.level.outputs[0], gain);
   }
   normalizer.setEqualizer({ enabled: false, preamp: 12, gains: [12, 12, 12, 12, 12] });
   assert.equal(preamp.gain.targets.at(-1).value, 1);

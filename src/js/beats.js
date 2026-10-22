@@ -153,10 +153,10 @@ export function estimateTempo(onsets, frameRate = FRAME_RATE, opts = {}) {
   };
   let fit = refine(chosen.lag);
   if (!fit) return null;
-  // Syncopated kicks (drum & bass) can make 2/3 or 3/2 of the tempo look strongest; the tempo
-  // whose bar repeats best wins.
+  // Syncopated kicks (drum & bass) and trance rolls can make 2/3, 3/4 or 4/5 of the tempo look
+  // strongest; the tempo whose bar repeats best wins.
   let best = support(60 * frameRate / fit.bpm);
-  for (const factor of [1.5, 2 / 3, 4 / 3, 0.75]) {
+  for (const factor of [1.5, 2 / 3, 4 / 3, 0.75, 1.25, 0.8]) {
     const candidate = fit.bpm * factor;
     if (candidate < minBpm || candidate > maxBpm) continue;
     const score = support(60 * frameRate / candidate);

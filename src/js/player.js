@@ -6,7 +6,7 @@ import { Emitter, artwork } from './dom.js';
 import { store, settings, saveSettings } from './store.js';
 import { toast } from './ui.js';
 import { Normalizer } from './normalizer.js';
-import { BeatWatcher, BeatLock, ANALYZE_SECONDS, ANALYZE_MAX_SECONDS, matchTempo, alignedStart, mixSeconds } from './automix.js';
+import { BeatWatcher, BeatLock, ANALYZE_SECONDS, ANALYZE_MAX_SECONDS, MAX_MIX_SECONDS, matchTempo, alignedStart, mixSeconds } from './automix.js';
 
 /** Uniformly random order (Fisher-Yates), returns a new array */
 function randomOrder(list) {
@@ -426,8 +426,8 @@ class Player extends Emitter {
     const rate = audio.playbackRate || 1;
     const left = dur - audio.currentTime;
     if (left < AUTO_LISTEN * rate) this.beats.watch(audio);
-    // the longest mix is 16 s: decide just before its look-ahead would have to begin
-    if (left > (16 + AUTO_LEAD + 1) * rate) return { span: 0 };
+    // decide just before the longest mix's look-ahead would have to begin
+    if (left > (MAX_MIX_SECONDS + AUTO_LEAD + 1) * rate) return { span: 0 };
     const grid = this.beats.heard(audio) >= 12 ? this.beats.grid(audio, 20) : null;
     this.mixPlan = { loadId: this.loadId, grid, span: mixSeconds(grid, rate) };
     return this.mixPlan;
@@ -466,6 +466,7 @@ class Player extends Emitter {
     if (pre.done) return;
     pre.done = true;
     clearInterval(pre.timer);
+    pre.loudness = this.beats.loudness(pre.deck.audio);
     this.beats.unwatch(pre.deck.audio);
     if (pre.deck.track !== pre.track) return;
     pre.deck.audio.pause();
@@ -567,19 +568,28 @@ class Player extends Emitter {
     const track = this.current;
     this.loadId++;
     if (!pre) this.releaseDeck(incoming);
-    // Auto mix swaps the two songs' bass halfway through (not for quick cuts)
+    // Auto mix blends like a DJ and swaps the two songs' bass halfway through, over one bar (not for quick cuts)
     const bass = prep.auto && seconds >= 2;
-    const fading = this.fading = { from, to: track, outgoing, incoming, seconds, bass, progress: 0, startedAt: null, timer: null, fallback: null };
+    const grid = match ? match.gridOut : plan && plan.grid;
+    const bar = grid ? 4 * grid.period / rate : 0;
+    const bassWidth = bar ? Math.min(0.25, Math.max(0.06, bar / seconds)) : 0.2;
+    const fading = this.fading = { from, to: track, outgoing, incoming, seconds, bass, bassWidth, shapeIn: null, shapeOut: null,
+      progress: 0, startedAt: null, timer: null, fallback: null };
 
+    if (bass) fading.shapeIn = fading.shapeOut = { dj: true };
+    // each deck has its own loudness level, so the outgoing song keeps its level to the end.
+    // A song never heard before starts at the level measured against this one while pre-playing.
+    const outLoudness = pre && pre.loudness ? this.beats.loudness(audio) : null;
+    const louderDb = outLoudness ? 10 * Math.log10(pre.loudness / outLoudness) : null;
+    norm.setActive(incoming.audio);
+    norm.startTrack(track.id, louderDb);
     norm.setFade(incoming.audio, 0);
     norm.setFade(outgoing.audio, 1);
-    norm.holdBass(incoming.audio, true, bass ? 0 : null);
-    norm.holdBass(outgoing.audio, false, bass ? 0 : null);
-    norm.startTrack(track.id, seconds);
+    norm.holdBass(incoming.audio, true, bass ? 0 : null, bassWidth);
+    norm.holdBass(outgoing.audio, false, bass ? 0 : null, bassWidth);
     Object.assign(track, prep.stream.track);
     if (prep.stream.snipped) toast('Only a 30 second preview is available for this track');
     this.active = 1 - this.active;
-    norm.setActive(incoming.audio);
     this.stopLock();
     if (pre) {
       // start on the beat; BeatLock then keeps it there and matches the tempo
@@ -609,11 +619,11 @@ class Player extends Emitter {
     const left = f.seconds * (1 - f.progress);
     if (!f.announced) { f.announced = true; this.emit('transition', { phase: 'start', from: f.from, to: f.to }); }
     f.startedAt = norm.ctx.currentTime;
-    norm.fadeDeck(f.incoming.audio, true, left, f.progress);
-    norm.fadeDeck(f.outgoing.audio, false, left, f.progress);
+    norm.fadeDeck(f.incoming.audio, true, left, f.progress, f.shapeIn);
+    norm.fadeDeck(f.outgoing.audio, false, left, f.progress, f.shapeOut);
     if (f.bass) {
-      norm.swapBass(f.incoming.audio, true, left, f.progress);
-      norm.swapBass(f.outgoing.audio, false, left, f.progress);
+      norm.swapBass(f.incoming.audio, true, left, f.progress, f.bassWidth);
+      norm.swapBass(f.outgoing.audio, false, left, f.progress, f.bassWidth);
     }
     clearTimeout(f.timer);
     f.timer = setTimeout(() => this.finishFade(f), left * 1000 + 100);
@@ -627,11 +637,11 @@ class Player extends Emitter {
     f.progress = Math.min(1, f.progress + (norm.ctx.currentTime - f.startedAt) / f.seconds);
     f.startedAt = null;
     clearTimeout(f.timer);
-    norm.holdFade(f.incoming.audio, true, f.progress);
-    norm.holdFade(f.outgoing.audio, false, f.progress);
+    norm.holdFade(f.incoming.audio, true, f.progress, f.shapeIn);
+    norm.holdFade(f.outgoing.audio, false, f.progress, f.shapeOut);
     if (f.bass) {
-      norm.holdBass(f.incoming.audio, true, f.progress);
-      norm.holdBass(f.outgoing.audio, false, f.progress);
+      norm.holdBass(f.incoming.audio, true, f.progress, f.bassWidth);
+      norm.holdBass(f.outgoing.audio, false, f.progress, f.bassWidth);
     }
   }
 

@@ -4,10 +4,11 @@
 //
 //   <audio> → source ─┬─ meter tap → meter (K-weighting-ish filters → analyser)
 //                     ├─ beat taps → low-pass / high-pass → analysers (Auto mix listens for kicks and snares, automix.js)
-//                     └─ deck fade gain → deck bass → normalize gain → preamp → EQ → limiter → user volume → sleep gain → speakers
+//                     └─ deck fade gain → deck bass → deck loudness gain → mix → preamp → EQ → limiter → user volume → sleep gain → speakers
 //
-// There is one source + fade gain + bass shelf per <audio> element ("deck"), so two tracks can
-// overlap while crossfading (Auto mix swaps their bass halfway). The meter only listens to the active deck.
+// There is one source + fade gain + bass shelf + loudness gain per <audio> element ("deck"), so two
+// tracks can overlap while crossfading, each at its own normalized level (Auto mix swaps their bass
+// halfway). The meter only listens to the active deck and adjusts that deck's loudness gain.
 
 import { safeParse } from './store.js';
 import { EQ_BANDS, normalizeEqualizer } from './equalizer.js';
@@ -25,10 +26,20 @@ const BASS_KILL = -26;       // dB on a deck's bass shelf while Auto mix keeps i
 
 const dbToGain = (db) => Math.pow(10, db / 20);
 /** Equal-power fade level at t (0..1): the two tracks together keep a steady loudness */
-const fadeLevel = (fadeIn, t) => (fadeIn ? Math.sin(t * Math.PI / 2) : Math.cos(t * Math.PI / 2));
-/** Bass swap at t (0..1): only one song's bass plays at a time, handing over between 40% and 60% */
-const bassLevel = (fadeIn, t) => {
-  const swap = Math.min(1, Math.max(0, (t - 0.4) / 0.2));
+const equalPower = (fadeIn, t) => (fadeIn ? Math.sin(t * Math.PI / 2) : Math.cos(t * Math.PI / 2));
+const smooth = (t) => { const x = Math.min(1, Math.max(0, t)); return x * x * (3 - 2 * x); };
+/**
+ * Level of a deck at t (0..1) of the fade. shape.dj (Auto mix) blends like a DJ: the incoming song
+ * comes up to full during the first half (its bass still out), the outgoing one stays full until
+ * the halfway bass swap and then goes.
+ */
+const fadeLevel = (fadeIn, t, shape) => {
+  if (!shape || !shape.dj) return equalPower(fadeIn, t);
+  return fadeIn ? Math.sin(smooth(t / 0.5) * Math.PI / 2) : Math.cos(smooth((t - 0.5) / 0.5) * Math.PI / 2);
+};
+/** Bass swap at t (0..1): only one song's bass plays at a time, handing over around the middle over `width` of the mix */
+const bassLevel = (fadeIn, t, width = 0.2) => {
+  const swap = smooth((t - (0.5 - width / 2)) / width);
   return BASS_KILL * (fadeIn ? 1 - swap : swap);
 };
 
@@ -133,13 +144,18 @@ export class Normalizer {
       snare.frequency.value = 2000;
       const hats = ctx.createAnalyser();
       hats.fftSize = 512;
+      // and the whole signal, so Auto mix can compare two songs' loudness before mixing them
+      const full = ctx.createAnalyser();
+      full.fftSize = 512;
       const silent = ctx.createGain();
       silent.gain.value = 0;
       source.connect(tap).connect(this.meterIn);
-      source.connect(fade).connect(bass).connect(this.gain);
+      const level = ctx.createGain(); // this deck's loudness normalization
+      source.connect(fade).connect(bass).connect(level).connect(this.gain);
       source.connect(kick).connect(beats).connect(silent).connect(ctx.destination);
       source.connect(snare).connect(hats).connect(silent);
-      this.decks.set(audio, { source, tap, fade, bass, beats, hats, beatBuffer: new Float32Array(beats.fftSize) });
+      source.connect(full).connect(silent);
+      this.decks.set(audio, { source, tap, fade, bass, level, beats, hats, full, beatBuffer: new Float32Array(beats.fftSize) });
       return true;
     } catch (error) {
       console.error('Second audio deck unavailable', error);
@@ -147,8 +163,16 @@ export class Normalizer {
     }
   }
 
+  /** The active deck's loudness gain (the one the meter adjusts), or null */
+  get level() {
+    const deck = this.decks.get(this.audio);
+    return deck ? deck.level.gain : null;
+  }
+
   /** The deck whose track is the current one: the meter measures it */
   setActive(audio) {
+    // remembered so a new song can be set relative to the one before it (startTrack's louderDb)
+    if (audio !== this.audio && this.level) this.previousDb = 20 * Math.log10(Math.max(this.level.value, 1e-6));
     this.audio = audio;
     for (const [el, deck] of this.decks) deck.tap.gain.value = el === audio ? 1 : 0;
   }
@@ -161,48 +185,48 @@ export class Normalizer {
     deck.fade.gain.setValueAtTime(level, this.ctx.currentTime);
   }
 
-  /** Equal-power fade from `from` (0..1 of the whole fade) to the end over `seconds` */
-  fadeDeck(audio, fadeIn, seconds, from = 0) {
+  /** Fade from `from` (0..1 of the whole fade) to the end over `seconds`; equal-power unless shape.dj (see fadeLevel) */
+  fadeDeck(audio, fadeIn, seconds, from = 0, shape = null) {
     const deck = this.decks.get(audio);
     if (!deck) return;
     const now = this.ctx.currentTime;
     deck.fade.gain.cancelScheduledValues(now);
-    deck.fade.gain.setValueAtTime(fadeLevel(fadeIn, from), now);
-    if (seconds <= 0 || from >= 1) { deck.fade.gain.setValueAtTime(fadeLevel(fadeIn, 1), now); return; }
+    deck.fade.gain.setValueAtTime(fadeLevel(fadeIn, from, shape), now);
+    if (seconds <= 0 || from >= 1) { deck.fade.gain.setValueAtTime(fadeLevel(fadeIn, 1, shape), now); return; }
     const curve = new Float32Array(CURVE_POINTS);
-    for (let i = 0; i < CURVE_POINTS; i++) curve[i] = fadeLevel(fadeIn, from + (1 - from) * i / (CURVE_POINTS - 1));
+    for (let i = 0; i < CURVE_POINTS; i++) curve[i] = fadeLevel(fadeIn, from + (1 - from) * i / (CURVE_POINTS - 1), shape);
     deck.fade.gain.setValueCurveAtTime(curve, now, seconds);
   }
 
   /** Freeze a deck's fade where it is (progress 0..1), used while paused mid-crossfade */
-  holdFade(audio, fadeIn, progress) {
-    this.setFade(audio, fadeLevel(fadeIn, Math.min(1, Math.max(0, progress))));
+  holdFade(audio, fadeIn, progress, shape = null) {
+    this.setFade(audio, fadeLevel(fadeIn, Math.min(1, Math.max(0, progress)), shape));
   }
 
   /** Auto mix bass swap from `from` (0..1 of the whole mix) to the end over `seconds` */
-  swapBass(audio, fadeIn, seconds, from = 0) {
+  swapBass(audio, fadeIn, seconds, from = 0, width = 0.2) {
     const deck = this.decks.get(audio);
     if (!deck) return;
     const param = deck.bass.gain;
     const now = this.ctx.currentTime;
     param.cancelScheduledValues(now);
-    param.setValueAtTime(bassLevel(fadeIn, from), now);
-    if (seconds <= 0 || from >= 1) { param.setValueAtTime(bassLevel(fadeIn, 1), now); return; }
+    param.setValueAtTime(bassLevel(fadeIn, from, width), now);
+    if (seconds <= 0 || from >= 1) { param.setValueAtTime(bassLevel(fadeIn, 1, width), now); return; }
     const curve = new Float32Array(CURVE_POINTS);
-    for (let i = 0; i < CURVE_POINTS; i++) curve[i] = bassLevel(fadeIn, from + (1 - from) * i / (CURVE_POINTS - 1));
+    for (let i = 0; i < CURVE_POINTS; i++) curve[i] = bassLevel(fadeIn, from + (1 - from) * i / (CURVE_POINTS - 1), width);
     param.setValueCurveAtTime(curve, now, seconds);
   }
 
   /** Freeze the bass swap where it is (progress 0..1), or pass null to give the deck its full bass back */
-  holdBass(audio, fadeIn, progress) {
+  holdBass(audio, fadeIn, progress, width = 0.2) {
     const deck = this.decks.get(audio);
     if (!deck) return;
     const param = deck.bass.gain;
     param.cancelScheduledValues(this.ctx.currentTime);
-    param.setValueAtTime(progress == null ? 0 : bassLevel(fadeIn, Math.min(1, Math.max(0, progress))), this.ctx.currentTime);
+    param.setValueAtTime(progress == null ? 0 : bassLevel(fadeIn, Math.min(1, Math.max(0, progress)), width), this.ctx.currentTime);
   }
 
-  /** What the deck is playing right now for Auto mix's beat detector: { low, high } energy, or null */
+  /** What the deck is playing right now for Auto mix: { low, high, full } energy, or null */
   beatEnergy(audio) {
     const deck = this.decks.get(audio);
     if (!deck) return null;
@@ -212,32 +236,50 @@ export class Normalizer {
       for (let i = 0; i < deck.beatBuffer.length; i++) sum += deck.beatBuffer[i] * deck.beatBuffer[i];
       return sum / deck.beatBuffer.length;
     };
-    return { low: energy(deck.beats), high: energy(deck.hats) };
+    return { low: energy(deck.beats), high: energy(deck.hats), full: energy(deck.full) };
   }
 
-  /** Called when a new track starts loading. smooth (seconds) eases the level in, for crossfades */
-  startTrack(trackId, smooth = 0) {
+  /**
+   * Where a song never heard before starts: the median level of the songs measured so far.
+   * Most uploads are mastered loud, so starting unadjusted (0 dB) meant an audible dip a second
+   * or two in, once the meter caught up.
+   */
+  typicalDb() {
+    const levels = Object.values(this.cache).filter(v => typeof v === 'number').map(v => this.gainFor(v)).sort((a, b) => a - b);
+    return levels.length >= 5 ? levels[Math.floor(levels.length / 2)] : 0;
+  }
+
+  /** Whether this track's loudness was measured before */
+  knows(trackId) { return typeof this.cache[trackId] === 'number'; }
+
+  /**
+   * Called when a new track starts loading on the active deck (call setActive first).
+   * louderDb: for a track never measured, how much louder it is than the song before it (Auto mix
+   * compares them while pre-playing), so it starts at about the right level instead of unadjusted.
+   */
+  startTrack(trackId, louderDb = null) {
     this.saveCurrent();
     this.trackId = trackId;
     this.blocks = [];
-    if (!this.ctx) return;
+    const level = this.level;
+    if (!this.ctx || !level) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
     // songs we've heard before start at the right level straight away
     const known = this.cache[trackId];
-    const db = this.enabled && typeof known === 'number' ? this.gainFor(known) : 0;
-    const now = this.ctx.currentTime;
-    const from = this.gain.gain.value;
-    this.gain.gain.cancelScheduledValues(now);
-    if (smooth > 0) {
-      this.gain.gain.setValueAtTime(from, now);
-      this.gain.gain.setTargetAtTime(dbToGain(db), now, smooth / 3);
-    } else {
-      this.gain.gain.setValueAtTime(dbToGain(db), now);
-    }
+    const before = Number.isFinite(this.previousDb) ? this.previousDb : 20 * Math.log10(Math.max(level.value, 1e-6));
+    // An estimate from an intro can only err quiet (intros are softer than the drop), so it may lower
+    // the start below the usual level but never raise it: rising later is gentle, dipping is heard
+    const typical = this.typicalDb();
+    const db = !this.enabled ? 0 : typeof known === 'number' ? this.gainFor(known)
+      : Number.isFinite(louderDb) ? Math.max(MAX_CUT, Math.min(typical, before - louderDb)) : typical;
+    level.cancelScheduledValues(this.ctx.currentTime);
+    level.setValueAtTime(dbToGain(db), this.ctx.currentTime);
+    // a song never measured starts at an estimate; the meter only hears its intro at first
+    this.startDb = this.enabled && typeof known !== 'number' ? db : null;
   }
 
   measure() {
-    if (!this.ctx || this.audio.paused || this.audio.seeking || !this.trackId) return;
+    if (!this.ctx || !this.level || this.audio.paused || this.audio.seeking || !this.trackId) return;
     this.analyser.getFloatTimeDomainData(this.buffer);
     let sum = 0;
     for (let i = 0; i < this.buffer.length; i++) sum += this.buffer[i] * this.buffer[i];
@@ -252,10 +294,14 @@ export class Normalizer {
     // a quiet intro shouldn't get fully boosted before the loud part arrives:
     // allow boosting gradually over the first ~15s of a song we haven't heard before
     if (db > 0 && !known) db = Math.min(db, MAX_BOOST * Math.min(1, this.blocks.length / 150));
-    const current = 20 * Math.log10(Math.max(this.gain.gain.value, 1e-6));
-    // turning down is quick (no blasting), turning up is slow (no pumping)
-    const timeConstant = db < current ? (known ? 1.5 : 0.4) : (known ? 4 : 2.5);
-    this.gain.gain.setTargetAtTime(dbToGain(db), this.ctx.currentTime, timeConstant);
+    // ...and keep close to the starting estimate for the first 20 s, so the level doesn't wander
+    // audibly on an intro that's quieter than the rest (unless the song is much too loud)
+    if (!known && this.startDb != null && this.blocks.length < 200) db = Math.max(this.startDb - 6, Math.min(this.startDb + 3, db));
+    const current = 20 * Math.log10(Math.max(this.level.value, 1e-6));
+    // turning down is quick when it's much too loud (no blasting), gentle otherwise so it isn't
+    // heard; turning up is slow (no pumping)
+    const timeConstant = db < current ? (current - db > 6 ? 0.4 : known ? 1.5 : 1) : (known ? 4 : 2.5);
+    this.level.setTargetAtTime(dbToGain(db), this.ctx.currentTime, timeConstant);
   }
 
   /** EBU R128-style gated average of the blocks so far, in dB */
@@ -284,9 +330,9 @@ export class Normalizer {
 
   setEnabled(on) {
     this.enabled = on;
-    if (!this.ctx) return;
+    if (!this.ctx || !this.level) return;
     const db = on && this.blocks.length >= MIN_BLOCKS ? this.gainFor(this.integrated()) : on && typeof this.cache[this.trackId] === 'number' ? this.gainFor(this.cache[this.trackId]) : 0;
-    this.gain.gain.setTargetAtTime(dbToGain(db), this.ctx.currentTime, 0.3);
+    this.level.setTargetAtTime(dbToGain(db), this.ctx.currentTime, 0.3);
   }
 
   setEqualizer(value) {
