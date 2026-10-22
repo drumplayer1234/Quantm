@@ -306,11 +306,12 @@ async function themeTab(cleanups) {
   for (const [family, flavors] of Object.entries(theme.PRESET_FAMILIES)) {
     for (const name of Object.values(flavors)) if (theme.PRESETS[name]) inFamily.set(name, family);
   }
-  const groups = { colors: [], makeovers: [], packs: [] };
+  const groups = { colors: [], makeovers: [], packs: [], local: [] };
   const placed = new Set();
   for (const name of Object.keys(theme.PRESETS)) {
     const style = theme.PRESET_STYLES[name] || '';
-    const group = !style ? groups.colors : packFor(style) ? groups.packs : groups.makeovers;
+    const group = theme.LOCAL_PRESETS.has(name) ? groups.local
+      : !style ? groups.colors : packFor(style) ? groups.packs : groups.makeovers;
     const family = inFamily.get(name);
     if (!family) group.push(presetCard(name));
     else if (!placed.has(family)) { placed.add(family); group.push(familyCard(family, theme.PRESET_FAMILIES[family])); }
@@ -322,7 +323,8 @@ async function themeTab(cleanups) {
   const gallery = h('div',
     section('Colors', 'Just the palette', groups.colors),
     section('Makeovers', 'Also change shapes, fonts and textures', groups.makeovers),
-    section('Theme packs', 'Rearrange the whole app', groups.packs)
+    section('Theme packs', 'Rearrange the whole app', groups.packs),
+    section('Dev themes', 'Only on this computer, never published', groups.local)
   );
 
   // --- actions -----------------------------------------------------------------

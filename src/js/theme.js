@@ -193,6 +193,8 @@ const local = (typeof window !== 'undefined' && window.QUANTM_LOCAL_THEMES) || {
 Object.assign(PRESETS, local.presets || {});
 Object.assign(PRESET_STYLES, local.styles || {});
 Object.assign(PRESET_RADIUS, local.radius || {});
+/** Presets that only exist on this computer (dev builds); the gallery lists them on their own */
+export const LOCAL_PRESETS = new Set(Object.keys(local.presets || {}));
 
 export const DEFAULT_THEME = { preset: 'SoundCloud Dark', colors: Object.assign({}, PRESETS['SoundCloud Dark']), radius: 10 };
 
