@@ -748,6 +748,8 @@ async function playbackTab(cleanups) {
       toggleRow('Desktop notifications', 'Show a notification when a new track starts playing.', settings.notifications, onNotifications),
       toggleRow('Discord status', 'Show "Listening to Quantm" with the current song on your Discord profile. Needs the Discord desktop app.', settings.discordStatus !== false,
         (on) => saveSettings({ discordStatus: on })),
+      toggleRow('Discord status while not playing', 'Keep "Playing Quantm" on your profile while Quantm is open: Browsing, or Paused with the song.', settings.discordIdle !== false,
+        (on) => saveSettings({ discordIdle: on })),
       toggleRow('Resume where you left off', 'Reopen the last song, queue and position (paused) when Quantm starts.', settings.resumeSession !== false,
         (on) => saveSettings({ resumeSession: on })),
       toggleRow('Normalize volume', 'Even out loud and quiet tracks so every song plays at a similar level.', settings.normalize !== false,

@@ -112,15 +112,37 @@ const clip = (text, max = 128) => {
   return value.length > max ? value.slice(0, max - 1) + '…' : value;
 };
 
+const openedAt = Date.now();
+
+/** While Quantm is open but not playing: "Playing Quantm", browsing or paused on a song */
+function idleActivity(state) {
+  const paused = !!(state && state.title);
+  const activity = {
+    type: 0, // "Playing Quantm"
+    details: paused ? clip('Paused: ' + state.title) : 'Browsing',
+    assets: { large_image: (paused && state.artwork) || 'quantm', large_text: 'Quantm' },
+    timestamps: { start: openedAt }, // how long Quantm has been open
+    buttons: [{ label: 'Get Quantm', url: 'https://github.com/quantm-app/Quantm' }],
+    instance: false
+  };
+  if (paused) {
+    activity.state = clip('by ' + (state.artist || 'Unknown artist'));
+    activity.assets.small_image = 'quantm';
+    activity.assets.small_text = 'Quantm';
+  }
+  return activity;
+}
+
 /**
  * Update from the renderer.
- * state: { title, artist, artwork, url, artistUrl, duration (s), position (s), playing } or null to clear
+ * state: { title, artist, artwork, url, artistUrl, duration (s), position (s), playing, showIdle }
+ * (title is empty when nothing is loaded). showIdle keeps a status up while nothing plays.
  */
 function update(state) {
   if (!enabled) return;
   if (!state || !state.title || !state.playing) {
-    // nothing playing (or paused): clear the status like Spotify does
-    setActivity(null);
+    // nothing playing (or paused): an idle status while Quantm is open, or none at all
+    setActivity(state && state.showIdle ? idleActivity(state) : null);
     return;
   }
   const now = Date.now();

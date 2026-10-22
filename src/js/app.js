@@ -273,6 +273,7 @@ function setupDiscord() {
     if (settings.discordStatus === false) return;
     const t = player.current;
     const rate = player.rate || 1;
+    const showIdle = settings.discordIdle !== false;
     window.native.discord.update(t ? {
       title: t.title,
       artist: t.user ? t.user.username : '',
@@ -282,8 +283,9 @@ function setupDiscord() {
       // the status counts real time, so scale media time by the playback speed
       duration: player.duration / rate,
       position: player.audio.currentTime / rate,
-      playing: player.playing
-    } : null);
+      playing: player.playing,
+      showIdle
+    } : { showIdle });
   };
   window.native.discord.setEnabled(settings.discordStatus !== false);
   player.on('state', push);
@@ -294,6 +296,7 @@ function setupDiscord() {
     window.native.discord.setEnabled(s.discordStatus !== false);
     push();
   });
+  push(); // the idle status shows as soon as Quantm opens
 }
 
 /** See-through windows have no native title bar buttons, so draw our own */
