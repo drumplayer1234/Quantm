@@ -37,6 +37,31 @@ export const PRESETS = {
     accent: '#3ddc84', accentText: '#06210f', bg: '#0f1712', surface: '#17221b', bar: '#121c16',
     text: '#e4f1e8', muted: '#8aa594', wave: '#2c3d32', wavePlayed: '#3ddc84'
   },
+  // official palettes (nordtheme.com, catppuccin.com) so Quantm matches the rest of the desktop
+  'Nord': {
+    accent: '#88c0d0', accentText: '#2e3440', bg: '#2e3440', surface: '#3b4252', bar: '#292e39',
+    text: '#eceff4', muted: '#a3adbf', wave: '#616e88', wavePlayed: '#88c0d0'
+  },
+  'Nord Light': {
+    accent: '#5e81ac', accentText: '#ffffff', bg: '#eceff4', surface: '#ffffff', bar: '#e5e9f0',
+    text: '#2e3440', muted: '#4c566a', wave: '#aeb8c9', wavePlayed: '#5e81ac'
+  },
+  'Catppuccin Latte': {
+    accent: '#8839ef', accentText: '#eff1f5', bg: '#eff1f5', surface: '#e6e9ef', bar: '#dce0e8',
+    text: '#4c4f69', muted: '#6c6f85', wave: '#9ca0b0', wavePlayed: '#8839ef'
+  },
+  'Catppuccin Frappé': {
+    accent: '#ca9ee6', accentText: '#232634', bg: '#303446', surface: '#414559', bar: '#292c3c',
+    text: '#c6d0f5', muted: '#a5adce', wave: '#626880', wavePlayed: '#ca9ee6'
+  },
+  'Catppuccin Macchiato': {
+    accent: '#c6a0f6', accentText: '#181926', bg: '#24273a', surface: '#363a4f', bar: '#1e2030',
+    text: '#cad3f5', muted: '#a5adcb', wave: '#5b6078', wavePlayed: '#c6a0f6'
+  },
+  'Catppuccin Mocha': {
+    accent: '#cba6f7', accentText: '#11111b', bg: '#1e1e2e', surface: '#313244', bar: '#181825',
+    text: '#cdd6f4', muted: '#a6adc8', wave: '#585b70', wavePlayed: '#cba6f7'
+  },
   'Y2K': {
     accent: '#2f6fe0', accentText: '#ffffff', bg: '#ece9d8', surface: '#ffffff', bar: '#245edb',
     text: '#000000', muted: '#4d4d4d', wave: '#a9c3ef', wavePlayed: '#2f6fe0'
