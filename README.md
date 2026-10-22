@@ -9,6 +9,8 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 [**Download Quantm**](https://github.com/quantm-app/Quantm/releases/latest)
 
+📱 **On Android?** Get [**Quantm for Android**](https://github.com/quantm-app/Quantm-Android/releases/latest), a native phone app with background playback, the same themes and Quantm playlists you can move between phone and desktop.
+
 ![Quantm SoundCloud desktop client showing the glass theme, music library, and playback controls](docs/images/quantm-home.png)
 
 ![Quantm switching between themes, a track page and Album Match](docs/images/quantm-demo.gif)
@@ -82,6 +84,7 @@ Grab the latest build from the [**Releases** page](https://github.com/quantm-app
   - `Quantm-x.y.z-Portable.exe`: runs without installing, handy for trying it out or on PCs where you can't install apps. It starts a little slower, and your settings are still saved on that PC.
 - **macOS:** `.dmg` disk image — `-arm64.dmg` for Apple Silicon (M1 and newer) or `-x64.dmg` for Intel Macs.
 - **Linux:** the `AppImage` (runs anywhere) or the `.deb` package (Debian and Ubuntu).
+- **Android:** `Quantm-x.y.z.apk` from the [Quantm for Android releases](https://github.com/quantm-app/Quantm-Android/releases/latest). Open it on your phone and allow installs when Android asks.
 
 Or install with a package manager on Windows:
 
