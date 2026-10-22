@@ -87,12 +87,13 @@ export class BeatWatcher {
   /**
    * Beat grid from the last `seconds` the deck played, in media time; null if there's no clear beat.
    * bpm: the song's tempo when its memory knows it, so only the beat's position is worked out.
+   * skipLast: leave out the most recent seconds (an outro that lost its kick).
    */
-  grid(audio, seconds = 20, bpm = null) {
+  grid(audio, seconds = 20, bpm = null, skipLast = 0) {
     const samples = this.watched.get(audio);
     if (!samples || samples.length < 2) return null;
-    const end = samples[samples.length - 1].t;
-    const grid = beats.analyze(samples.filter(s => s.t >= end - seconds), bpm ? { bpm } : {});
+    const end = samples[samples.length - 1].t - skipLast;
+    const grid = beats.analyze(samples.filter(s => s.t >= end - seconds && s.t <= end), bpm ? { bpm } : {});
     return grid && grid.confidence >= MIN_CONFIDENCE ? grid : null;
   }
 }

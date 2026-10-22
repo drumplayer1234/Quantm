@@ -20,6 +20,7 @@ const TABS = [
   { id: 'theme', label: 'Theme & colors', icon: 'palette' },
   { id: 'appearance', label: 'Appearance', icon: 'edit' },
   { id: 'playback', label: 'Playback', icon: 'play' },
+  { id: 'automix', label: 'Auto mix', icon: 'headphones' },
   { id: 'performance', label: 'Performance', icon: 'trending' },
   { id: 'account', label: 'Account', icon: 'user' },
   { id: 'shortcuts', label: 'Shortcuts', icon: 'queue' },
@@ -34,7 +35,7 @@ export async function render(page, params, query = {}) {
     h('a.settings-nav-link' + (t.id === active ? '.active' : ''), { href: '#/settings/' + t.id }, icon(t.icon, 18), h('span', t.label))
   ));
 
-  const builders = { theme: themeTab, appearance: appearanceTab, playback: playbackTab, performance: performanceTab, account: accountTab, shortcuts: shortcutsTab, about: aboutTab };
+  const builders = { theme: themeTab, appearance: appearanceTab, playback: playbackTab, automix: autoMixTab, performance: performanceTab, account: accountTab, shortcuts: shortcutsTab, about: aboutTab };
   const content = h('div.settings-content' + (active === 'theme' ? '.wide' : ''), await builders[active](cleanups));
 
   page.append(
@@ -709,6 +710,110 @@ function autoMixLearning() {
     toast('Auto mix starts learning again');
   }, 'btn-outline');
   return h('div.settings-row', h('span.settings-row-text', h('span.settings-row-title', 'Auto mix learning'), status), reset);
+}
+
+// ---------------------------------------------------------------------------
+// Auto mix tab: what it's doing right now and what it has learned, live
+// ---------------------------------------------------------------------------
+
+const AUTOMIX_RANGES = [
+  ['slow', 'Under 100 BPM'], ['mid', '100-130 BPM'], ['fast', '130-160 BPM'], ['faster', '160+ BPM'], ['nobeat', 'No clear beat']
+];
+const clock = (t) => { const s = Math.max(0, Math.round(t || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const pct = (x, digits = 0) => (x * 100).toFixed(digits) + '%';
+
+async function autoMixTab(cleanups) {
+  const now = h('div.automix-rows');
+  const learned = h('div');
+  const feed = h('ol.automix-feed');
+  let feedKey = '';
+
+  const row = (label, value, tone) => h('div.automix-row' + (tone ? '.' + tone : ''), h('span.automix-label', label), h('span.automix-value', value));
+
+  const renderNow = () => {
+    const s = player.autoMixStatus();
+    const rows = [];
+    if (!s.enabled) rows.push(row('Status', 'Auto mix is off. Turn it on above to start mixing and learning.'));
+    else if (!s.track) rows.push(row('Status', 'Waiting for something to play.'));
+    else {
+      rows.push(row('Playing', (s.track.title || '') + (s.listening ? '  ·  learning this song' : '')));
+      const grid = s.live || s.structure.grid;
+      const source = s.live ? (s.memory && s.memory.bpm ? 'heard now, tempo from memory' : 'heard now') : s.structure.grid ? 'from memory' : '';
+      rows.push(row('Tempo', grid ? `${grid.bpm.toFixed(1)} BPM (${source}, confidence ${pct(grid.confidence)})`
+        : s.heard ? `listening for the beat (${s.heard.toFixed(0)} s heard)` : 'listens near the end of the song'));
+      const m = s.memory;
+      const parts = [];
+      if (m) parts.push(`heard ${m.plays} time${m.plays === 1 ? '' : 's'}`);
+      if (s.structure.drumsIn != null) parts.push(s.structure.drumsIn > 1 ? 'drums at ' + clock(s.structure.drumsIn) : 'drums from the start');
+      if (s.structure.outroStart != null) parts.push('outro from ' + clock(s.structure.outroStart));
+      if (m && m.beatToEnd) parts.push('beat runs to the end');
+      rows.push(row('Memory', parts.length ? parts.join('  ·  ') + (m ? '' : '  (guessed from the waveform)') : 'first time hearing this song'));
+      if (s.plan && !s.mix) {
+        const p = s.plan.choice ? s.plan.choice.params : null;
+        const when = s.mixIn != null ? (s.mixIn > 0 ? 'in ' + clock(s.mixIn) : 'starting now') : 'near the end';
+        rows.push(row('Next mix', `${when}  ·  ${(s.plan.span / (player.audio.playbackRate || 1)).toFixed(1)} s` +
+          (p ? `  ·  trying ${pct(p.length)} length, ${pct(p.dj)} DJ blend, up to ${pct(p.stretch, 1)} tempo stretch` : '')));
+      } else if (!s.mix) rows.push(row('Next mix', 'planned about 40 s before the end'));
+      if (s.preroll) {
+        const p = s.preroll;
+        rows.push(row('Next song', `${p.track.title}: ` + (p.done ? (p.grid ? `found ${p.grid.bpm.toFixed(1)} BPM` : 'no beat in its intro') : `listening silently (${(p.heard || 0).toFixed(1)} s)`) +
+          (p.startAt > 0 ? `, starts at ${clock(p.startAt)}` : '')));
+      }
+      if (s.mix) {
+        const bar = h('span.automix-bar', h('span', { style: { width: pct(s.mix.progress) } }));
+        rows.push(row('Mixing', h('span', `${s.mix.from.title} → ${s.mix.to.title}  ·  ${pct(s.mix.progress)} of ${s.mix.seconds.toFixed(1)} s` +
+          (s.mix.bass ? (s.mix.progress < 0.5 ? '  ·  bass swaps at 50%' : '  ·  bass swapped') : ''), bar)));
+      }
+      if (s.lock) {
+        const ms = Math.abs(s.lock.errorMs);
+        const tone = !s.lock.active ? '' : ms < 12 ? 'good' : ms < 30 ? 'warn' : 'bad';
+        rows.push(row('Beat lock', s.lock.active
+          ? `${ms.toFixed(0)} ms apart  ·  next song ${pct(Math.abs(s.lock.tempo), 1)} ${s.lock.tempo >= 0 ? 'faster' : 'slower'}` +
+            (Math.abs(s.lock.nudge) > 0.001 ? `, nudging ${pct(s.lock.nudge, 1)}` : '')
+          : 'mix done, easing back to its own tempo', tone));
+      }
+      if (s.outcome) rows.push(row('Verdict', s.outcome.during ? 'mixing: skip now and it learns this mix was wrong'
+        : `waiting to see if you keep it: ${Math.min(20, s.outcome.listened || 0).toFixed(0)} of 20 s listened`));
+    }
+    now.replaceChildren(...rows);
+  };
+
+  const renderLearned = () => {
+    const stats = mixlearn.stats();
+    const songs = mixmemory.count();
+    const head = h('p.settings-row-desc', `Remembers ${songs} song${songs === 1 ? '' : 's'}  ·  learned from ${stats.transitions} mix${stats.transitions === 1 ? '' : 'es'}`);
+    const ranges = AUTOMIX_RANGES.filter(([id]) => stats.buckets[id]);
+    const table = ranges.length ? h('table.automix-table',
+      h('thead', h('tr', ['Tempo', 'Mix length', 'DJ blend', 'Tempo stretch', 'Kept', 'Skipped'].map(t => h('th', t)))),
+      h('tbody', ranges.map(([id, label]) => {
+        const b = stats.buckets[id];
+        return h('tr', h('td', label), h('td', pct(b.length)), h('td', pct(b.dj)), h('td', 'up to ' + pct(b.stretch, 1)), h('td', String(b.good)), h('td', String(b.bad)));
+      }))
+    ) : h('p.muted.small', 'Nothing yet. Every mix you keep or skip shows up here. It starts at 100% length, full DJ blend and up to 8% stretch, and moves slowly.');
+    learned.replaceChildren(head, table);
+  };
+
+  const renderFeed = () => {
+    const key = player.mixLog.length + ':' + (player.mixLog[0] ? player.mixLog[0].at : 0);
+    if (key === feedKey) return;
+    feedKey = key;
+    feed.replaceChildren(...(player.mixLog.length ? player.mixLog.map(e =>
+      h('li.automix-event.' + e.kind, h('time', new Date(e.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })), h('span', e.text)))
+      : [h('li.muted.small', 'Activity shows up here as songs play and mix.')]));
+  };
+
+  const render = () => { renderNow(); renderLearned(); renderFeed(); };
+  render();
+  const timer = setInterval(render, 500);
+  cleanups.push(() => clearInterval(timer));
+
+  return h('div',
+    card('Auto mix', 'DJ-style transitions that learn from every song and every skip. Updates live while you listen.',
+      toggleRow('Auto mix', 'Beat-matched mixes between songs. Also in Playback → Crossfade.', settings.autoMix === true, (on) => saveSettings({ autoMix: on })),
+      now),
+    card('What it has learned', 'Slowly, per tempo range: what it tries next starts from these.', learned, autoMixLearning()),
+    card('Activity', null, feed)
+  );
 }
 
 async function playbackTab(cleanups) {

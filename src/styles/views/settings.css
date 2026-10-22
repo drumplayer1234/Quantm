@@ -217,3 +217,23 @@
 .settings-usage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .settings-usage-item { padding: 14px; border-radius: var(--radius); background: var(--hover); }
 .settings-usage-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Auto mix tab: live status, learned table, activity feed */
+.automix-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.automix-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: baseline; font-size: 13px; }
+.automix-label { color: var(--muted); font-weight: 600; }
+.automix-value { min-width: 0; overflow-wrap: anywhere; }
+.automix-row.good .automix-value { color: var(--accent); }
+.automix-row.warn .automix-value { color: #e0a33a; }
+.automix-row.bad .automix-value { color: #e5534b; }
+.automix-bar { display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: var(--hover); overflow: hidden; }
+.automix-bar > span { display: block; height: 100%; background: var(--accent); transition: width .5s linear; }
+.automix-table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; }
+.automix-table th { text-align: left; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.automix-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.automix-feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; font-size: 13px; }
+.automix-event { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 10px; padding-left: 8px; border-left: 2px solid var(--border); }
+.automix-event time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.automix-event.good { border-left-color: var(--accent); }
+.automix-event.bad { border-left-color: #e5534b; }
+.automix-event.memory { border-left-color: var(--wave-played); }

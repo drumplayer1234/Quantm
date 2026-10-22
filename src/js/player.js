@@ -9,6 +9,11 @@ import { Normalizer } from './normalizer.js';
 import { BeatWatcher, BeatLock, ANALYZE_SECONDS, ANALYZE_MAX_SECONDS, MAX_MIX_SECONDS, matchTempo, alignedStart, mixSeconds, memoryGrid } from './automix.js';
 import * as mixmemory from './mixmemory.js';
 import * as mixlearn from './mixlearn.js';
+import { phaseError } from './beats.js';
+
+const mmss = (t) => { const s = Math.max(0, Math.round(t || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const quote = (track) => '"' + ((track && track.title) || 'this song').slice(0, 60) + '"';
+const TEMPO_RANGES = { slow: 'under 100 BPM', mid: '100-130 BPM', fast: '130-160 BPM', faster: '160+ BPM', nobeat: 'songs without a clear beat' };
 
 /** Uniformly random order (Fisher-Yates), returns a new array */
 function randomOrder(list) {
@@ -54,6 +59,8 @@ class Player extends Emitter {
     this.listening = new Map(); // Auto mix song memory: <audio> → { trackId, listener, after, duration }
     this.waves = new Map();     // track id → structure guessed from SoundCloud's waveform (first plays)
     this.mixOutcome = null;     // Auto mix learning: the last transition, until we know if it was kept
+    this.mixLog = [];           // Auto mix activity, newest first (Settings → Auto mix shows it live)
+    this.mixAt = null;          // Auto mix: { loadId, at } media time the planned mix starts
     setInterval(() => this.feedMemory(), 1000);
 
     this.queue = [];        // tracks in play order
@@ -404,6 +411,7 @@ class Player extends Emitter {
     if (plan) {
       if (dur < span * 2) return;
       mixAt = dur - span;
+      this.mixAt = { loadId: this.loadId, at: mixAt };
     } else if (mixAt === null) {
       if (!t.fade) {
         if (!t.custom) return; // crossfade off and no mix points
@@ -428,6 +436,46 @@ class Player extends Emitter {
 
   get autoMix() { return settings.autoMix === true && !!this.normalizer.ctx; }
 
+  /** Add a line to the Auto mix activity log (kind: plan, listen, mix, memory, good, bad) */
+  logMix(kind, text) {
+    this.mixLog.unshift({ at: Date.now(), kind, text });
+    if (this.mixLog.length > 40) this.mixLog.length = 40;
+    this.emit('automix');
+  }
+
+  /** A snapshot of what Auto mix is doing right now, for the live monitor in Settings */
+  autoMixStatus() {
+    const status = { on: this.autoMix, enabled: settings.autoMix === true, track: this.current, playing: this.playing };
+    if (!this.current) return status;
+    const audio = this.audio;
+    const rate = audio.playbackRate || 1;
+    status.memory = mixmemory.get(this.current.id);
+    status.structure = this.structureOf(this.current.id);
+    status.listening = this.listening.has(audio);
+    if (this.beats.isWatching(audio)) {
+      status.heard = this.beats.heard(audio);
+      status.live = this.beats.grid(audio, 20, status.structure.grid && status.structure.grid.bpm);
+    }
+    if (this.mixPlan && this.mixPlan.loadId === this.loadId) status.plan = this.mixPlan;
+    if (this.mixAt && this.mixAt.loadId === this.loadId && !this.fading) status.mixIn = (this.mixAt.at - audio.currentTime) / rate;
+    const pre = this.prepared && this.prepared.loadId === this.loadId && this.prepared.preroll;
+    if (pre) status.preroll = { track: pre.track, done: pre.done, grid: pre.grid, startAt: pre.startAt, heard: pre.done ? null : this.beats.heard(pre.deck.audio) };
+    const f = this.fading;
+    if (f) {
+      const progress = f.startedAt === null || !this.normalizer.ctx ? f.progress : Math.min(1, f.progress + (this.normalizer.ctx.currentTime - f.startedAt) / f.seconds);
+      status.mix = { from: f.from, to: f.to, seconds: f.seconds, progress, bass: f.bass, dj: f.shapeIn ? f.shapeIn.dj : 0 };
+    }
+    const L = this.lock;
+    if (L) {
+      const ahead = phaseError(L.match.gridOut, L.outgoing.currentTime, L.match.gridIn, L.incoming.currentTime);
+      status.lock = { active: !!L.timer, tempo: L.match.ratio - 1, nudge: L.incoming.playbackRate / (L.target || 1) - 1,
+        errorMs: ahead * L.match.gridOut.period / (L.outgoing.playbackRate || 1) * 1000 };
+    }
+    const o = this.mixOutcome;
+    if (o) status.outcome = { listened: o.position != null && this.current.id === o.trackId ? Math.max(0, audio.currentTime - o.position) : null, during: !o.mixEnd };
+    return status;
+  }
+
   // ---- Auto mix song memory: every play teaches it the song's tempo, beat and structure ----
 
   /** Start learning the song on this deck (mixmemory.js) */
@@ -437,7 +485,7 @@ class Player extends Emitter {
     // a 30 s preview isn't the song: its times don't match the full track
     if (!this.autoMix || !track || !deck || deck.snipped) return;
     this.beats.watch(audio);
-    this.listening.set(audio, { trackId: track.id, listener: mixmemory.createListener(), after: -Infinity, duration: (track.duration || 0) / 1000 });
+    this.listening.set(audio, { trackId: track.id, track, listener: mixmemory.createListener(), after: -Infinity, duration: (track.duration || 0) / 1000 });
     this.guessFromWaveform(track);
   }
 
@@ -450,7 +498,15 @@ class Player extends Emitter {
     const duration = isFinite(audio.duration) && audio.duration > 0 ? audio.duration : l.duration;
     try {
       const summary = l.listener.summary(duration);
-      if (summary) mixmemory.learn(l.trackId, summary);
+      if (summary) {
+        const entry = mixmemory.learn(l.trackId, summary) || mixmemory.get(l.trackId);
+        if (entry && (summary.grid || summary.drumsIn != null || summary.outroStart != null)) {
+          const parts = [entry.bpm ? entry.bpm.toFixed(1) + ' BPM' : 'no clear beat'];
+          if (entry.drumsIn != null) parts.push(entry.drumsIn > 1 ? 'drums come in at ' + mmss(entry.drumsIn) : 'drums from the start');
+          if (entry.outroStart != null) parts.push('outro from ' + mmss(entry.outroStart));
+          this.logMix('memory', `Remembered ${quote(l.track)}: ${parts.join(', ')} (heard ${entry.plays} time${entry.plays === 1 ? '' : 's'})`);
+        }
+      }
     } catch (e) { /* memory is a bonus; never break playback */ }
   }
 
@@ -516,7 +572,10 @@ class Player extends Emitter {
     this.mixOutcome = null;
     clearTimeout(o.timer);
     if (!this.current || this.current.id !== o.trackId) return;
-    if (this.fading || (o.mixEnd && performance.now() - o.mixEnd < 20000)) mixlearn.record(o.choice, 'bad');
+    if (this.fading || (o.mixEnd && performance.now() - o.mixEnd < 20000)) {
+      mixlearn.record(o.choice, 'bad');
+      this.logMix('bad', `You skipped ${this.fading ? 'during' : 'right after'} the mix into ${quote(this.current)}: nudging mixes for ${TEMPO_RANGES[o.choice.bucket]} away from ${Math.round(o.choice.params.length * 100)}% length`);
+    }
   }
 
   /**
@@ -543,6 +602,9 @@ class Player extends Emitter {
       span = bar && Math.floor(outro / bar) * bar >= 6 * rate ? Math.floor(outro / bar) * bar : outro;
     }
     this.mixPlan = { loadId: this.loadId, grid, span, choice };
+    const tempo = grid ? `${grid.bpm.toFixed(1)} BPM ${heard ? 'heard just now' : 'from memory'}` : 'no clear beat';
+    const beatsLong = grid ? Math.round(span / grid.period) : 0;
+    this.logMix('plan', `Planned the mix out of ${quote(this.current)}: ${tempo}, ${(span / rate).toFixed(1)} s${beatsLong ? ` (${beatsLong} beats)` : ''}${outro >= 6 * rate && outro <= MAX_MIX_SECONDS * rate ? ' over its outro' : ''}, trying ${Math.round(choice.params.length * 100)}% length`);
     return this.mixPlan;
   }
 
@@ -583,6 +645,7 @@ class Player extends Emitter {
     pre.loudness = this.beats.loudness(pre.deck.audio);
     this.beats.unwatch(pre.deck.audio);
     if (pre.deck.track !== pre.track) return;
+    this.logMix('listen', `Listened silently to the start of ${quote(pre.track)}: ${pre.grid ? pre.grid.bpm.toFixed(1) + ' BPM' : 'no beat yet'}${pre.startAt > 0 ? ', will start it at ' + mmss(pre.startAt) : ''}`);
     pre.deck.audio.pause();
     pre.deck.audio.currentTime = this.clampStart(pre.deck.audio, pre.startAt);
   }
@@ -661,7 +724,7 @@ class Player extends Emitter {
     // Auto mix: the next song is already loaded on the idle deck; line its beats up with this one's
     const pre = prep.preroll && prep.preroll.deck === incoming && incoming.track === prep.track ? prep.preroll : null;
     const startAt = pre ? pre.startAt : plan ? this.autoStartAt(prep.track, transition.in || 0) : Math.max(0, transition.in || 0);
-    const choice = plan ? plan.choice : null;
+    let choice = plan ? plan.choice : null;
     let match = null;
     if (pre) {
       this.endPreroll(pre);
@@ -670,11 +733,14 @@ class Player extends Emitter {
       const planned = this.mixPlan && this.mixPlan.loadId === this.loadId ? this.mixPlan.grid : null;
       const known = this.structureOf(this.current.id).grid;
       const fresh = this.beats.grid(audio, 20, (planned || known || {}).bpm || null);
-      const steady = planned || known;
+      // nothing heard earlier or remembered: the stretch before the outro, rather than the outro itself
+      const steady = planned || known || this.beats.grid(audio, 20, null, 12);
       const gridOut = fresh && (!steady || Math.abs(fresh.bpm / steady.bpm - 1) < 0.02) ? fresh : steady;
       // the next song's beat: heard while pre-playing, else from its memory
       const gridIn = pre.grid || this.structureOf(prep.track.id).grid;
       match = matchTempo(gridOut, gridIn, choice ? choice.params.stretch : 0.08);
+      // the tempo only became clear now: file what this mix teaches under its real tempo range
+      if (choice && choice.bucket === 'nobeat' && match) choice = Object.assign({}, choice, { bucket: mixlearn.bucketFor(match.gridOut.bpm) });
     }
 
     const from = this.current;
@@ -723,6 +789,7 @@ class Player extends Emitter {
       this.attach(prep.stream, true, startAt, incoming, track);
     }
     this.startListening(incoming.audio, track);
+    this.logMix('mix', `Mixing into ${quote(track)}: ${match ? `beats locked${Math.abs(match.ratio - 1) > 0.001 ? `, playing it ${Math.abs((match.ratio - 1) * 100).toFixed(1)}% ${match.ratio > 1 ? 'faster' : 'slower'} to match` : ''}` : bass ? 'no beat match, DJ-style blend' : 'plain crossfade'}${startAt > 0 ? ', from ' + mmss(startAt) : ''}`);
     // the fade starts once the new song is really playing, so no silence in the middle of it
     incoming.audio.addEventListener('playing', () => this.beginFade(), { once: true });
     fading.fallback = setTimeout(() => this.beginFade(), 3000);
@@ -789,7 +856,12 @@ class Player extends Emitter {
       const check = () => {
         if (this.mixOutcome !== o) return;
         if (!this.current || this.current.id !== o.trackId) { this.mixOutcome = null; return; }
-        if (this.audio.currentTime - o.position >= 20) { this.mixOutcome = null; mixlearn.record(o.choice, 'good'); return; }
+        if (this.audio.currentTime - o.position >= 20) {
+          this.mixOutcome = null;
+          mixlearn.record(o.choice, 'good');
+          this.logMix('good', `You kept ${quote(this.current)}: nudging mixes for ${TEMPO_RANGES[o.choice.bucket]} toward ${Math.round(o.choice.params.length * 100)}% length`);
+          return;
+        }
         if (++checks > 30) { this.mixOutcome = null; return; }
         o.timer = setTimeout(check, 10000);
       };
