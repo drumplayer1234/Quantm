@@ -457,6 +457,14 @@ a.stat:hover { color: var(--text); }
 .pb-right { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
 .pb-volume { flex: none; width: 100px; }
 @media (max-width: 1100px) { .pb-volume { width: 64px; } }
+/* narrow or zoomed-in windows: tighten the bar so the right-hand buttons never spill off the edge
+   (Add to playlist is still in the More menu, and the mute button stays when the slider goes) */
+@media (max-width: 960px) {
+  .playerbar { grid-template-columns: minmax(140px, 1fr) minmax(240px, 2fr) minmax(max-content, 1fr); gap: 12px; }
+  .pb-add { display: none; }
+  .pb-volume { width: 48px; }
+}
+@media (max-width: 780px) { .pb-volume { display: none; } }
 .pb-queue-btn.active { color: var(--accent); }
 
 /* ------------------------------------------------------------------ queue panel */
