@@ -66,6 +66,19 @@
   transition: border-color .15s, transform .12s;
 }
 .settings-preset:hover { border-color: var(--muted); transform: translateY(-1px); }
+.settings-preset-pick { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.settings-preset-group + .settings-preset-group { margin-top: 22px; }
+.settings-preset-group-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+/* flavors of one theme (Catppuccin, Nord, ...): small swatches under the card */
+.settings-flavors { display: flex; gap: 6px; padding: 0 4px 2px; }
+.settings-flavor {
+  width: 18px; height: 18px; padding: 0; border-radius: 50%; cursor: pointer;
+  border: 2px solid color-mix(in srgb, var(--text) 25%, transparent);
+  background: linear-gradient(135deg, var(--f-bg) 50%, var(--f-accent) 50%);
+  transition: transform .12s, border-color .15s;
+}
+.settings-flavor:hover { transform: scale(1.12); border-color: var(--muted); }
+.settings-flavor[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
 .settings-preset.active { border-color: var(--accent); }
 .settings-preset-name { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 2px; font-weight: 600; font-size: 13px; }
 .settings-preset-name .icon { opacity: 0; color: var(--accent); }

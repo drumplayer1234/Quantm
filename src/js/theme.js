@@ -176,6 +176,14 @@ export const PRESET_STYLES = {
   'Album Match': 'album'
 };
 
+/** Presets that are flavors of one theme share a card in the gallery: family → { flavor: preset } */
+export const PRESET_FAMILIES = {
+  'SoundCloud': { 'Dark': 'SoundCloud Dark', 'Light': 'SoundCloud Light' },
+  'Nord': { 'Dark': 'Nord', 'Light': 'Nord Light' },
+  'Catppuccin': { 'Latte': 'Catppuccin Latte', 'Frappé': 'Catppuccin Frappé', 'Macchiato': 'Catppuccin Macchiato', 'Mocha': 'Catppuccin Mocha' },
+  'Liquid Glass': { 'Light': 'Liquid Glass', 'Dark': 'Liquid Glass Dark' }
+};
+
 /** Corner roundness each style preset looks best with (others keep the user's value) */
 export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0 };
 

@@ -9,6 +9,7 @@ import { EQ_PRESETS, presetFor, normalizeEqualizer } from '../equalizer.js';
 import { offline, formatBytes } from '../offline.js';
 import { VISUALIZER_STYLES, VISUALIZER_COLORS, VISUALIZER_POSITIONS, VISUALIZER_LIMITS } from '../visualizer.js';
 import * as theme from '../theme.js';
+import { packFor } from '../theme-packs.js';
 import * as look from '../appearance.js';
 import { pageHeader, button, toast, avatar, confirmDialog, promptDialog, removeAllDownloads } from '../ui.js';
 import { subscribeUpdates, performUpdate, updateStatusText } from '../updates.js';
@@ -172,6 +173,7 @@ async function themeTab(cleanups) {
   let draft = clone(theme.getTheme());
   const rows = {};         // key -> { color, text, warn }
   const presetCards = {};  // preset name -> element
+  const familyCards = [];  // refresh functions of the cards that hold several flavors
 
   const persist = debounce(() => theme.saveTheme(clone(draft)), 300);
   // apply to the whole app right away, save shortly after
@@ -196,6 +198,7 @@ async function themeTab(cleanups) {
 
   const updatePresetMarks = () => {
     for (const [name, el] of Object.entries(presetCards)) el.classList.toggle('active', draft.preset === name);
+    familyCards.forEach(refresh => refresh());
   };
 
   // --- color rows --------------------------------------------------------------
@@ -254,18 +257,73 @@ async function themeTab(cleanups) {
   }
 
   // --- preset gallery ----------------------------------------------------------
-  const gallery = h('div.settings-presets', Object.entries(theme.PRESETS).map(([name, colors]) => {
-    const el = h('button.settings-preset', { type: 'button', title: 'Use ' + name,
-      onclick: () => {
-        if (theme.PRESET_STYLES[name] === 'liquid') offerSeeThrough();
-        commit({ preset: name, colors: Object.assign({}, colors), radius: name in theme.PRESET_RADIUS ? theme.PRESET_RADIUS[name] : draft.radius, style: theme.PRESET_STYLES[name] || '' });
-      } },
-      presetMock(colors),
-      h('span.settings-preset-name', h('span', name), icon('check', 14))
+  const usePreset = (name) => {
+    const colors = theme.PRESETS[name];
+    if (theme.PRESET_STYLES[name] === 'liquid') offerSeeThrough();
+    commit({ preset: name, colors: Object.assign({}, colors), radius: name in theme.PRESET_RADIUS ? theme.PRESET_RADIUS[name] : draft.radius, style: theme.PRESET_STYLES[name] || '' });
+  };
+
+  const presetCard = (name) => {
+    const el = h('div.settings-preset',
+      h('button.settings-preset-pick', { type: 'button', title: 'Use ' + name, onclick: () => usePreset(name) },
+        presetMock(theme.PRESETS[name]),
+        h('span.settings-preset-name', h('span', name), icon('check', 14))
+      )
     );
     presetCards[name] = el;
     return el;
-  }));
+  };
+
+  // one card for a theme with several flavors: the swatches underneath pick the flavor
+  const familyCard = (family, flavors) => {
+    const entries = Object.entries(flavors).filter(([, name]) => theme.PRESETS[name]);
+    let shown = entries[0][1];
+    const mock = h('div');
+    const label = h('span');
+    const pick = h('button.settings-preset-pick', { type: 'button', onclick: () => usePreset(shown) },
+      mock, h('span.settings-preset-name', label, icon('check', 14)));
+    const swatches = entries.map(([flavor, name]) => h('button.settings-flavor', {
+      type: 'button', title: flavor, 'aria-label': `${family} ${flavor}`,
+      style: `--f-bg:${theme.PRESETS[name].bg};--f-accent:${theme.PRESETS[name].accent}`,
+      onclick: () => usePreset(name)
+    }));
+    const el = h('div.settings-preset.settings-preset-family', pick, h('div.settings-flavors', { role: 'group', 'aria-label': family + ' flavors' }, swatches));
+    familyCards.push(() => {
+      const current = entries.find(([, name]) => name === draft.preset);
+      if (current) shown = current[1];
+      const flavor = entries.find(([, name]) => name === shown)[0];
+      mock.replaceChildren(presetMock(theme.PRESETS[shown]));
+      label.textContent = `${family} ${flavor}`;
+      pick.title = `Use ${family} ${flavor}`;
+      el.classList.toggle('active', !!current);
+      swatches.forEach((swatch, i) => swatch.setAttribute('aria-pressed', String(entries[i][1] === draft.preset)));
+    });
+    return el;
+  };
+
+  // Colors (palette only), Makeovers (also shapes, fonts and textures), Theme packs (also change the layout)
+  const inFamily = new Map();
+  for (const [family, flavors] of Object.entries(theme.PRESET_FAMILIES)) {
+    for (const name of Object.values(flavors)) if (theme.PRESETS[name]) inFamily.set(name, family);
+  }
+  const groups = { colors: [], makeovers: [], packs: [] };
+  const placed = new Set();
+  for (const name of Object.keys(theme.PRESETS)) {
+    const style = theme.PRESET_STYLES[name] || '';
+    const group = !style ? groups.colors : packFor(style) ? groups.packs : groups.makeovers;
+    const family = inFamily.get(name);
+    if (!family) group.push(presetCard(name));
+    else if (!placed.has(family)) { placed.add(family); group.push(familyCard(family, theme.PRESET_FAMILIES[family])); }
+  }
+  const section = (title, desc, cards) => cards.length ? h('div.settings-preset-group',
+    h('div.settings-preset-group-head', h('span.settings-row-title', title), h('span.settings-row-desc', desc)),
+    h('div.settings-presets', cards)
+  ) : null;
+  const gallery = h('div',
+    section('Colors', 'Just the palette', groups.colors),
+    section('Makeovers', 'Also change shapes, fonts and textures', groups.makeovers),
+    section('Theme packs', 'Rearrange the whole app', groups.packs)
+  );
 
   // --- actions -----------------------------------------------------------------
   const randomize = () => commit({ preset: 'Custom', colors: randomColors(), radius: draft.radius, style: '' });
