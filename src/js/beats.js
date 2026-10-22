@@ -196,9 +196,17 @@ export function analyze(samples, opts = {}) {
   if (highs && highs.start === envelope.start && highs.values.length === onsets.length) {
     const mixed = blend(onsets, onsetStrength(highs.values, frameRate));
     const both = estimateTempo(mixed, frameRate, opts);
-    if (both && (!tempo || both.confidence > tempo.confidence + 0.05)) { onsets = mixed; tempo = both; }
+    if (both && (!tempo || both.confidence > tempo.confidence + 0.05)) tempo = both;
+    // the beat's phase always uses both: kicks alone can land on and off the beat equally often
+    onsets = mixed;
   }
   if (!tempo) return null;
+  // A tempo already known for this song (opts.bpm, from its memory) only needs the beat's phase;
+  // a reading that disagrees (a 2/3 or 4/5 misread) is a little less trusted.
+  if (positive(opts.bpm) && opts.bpm >= 40 && opts.bpm <= 250) {
+    const agrees = [1, 2, 0.5].some(k => Math.abs(tempo.bpm / (opts.bpm * k) - 1) < 0.02);
+    tempo = { bpm: opts.bpm, confidence: agrees ? tempo.confidence : tempo.confidence * 0.8 };
+  }
   const period = 60 / tempo.bpm;
   const frames = period * frameRate;
   const score = phase => {

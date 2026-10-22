@@ -10,6 +10,8 @@ import { offline, formatBytes } from '../offline.js';
 import { VISUALIZER_STYLES, VISUALIZER_COLORS, VISUALIZER_POSITIONS, VISUALIZER_LIMITS } from '../visualizer.js';
 import * as theme from '../theme.js';
 import { packFor } from '../theme-packs.js';
+import * as mixmemory from '../mixmemory.js';
+import * as mixlearn from '../mixlearn.js';
 import * as look from '../appearance.js';
 import { pageHeader, button, toast, avatar, confirmDialog, promptDialog, removeAllDownloads } from '../ui.js';
 import { subscribeUpdates, performUpdate, updateStatusText } from '../updates.js';
@@ -687,6 +689,28 @@ async function performanceTab(cleanups) {
 // Playback tab
 // ---------------------------------------------------------------------------
 
+/** What Auto mix has learned so far, with a way to forget it (mixmemory.js, mixlearn.js) */
+function autoMixLearning() {
+  const status = h('span.settings-row-desc');
+  const show = () => {
+    const songs = mixmemory.count();
+    const mixes = mixlearn.stats().transitions;
+    status.textContent = songs || mixes
+      ? `Remembers ${songs} song${songs === 1 ? '' : 's'} and has learned from ${mixes} mix${mixes === 1 ? '' : 'es'}. It gets better the more you listen; skipping during or right after a mix teaches it too.`
+      : 'Learns as you listen: each song it plays is remembered, and skipping during or right after a mix teaches it what you like.';
+  };
+  show();
+  const reset = button('Reset what it learned', async () => {
+    const ok = await confirmDialog('Reset Auto mix?', 'It forgets every song it remembers and what it learned from your skips. Your own mix points (I and O) stay.', 'Reset');
+    if (!ok) return;
+    mixmemory.reset();
+    mixlearn.reset();
+    show();
+    toast('Auto mix starts learning again');
+  }, 'btn-outline');
+  return h('div.settings-row', h('span.settings-row-text', h('span.settings-row-title', 'Auto mix learning'), status), reset);
+}
+
 async function playbackTab(cleanups) {
   await offline.init();
   const downloadsSummary = h('p.muted');
@@ -741,6 +765,7 @@ async function playbackTab(cleanups) {
         (v) => saveSettings({ crossfade: v })),
       toggleRow('Auto mix', 'Mix songs into each other like a DJ: the beats line up, the tempo follows and the bass swaps halfway. Picks its own length; songs without a clear beat get a normal blend.',
         settings.autoMix === true, (on) => saveSettings({ autoMix: on })),
+      autoMixLearning(),
       h('p.muted.small', 'Custom transitions: press I and O while a song plays to set where it mixes in and out, or edit a transition from the queue. They work even with crossfade off, and Auto mix beat-matches them too.')
     ),
     visualizerCard(),

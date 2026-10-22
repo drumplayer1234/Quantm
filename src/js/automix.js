@@ -74,12 +74,25 @@ export class BeatWatcher {
     return loud.reduce((a, b) => a + b, 0) / loud.length;
   }
 
-  /** Beat grid from the last `seconds` the deck played, in media time; null if there's no clear beat */
-  grid(audio, seconds = 20) {
+  /** Readings newer than media time `after` (all of them after a seek back), for the song memory */
+  since(audio, after) {
+    const samples = this.watched.get(audio);
+    if (!samples || !samples.length) return [];
+    if (samples[samples.length - 1].t < after) return samples.slice();
+    let i = samples.length;
+    while (i > 0 && samples[i - 1].t > after) i--;
+    return samples.slice(i);
+  }
+
+  /**
+   * Beat grid from the last `seconds` the deck played, in media time; null if there's no clear beat.
+   * bpm: the song's tempo when its memory knows it, so only the beat's position is worked out.
+   */
+  grid(audio, seconds = 20, bpm = null) {
     const samples = this.watched.get(audio);
     if (!samples || samples.length < 2) return null;
     const end = samples[samples.length - 1].t;
-    const grid = beats.analyze(samples.filter(s => s.t >= end - seconds));
+    const grid = beats.analyze(samples.filter(s => s.t >= end - seconds), bpm ? { bpm } : {});
     return grid && grid.confidence >= MIN_CONFIDENCE ? grid : null;
   }
 }
@@ -88,9 +101,9 @@ export class BeatWatcher {
  * How two songs line up: the incoming song's playback-rate factor and its grid at the tempo used
  * (a half- or double-time match changes the beat length). null when they can't be beat-matched.
  */
-export function matchTempo(gridOut, gridIn) {
+export function matchTempo(gridOut, gridIn, maxStretch = 0.08) {
   if (!gridOut || !gridIn) return null;
-  const match = beats.tempoRatio(gridOut.bpm, gridIn.bpm);
+  const match = beats.tempoRatio(gridOut.bpm, gridIn.bpm, maxStretch);
   if (!match) return null;
   const gridIn2 = Object.assign({}, gridIn, { bpm: match.bpmIn, period: 60 / match.bpmIn });
   return { ratio: match.ratio, gridOut, gridIn: gridIn2 };
@@ -106,12 +119,22 @@ export function alignedStart(match, outgoingTime, from) {
 }
 
 export const MAX_MIX_SECONDS = 24;
-/** How many media seconds the mix should last at this tempo: the longest of 64, 32 or 16 beats that fits in 24 s */
-export function mixSeconds(grid, rate = 1) {
-  if (!grid) return 8;
+/**
+ * How many media seconds the mix should last at this tempo: the longest of 64, 32 or 16 beats that
+ * fits in 24 s, times the learned length factor (kept to whole 8-beat phrases).
+ */
+export function mixSeconds(grid, rate = 1, factor = 1) {
+  if (!grid) return Math.min(MAX_MIX_SECONDS, Math.max(4, 8 * factor)) * rate;
   const beat = grid.period / rate;
   const n = [64, 32, 16].find(beats => beats * beat <= MAX_MIX_SECONDS) || 16;
-  return Math.min(MAX_MIX_SECONDS, Math.max(6, n * beat)) * rate;
+  const scaled = Math.max(8, Math.round(n * factor / 8) * 8);
+  return Math.min(MAX_MIX_SECONDS, Math.max(4, scaled * beat)) * rate;
+}
+
+/** A memory entry's beat grid in the shape beats.js uses, or null when it isn't trusted */
+export function memoryGrid(entry) {
+  if (!entry || !(entry.period > 0) || !Number.isFinite(entry.offset) || !(entry.confidence >= 0.25)) return null;
+  return { bpm: entry.bpm || 60 / entry.period, period: entry.period, offset: entry.offset, confidence: entry.confidence };
 }
 
 /** Keeps the incoming song's beats on the outgoing song's by nudging its speed, like a DJ riding the pitch fader */

@@ -31,11 +31,15 @@ const smooth = (t) => { const x = Math.min(1, Math.max(0, t)); return x * x * (3
 /**
  * Level of a deck at t (0..1) of the fade. shape.dj (Auto mix) blends like a DJ: the incoming song
  * comes up to full during the first half (its bass still out), the outgoing one stays full until
- * the halfway bass swap and then goes.
+ * the halfway bass swap and then goes. A dj between 0 and 1 blends the two styles (Auto mix
+ * learns how much of each the listener likes).
  */
 const fadeLevel = (fadeIn, t, shape) => {
-  if (!shape || !shape.dj) return equalPower(fadeIn, t);
-  return fadeIn ? Math.sin(smooth(t / 0.5) * Math.PI / 2) : Math.cos(smooth((t - 0.5) / 0.5) * Math.PI / 2);
+  const amount = !shape ? 0 : shape.dj === true ? 1 : Math.min(1, Math.max(0, Number(shape.dj) || 0));
+  const plain = equalPower(fadeIn, t);
+  if (!amount) return plain;
+  const dj = fadeIn ? Math.sin(smooth(t / 0.5) * Math.PI / 2) : Math.cos(smooth((t - 0.5) / 0.5) * Math.PI / 2);
+  return plain + (dj - plain) * amount;
 };
 /** Bass swap at t (0..1): only one song's bass plays at a time, handing over around the middle over `width` of the mix */
 const bassLevel = (fadeIn, t, width = 0.2) => {

@@ -222,3 +222,14 @@ test('syncopated drum & bass reads at its real tempo (or half), not 2/3 of it', 
     assert.ok([1, 0.5].some(k => Math.abs(grid.bpm / (bpm * k) - 1) < 0.01), `${bpm} BPM read as ${grid.bpm}`);
   }
 });
+
+test('a known tempo (opts.bpm) fixes a misread and still finds the beat', () => {
+  const samples = breakbeat(174);
+  const grid = analyze(samples, { bpm: 174 });
+  assert.ok(grid);
+  assert.equal(grid.bpm, 174);
+  // the kick on beat 1 is at t = 30 (start of the generated audio)
+  const beats = (grid.offset - 30) / grid.period;
+  assert.ok(Math.abs(beats - Math.round(beats)) * grid.period < 0.012, `offset ${grid.offset}`);
+  assert.equal(analyze(Array.from({ length: 900 }, (_, i) => ({ t: i / 100, v: 0, h: 0 })), { bpm: 120 }), null);
+});

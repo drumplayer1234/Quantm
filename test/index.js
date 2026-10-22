@@ -7,3 +7,5 @@ import './player.test.js';
 import './ui.test.js';
 import './beats.test.js';
 import './equalizer.test.js';
+import './mixmemory.test.js';
+import './mixlearn.test.js';
