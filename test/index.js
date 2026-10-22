@@ -5,3 +5,5 @@ import './router.test.js';
 import './api.test.js';
 import './player.test.js';
 import './ui.test.js';
+import './beats.test.js';
+import './equalizer.test.js';

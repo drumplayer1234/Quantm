@@ -739,7 +739,9 @@ async function playbackTab(cleanups) {
       sliderRow('Crossfade', '0 turns it off. Songs shorter than twice this length play normally.',
         { min: 0, max: 12, step: 0.5, value: Math.min(12, Math.max(0, Number(settings.crossfade) || 0)), unit: 's' },
         (v) => saveSettings({ crossfade: v })),
-      h('p.muted.small', 'Custom transitions: press I and O while a song plays to set where it mixes in and out, or edit a transition from the queue. They work even with crossfade off.')
+      toggleRow('Auto mix', 'Mix songs into each other like a DJ: the beats line up, the tempo follows and the bass swaps halfway. Picks its own length; songs without a clear beat get a normal blend.',
+        settings.autoMix === true, (on) => saveSettings({ autoMix: on })),
+      h('p.muted.small', 'Custom transitions: press I and O while a song plays to set where it mixes in and out, or edit a transition from the queue. They work even with crossfade off, and Auto mix beat-matches them too.')
     ),
     visualizerCard(),
     card('Volume', 'The level Quantm plays at. You can also change it from the player bar.',

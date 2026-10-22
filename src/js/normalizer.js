@@ -3,10 +3,11 @@
 // plays and nudge a gain node toward a common target, like Spotify's "normalize volume".
 //
 //   <audio> → source ─┬─ meter tap → meter (K-weighting-ish filters → analyser)
-//                     └─ deck fade gain → normalize gain → preamp → EQ → limiter → user volume → sleep gain → speakers
+//                     ├─ beat taps → low-pass / high-pass → analysers (Auto mix listens for kicks and snares, automix.js)
+//                     └─ deck fade gain → deck bass → normalize gain → preamp → EQ → limiter → user volume → sleep gain → speakers
 //
-// There is one source + fade gain per <audio> element ("deck"), so two tracks can
-// overlap while crossfading. The meter only listens to the active deck.
+// There is one source + fade gain + bass shelf per <audio> element ("deck"), so two tracks can
+// overlap while crossfading (Auto mix swaps their bass halfway). The meter only listens to the active deck.
 
 import { safeParse } from './store.js';
 import { EQ_BANDS, normalizeEqualizer } from './equalizer.js';
@@ -20,10 +21,16 @@ const CACHE_KEY = 'quantm.loudness';
 const CACHE_LIMIT = 3000;
 
 const CURVE_POINTS = 96;     // resolution of the equal-power crossfade curves
+const BASS_KILL = -26;       // dB on a deck's bass shelf while Auto mix keeps its bass out of the mix
 
 const dbToGain = (db) => Math.pow(10, db / 20);
 /** Equal-power fade level at t (0..1): the two tracks together keep a steady loudness */
 const fadeLevel = (fadeIn, t) => (fadeIn ? Math.sin(t * Math.PI / 2) : Math.cos(t * Math.PI / 2));
+/** Bass swap at t (0..1): only one song's bass plays at a time, handing over between 40% and 60% */
+const bassLevel = (fadeIn, t) => {
+  const swap = Math.min(1, Math.max(0, (t - 0.4) / 0.2));
+  return BASS_KILL * (fadeIn ? 1 - swap : swap);
+};
 
 export class Normalizer {
   constructor(audio) {
@@ -110,9 +117,29 @@ export class Normalizer {
       const tap = ctx.createGain(); // meter listens to the active deck only
       tap.gain.value = audio === this.audio ? 1 : 0;
       const fade = ctx.createGain();
+      const bass = ctx.createBiquadFilter();
+      bass.type = 'lowshelf';
+      bass.frequency.value = 220;
+      bass.gain.value = 0;
+      // kick drum detector for Auto mix: the low end, measured whether or not the deck is audible
+      const kick = ctx.createBiquadFilter();
+      kick.type = 'lowpass';
+      kick.frequency.value = 180;
+      const beats = ctx.createAnalyser();
+      beats.fftSize = 512;
+      // and snares / hi-hats, which carry the beat when the kick is syncopated (hip-hop, drum & bass)
+      const snare = ctx.createBiquadFilter();
+      snare.type = 'highpass';
+      snare.frequency.value = 2000;
+      const hats = ctx.createAnalyser();
+      hats.fftSize = 512;
+      const silent = ctx.createGain();
+      silent.gain.value = 0;
       source.connect(tap).connect(this.meterIn);
-      source.connect(fade).connect(this.gain);
-      this.decks.set(audio, { source, tap, fade });
+      source.connect(fade).connect(bass).connect(this.gain);
+      source.connect(kick).connect(beats).connect(silent).connect(ctx.destination);
+      source.connect(snare).connect(hats).connect(silent);
+      this.decks.set(audio, { source, tap, fade, bass, beats, hats, beatBuffer: new Float32Array(beats.fftSize) });
       return true;
     } catch (error) {
       console.error('Second audio deck unavailable', error);
@@ -150,6 +177,42 @@ export class Normalizer {
   /** Freeze a deck's fade where it is (progress 0..1), used while paused mid-crossfade */
   holdFade(audio, fadeIn, progress) {
     this.setFade(audio, fadeLevel(fadeIn, Math.min(1, Math.max(0, progress))));
+  }
+
+  /** Auto mix bass swap from `from` (0..1 of the whole mix) to the end over `seconds` */
+  swapBass(audio, fadeIn, seconds, from = 0) {
+    const deck = this.decks.get(audio);
+    if (!deck) return;
+    const param = deck.bass.gain;
+    const now = this.ctx.currentTime;
+    param.cancelScheduledValues(now);
+    param.setValueAtTime(bassLevel(fadeIn, from), now);
+    if (seconds <= 0 || from >= 1) { param.setValueAtTime(bassLevel(fadeIn, 1), now); return; }
+    const curve = new Float32Array(CURVE_POINTS);
+    for (let i = 0; i < CURVE_POINTS; i++) curve[i] = bassLevel(fadeIn, from + (1 - from) * i / (CURVE_POINTS - 1));
+    param.setValueCurveAtTime(curve, now, seconds);
+  }
+
+  /** Freeze the bass swap where it is (progress 0..1), or pass null to give the deck its full bass back */
+  holdBass(audio, fadeIn, progress) {
+    const deck = this.decks.get(audio);
+    if (!deck) return;
+    const param = deck.bass.gain;
+    param.cancelScheduledValues(this.ctx.currentTime);
+    param.setValueAtTime(progress == null ? 0 : bassLevel(fadeIn, Math.min(1, Math.max(0, progress))), this.ctx.currentTime);
+  }
+
+  /** What the deck is playing right now for Auto mix's beat detector: { low, high } energy, or null */
+  beatEnergy(audio) {
+    const deck = this.decks.get(audio);
+    if (!deck) return null;
+    const energy = (analyser) => {
+      analyser.getFloatTimeDomainData(deck.beatBuffer);
+      let sum = 0;
+      for (let i = 0; i < deck.beatBuffer.length; i++) sum += deck.beatBuffer[i] * deck.beatBuffer[i];
+      return sum / deck.beatBuffer.length;
+    };
+    return { low: energy(deck.beats), high: energy(deck.hats) };
   }
 
   /** Called when a new track starts loading. smooth (seconds) eases the level in, for crossfades */

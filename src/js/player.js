@@ -6,6 +6,7 @@ import { Emitter, artwork } from './dom.js';
 import { store, settings, saveSettings } from './store.js';
 import { toast } from './ui.js';
 import { Normalizer } from './normalizer.js';
+import { BeatWatcher, BeatLock, ANALYZE_SECONDS, ANALYZE_MAX_SECONDS, matchTempo, alignedStart, mixSeconds } from './automix.js';
 
 /** Uniformly random order (Fisher-Yates), returns a new array */
 function randomOrder(list) {
@@ -19,6 +20,9 @@ function randomOrder(list) {
 
 const SESSION_KEY = 'quantm.session';
 const PREPARE_LEAD = 8; // seconds before a crossfade starts that the next stream is looked up
+// Auto mix looks it up earlier: the next song is pre-played silently to find its beat
+const AUTO_LEAD = ANALYZE_SECONDS + 6;
+const AUTO_LISTEN = 60;  // seconds before the end that Auto mix starts listening for the beat
 
 const clampSpeed = (value) => {
   const n = Number(value);
@@ -42,6 +46,9 @@ class Player extends Emitter {
     this.normalizer.enabled = settings.normalize !== false;
     this.normalizer.setEqualizer(settings.eq);
     this.normalizer.setVolume(this.volume, this.muted);
+    this.beats = new BeatWatcher(this.normalizer);
+    this.lock = null;       // Auto mix: keeps the incoming song on the beat (automix.js)
+    this.mixPlan = null;    // Auto mix: { loadId, grid, span } for the current song's ending
 
     this.queue = [];        // tracks in play order
     this.index = -1;        // position in queue
@@ -136,6 +143,7 @@ class Player extends Emitter {
     if (key === this.speedKey) return;
     this.speedKey = key;
     this.decks.forEach(deck => this.applySpeed(deck.audio));
+    if (this.lock) this.lock.setBaseRate(rate); // a beat-matched song follows the new speed too
     this.emit('speed', rate);
   }
 
@@ -267,6 +275,9 @@ class Player extends Emitter {
     if (!track) return;
     const loadId = ++this.loadId;
     this.cutFade();
+    this.stopLock();
+    this.dropPreroll(this.prepared);
+    this.decks.forEach(deck => this.beats.unwatch(deck.audio));
     this.prepared = null;
     this.loading = true;
     this.normalizer.init();
@@ -326,7 +337,7 @@ class Player extends Emitter {
           const position = audio.currentTime;
           api.streamFor(track).then((fresh) => {
             if (deck.track !== track) return; // the deck moved on to another song meanwhile
-            this.attach(fresh, true, 0, deck, track);
+            this.attach(fresh, this.deckInUse(deck), 0, deck, track);
             audio.addEventListener('loadedmetadata', () => { audio.currentTime = position; }, { once: true });
           }).catch(() => toast('Playback stopped: network error', 'error'));
         }
@@ -373,10 +384,16 @@ class Player extends Emitter {
     const dur = audio.duration;
     if (!isFinite(dur) || dur <= 0) return;
     const t = this.upcomingTransition();
-    const span = t.fade * (audio.playbackRate || 1); // media seconds the fade covers
+    const auto = this.autoMix;
+    const plan = auto && !t.custom ? this.planMix(audio, dur) : null;
+    if (plan && !plan.span) return; // still listening
+    const span = plan ? plan.span : t.fade * (audio.playbackRate || 1); // media seconds the fade covers
     // a mix-out point wins, unless you've skipped well past it (then the song plays on)
     let mixAt = t.out != null && t.out < dur - 0.25 && audio.currentTime <= t.out + 3 ? t.out : null;
-    if (mixAt === null) {
+    if (plan) {
+      if (dur < span * 2) return;
+      mixAt = dur - span;
+    } else if (mixAt === null) {
       if (!t.fade) {
         if (!t.custom) return; // crossfade off and no mix points
         mixAt = dur - 0.2; // a clean, gapless cut into the next song's mix-in point
@@ -386,15 +403,100 @@ class Player extends Emitter {
       }
     }
     const until = mixAt - audio.currentTime;
-    if (until > PREPARE_LEAD) return;
+    if (auto && t.custom && until < AUTO_LISTEN) this.beats.watch(audio); // custom mixes get beat-matched too
+    if (until > (auto ? AUTO_LEAD : PREPARE_LEAD)) return;
+    // Auto mix was switched on or off after the look-ahead: look again the new way
+    if (this.prepared && this.prepared.loadId === this.loadId && this.prepared.auto !== auto) {
+      this.dropPreroll(this.prepared);
+      this.prepared = null;
+    }
     if (!this.prepared || this.prepared.loadId !== this.loadId) { this.prepareNext(); return; }
     if (until > 0 || !this.prepared.stream) return;
     this.startCrossfade();
   }
 
+  get autoMix() { return settings.autoMix === true && !!this.normalizer.ctx; }
+
+  /**
+   * Auto mix: how long the current song's ending mix lasts. Listens to the last minute of the song,
+   * then settles on a length (16 or 32 beats) once the mix is near. { span: 0 } while still listening.
+   */
+  planMix(audio, dur) {
+    if (this.mixPlan && this.mixPlan.loadId === this.loadId) return this.mixPlan;
+    const rate = audio.playbackRate || 1;
+    const left = dur - audio.currentTime;
+    if (left < AUTO_LISTEN * rate) this.beats.watch(audio);
+    // the longest mix is 16 s: decide just before its look-ahead would have to begin
+    if (left > (16 + AUTO_LEAD + 1) * rate) return { span: 0 };
+    const grid = this.beats.heard(audio) >= 12 ? this.beats.grid(audio, 20) : null;
+    this.mixPlan = { loadId: this.loadId, grid, span: mixSeconds(grid, rate) };
+    return this.mixPlan;
+  }
+
+  /** Auto mix: play the next song silently on the idle deck for a few seconds to learn its beat */
+  preroll(prep) {
+    const norm = this.normalizer;
+    const deck = this.decks[1 - this.active];
+    if (this.fading || this.audio.paused || !norm.addDeck(deck.audio)) return;
+    const startAt = Math.max(0, cues.transitionFor(this.current.id, prep.track.id).in || 0);
+    const started = Date.now();
+    this.releaseDeck(deck);
+    norm.setFade(deck.audio, 0);
+    norm.holdBass(deck.audio, true, 0);
+    const pre = prep.preroll = { deck, track: prep.track, startAt, grid: null, done: false, timer: null };
+    this.attach(prep.stream, true, startAt, deck, prep.track);
+    this.beats.unwatch(deck.audio);
+    this.beats.watch(deck.audio);
+    pre.timer = setInterval(() => {
+      // gone, or stuck (stalled stream, a song shorter than the listening time): give up on the beat
+      if (prep.preroll !== pre || deck.track !== pre.track || Date.now() - started > (ANALYZE_MAX_SECONDS + 10) * 1000 || deck.audio.ended) {
+        this.endPreroll(pre);
+        return;
+      }
+      const heard = this.beats.heard(deck.audio);
+      if (heard < ANALYZE_SECONDS) return;
+      pre.grid = this.beats.grid(deck.audio, 20);
+      // a drumless intro: keep listening a little longer for the beat to come in
+      if (pre.grid || heard >= ANALYZE_MAX_SECONDS) this.endPreroll(pre);
+    }, 250);
+  }
+
+  /** Stop listening to the pre-played song and wind it back to where it should start */
+  endPreroll(pre) {
+    if (pre.done) return;
+    pre.done = true;
+    clearInterval(pre.timer);
+    this.beats.unwatch(pre.deck.audio);
+    if (pre.deck.track !== pre.track) return;
+    pre.deck.audio.pause();
+    pre.deck.audio.currentTime = this.clampStart(pre.deck.audio, pre.startAt);
+  }
+
+  /** A start point inside the song (a saved mix-in point can be past the end of a 30 s preview) */
+  clampStart(audio, t) {
+    const d = audio.duration;
+    return isFinite(d) && d > 0 ? Math.min(t, Math.max(0, d - 1)) : t;
+  }
+
+  /** Whether a deck is playing for the listener (or pre-playing for Auto mix) */
+  deckInUse(deck) {
+    const pre = this.prepared && this.prepared.preroll;
+    return deck === this.deck || (!!this.fading && this.fading.incoming === deck) || (!!pre && pre.deck === deck && !pre.done);
+  }
+
+  /** A pre-played song that won't be used after all (skip, queue edit): free its deck */
+  dropPreroll(prep) {
+    const pre = prep && prep.preroll;
+    if (!pre) return;
+    prep.preroll = null;
+    this.endPreroll(pre);
+    const busy = pre.deck === this.deck || (this.fading && (pre.deck === this.fading.outgoing || pre.deck === this.fading.incoming));
+    if (!busy && pre.deck.track === pre.track) this.releaseDeck(pre.deck);
+  }
+
   /** Work out what next() would play, without moving there yet, and resolve its stream */
   async prepareNext() {
-    const prep = { loadId: this.loadId, from: this.index, track: null, stream: null, failed: false, wrap: false, order: null };
+    const prep = { loadId: this.loadId, from: this.index, track: null, stream: null, failed: false, wrap: false, order: null, auto: this.autoMix, preroll: null };
     this.prepared = prep;
     try {
       if (this.index < this.queue.length - 1) {
@@ -412,6 +514,7 @@ class Player extends Emitter {
       const stream = await this.streamOf(prep.track);
       if (this.prepared !== prep) return;
       prep.stream = stream;
+      if (prep.auto) this.preroll(prep);
     } catch (e) {
       prep.failed = true; // the normal end-of-song path will deal with it
     }
@@ -425,18 +528,33 @@ class Player extends Emitter {
     const valid = prep.wrap
       ? this.repeat === 'all' && this.index === this.queue.length - 1
       : this.queue[this.index + 1] === prep.track && this.index === prep.from;
-    if (!valid) return;
+    if (!valid) { this.dropPreroll(prep); return; }
 
     const norm = this.normalizer;
     const outgoing = this.deck;
     const incoming = this.decks[1 - this.active];
     if (!norm.addDeck(incoming.audio)) { this.noCrossfade = true; return; }
     const audio = outgoing.audio;
-    const left = (audio.duration - audio.currentTime) / (audio.playbackRate || 1);
+    const rate = audio.playbackRate || 1;
+    const left = (audio.duration - audio.currentTime) / rate;
     // where the next song comes in and how long the overlap lasts (0 = a clean cut)
     const transition = cues.transitionFor(this.current.id, prep.track.id, this.crossfadeSeconds());
-    const seconds = transition.fade ? Math.max(0.5, Math.min(transition.fade, left)) : 0.1;
+    const plan = prep.auto && !transition.custom && this.mixPlan && this.mixPlan.loadId === this.loadId ? this.mixPlan : null;
+    const fade = plan ? plan.span / rate : transition.fade;
+    const seconds = fade ? Math.max(0.5, Math.min(fade, left)) : 0.1;
     const startAt = Math.max(0, transition.in || 0);
+    // Auto mix: the next song is already loaded on the idle deck; line its beats up with this one's
+    const pre = prep.preroll && prep.preroll.deck === incoming && incoming.track === prep.track ? prep.preroll : null;
+    let match = null;
+    if (pre) {
+      this.endPreroll(pre);
+      // the latest beat is the most exact, but outros often lose the kick and read at the wrong
+      // tempo: when it disagrees with the tempo heard earlier in the song, trust the earlier one
+      const planned = this.mixPlan && this.mixPlan.loadId === this.loadId ? this.mixPlan.grid : null;
+      const fresh = this.beats.grid(audio, 20);
+      const gridOut = fresh && (!planned || Math.abs(fresh.bpm / planned.bpm - 1) < 0.02) ? fresh : planned;
+      match = matchTempo(gridOut, pre.grid);
+    }
 
     const from = this.current;
     // move to the next song exactly like next() would
@@ -448,17 +566,29 @@ class Player extends Emitter {
     }
     const track = this.current;
     this.loadId++;
-    this.releaseDeck(incoming);
-    const fading = this.fading = { from, to: track, outgoing, incoming, seconds, progress: 0, startedAt: null, timer: null, fallback: null };
+    if (!pre) this.releaseDeck(incoming);
+    // Auto mix swaps the two songs' bass halfway through (not for quick cuts)
+    const bass = prep.auto && seconds >= 2;
+    const fading = this.fading = { from, to: track, outgoing, incoming, seconds, bass, progress: 0, startedAt: null, timer: null, fallback: null };
 
     norm.setFade(incoming.audio, 0);
     norm.setFade(outgoing.audio, 1);
+    norm.holdBass(incoming.audio, true, bass ? 0 : null);
+    norm.holdBass(outgoing.audio, false, bass ? 0 : null);
     norm.startTrack(track.id, seconds);
     Object.assign(track, prep.stream.track);
     if (prep.stream.snipped) toast('Only a 30 second preview is available for this track');
     this.active = 1 - this.active;
     norm.setActive(incoming.audio);
-    this.attach(prep.stream, true, startAt, incoming, track);
+    this.stopLock();
+    if (pre) {
+      // start on the beat; BeatLock then keeps it there and matches the tempo
+      incoming.audio.currentTime = this.clampStart(incoming.audio, match ? alignedStart(match, audio.currentTime, startAt) : startAt);
+      if (match) this.lock = new BeatLock(audio, incoming.audio, match, this.rate);
+      incoming.audio.play().catch(() => {});
+    } else {
+      this.attach(prep.stream, true, startAt, incoming, track);
+    }
     // the fade starts once the new song is really playing, so no silence in the middle of it
     incoming.audio.addEventListener('playing', () => this.beginFade(), { once: true });
     fading.fallback = setTimeout(() => this.beginFade(), 3000);
@@ -481,6 +611,10 @@ class Player extends Emitter {
     f.startedAt = norm.ctx.currentTime;
     norm.fadeDeck(f.incoming.audio, true, left, f.progress);
     norm.fadeDeck(f.outgoing.audio, false, left, f.progress);
+    if (f.bass) {
+      norm.swapBass(f.incoming.audio, true, left, f.progress);
+      norm.swapBass(f.outgoing.audio, false, left, f.progress);
+    }
     clearTimeout(f.timer);
     f.timer = setTimeout(() => this.finishFade(f), left * 1000 + 100);
   }
@@ -495,6 +629,10 @@ class Player extends Emitter {
     clearTimeout(f.timer);
     norm.holdFade(f.incoming.audio, true, f.progress);
     norm.holdFade(f.outgoing.audio, false, f.progress);
+    if (f.bass) {
+      norm.holdBass(f.incoming.audio, true, f.progress);
+      norm.holdBass(f.outgoing.audio, false, f.progress);
+    }
   }
 
   /** The fade is over: stop and detach the old deck */
@@ -505,8 +643,20 @@ class Player extends Emitter {
     clearTimeout(f.timer);
     clearTimeout(f.fallback);
     this.releaseDeck(f.outgoing);
+    this.beats.unwatch(f.outgoing.audio);
     this.normalizer.setFade(f.outgoing.audio, 1);
     this.normalizer.setFade(f.incoming.audio, 1);
+    this.normalizer.holdBass(f.outgoing.audio, false, null);
+    this.normalizer.holdBass(f.incoming.audio, true, null);
+    // the incoming song eases back to its own tempo
+    if (this.lock && this.lock.incoming === f.incoming.audio) this.lock.release();
+  }
+
+  /** Drop Auto mix's beat lock straight away (a skip or a new song) */
+  stopLock() {
+    if (!this.lock) return;
+    this.lock.stop(this.rate);
+    this.lock = null;
   }
 
   /** Manual skips cut cleanly: drop the fading deck now and bring the active one to full level */
@@ -564,6 +714,8 @@ class Player extends Emitter {
   play() {
     if (!this.current) return;
     this.audio.play().catch(() => {});
+    const pre = this.prepared && this.prepared.preroll;
+    if (pre && !pre.done && pre.deck.track === pre.track) pre.deck.audio.play().catch(() => {});
     const f = this.fading;
     if (!f) return;
     if (!f.outgoing.audio.ended) f.outgoing.audio.play().catch(() => {});
@@ -574,6 +726,8 @@ class Player extends Emitter {
     this.audio.pause();
     this.holdFade();
     if (this.fading) this.fading.outgoing.audio.pause();
+    const pre = this.prepared && this.prepared.preroll;
+    if (pre && !pre.done) pre.deck.audio.pause();
   }
 
   async next(auto = false) {
