@@ -7,6 +7,7 @@ const os = require('os');
 const discord = require('./discord');
 const updates = require('./updater');
 const offline = require('./offline');
+const crashlog = require('./crashlog');
 
 // downloaded tracks are served to the page as quantm-offline://...; must be set up before ready
 offline.registerScheme();
@@ -19,6 +20,9 @@ const TITLEBAR_HEIGHT = 56;
 // Development: QUANTM_PROFILE=<folder> runs a second copy with its own settings and login,
 // next to the installed app (which keeps its single-instance lock on the normal profile)
 if (process.env.QUANTM_PROFILE && !app.isPackaged) app.setPath('userData', path.resolve(process.env.QUANTM_PROFILE));
+
+// local crash logs (crashlog.js); starts early so a crash during start-up is caught too
+crashlog.start();
 
 // SoundCloud rejects requests whose user agent mentions Electron
 app.userAgentFallback = CHROME_UA;
@@ -454,6 +458,7 @@ function createMainWindow() {
   }, chrome));
   mainWindow.seeThrough = seeThrough;
   mainWindow.blurMethod = blurMethod;
+  crashlog.watchWindow(mainWindow);
   // fully transparent windows get no Aero Snap from Windows: snap them ourselves
   if (blurMethod === 'classic') require('./window-snap').enableSnapping(mainWindow, screen);
 
@@ -746,6 +751,7 @@ handle('update:install', () => updates.install());
 handle('update:setAuto', (event, on) => updates.setAuto(!!on));
 
 handle('app:info', () => ({ version: app.getVersion(), platform: process.platform }));
+handle('app:openCrashLogs', () => shell.openPath(crashlog.folder()));
 
 // resource usage of all Quantm processes (Settings → Performance shows it)
 handle('app:metrics', () => {
@@ -781,6 +787,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(() => {
     nativeTheme.themeSource = 'dark';
+    crashlog.sessionStarted();
     registerNotificationIdentity();
     auth = loadAuth();
     offline.handleScheme();

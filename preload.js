@@ -55,5 +55,6 @@ contextBridge.exposeInMainWorld('native', {
     setAuto: (on) => ipcRenderer.invoke('update:setAuto', on),
     onStatus: (fn) => ipcRenderer.on('update:status', (event, state) => fn(state))
   },
-  info: () => ipcRenderer.invoke('app:info')
+  info: () => ipcRenderer.invoke('app:info'),
+  openCrashLogs: () => ipcRenderer.invoke('app:openCrashLogs')
 });

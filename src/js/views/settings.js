@@ -931,8 +931,10 @@ async function aboutTab(cleanups) {
       ),
       h('p.settings-about-text', 'Quantm is free, open source (GPL-3.0) and has no ads. A successor to Soundnode.'),
       h('div.settings-actions',
-        button('View on GitHub', () => window.native.openExternal('https://github.com/quantm-app/Quantm'), 'btn-outline', 'external')
-      )
+        button('View on GitHub', () => window.native.openExternal('https://github.com/quantm-app/Quantm'), 'btn-outline', 'external'),
+        button('Open crash logs', () => window.native.openCrashLogs(), 'btn-outline')
+      ),
+      h('p.muted.small.settings-foot', 'Crash logs stay on this computer. If Quantm crashes, you can attach crash.log to a GitHub issue.')
     ),
     updatesCard(cleanups),
     card('Credits', null,

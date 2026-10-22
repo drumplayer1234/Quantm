@@ -23,6 +23,7 @@
       "preload.js",
       "updater.js",
       "offline.js",
+      "crashlog.js",
       "window-snap.js",
       "discord.js",
       "src/**/*",
