@@ -629,6 +629,86 @@ a.stat:hover { color: var(--text); }
 [data-player="top"] .queue-panel { top: calc(var(--topbar-h) + var(--player-h) + 12px); bottom: 12px; }
 [data-player="top"] #toasts { bottom: 24px; }
 
+/* --- player on the side ---------------------------------------------------------
+   playerbar.js builds an <aside class="playerbar side"> and moves the player's controls into it.
+   It sets html[data-side-player] only while that panel is really shown: the setting is "Side",
+   the window is at least 980px wide and no theme layout (html[data-layout]) has taken over the
+   screen. Otherwise the normal bar stays, so nothing here applies. --player-h drops to 0 so the
+   sidebar nav, toasts and queue panel use the full height. */
+.playerbar.side { display: none; }
+.playerbar.side[hidden] { display: none !important; }
+html[data-side-player][data-player] { --player-h: 0px; --side-w: clamp(280px, 24vw, 360px); }
+html[data-side-player] footer.playerbar:not(.side) { display: none !important; }
+html[data-side-player] #view { margin-right: var(--side-w); }
+html[data-side-player] #app > aside.playerbar.side {
+  display: flex; flex-direction: column; align-items: stretch; position: fixed; z-index: 30;
+  top: var(--side-top, var(--topbar-h)); right: 0; bottom: 0; width: var(--side-w); height: auto; min-height: 0; margin: 0; padding: 0; gap: 0;
+  border: 0; border-image: none; border-left: 1px solid var(--border); border-radius: 0; box-shadow: none;
+  overflow: hidden;
+}
+.playerbar.side .side-main { flex: none; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 8px; min-width: 0; }
+.playerbar.side .side-art { display: flex; justify-content: center; }
+/* square artwork: full width, shrinking as the window gets shorter so the controls and details keep their room */
+.playerbar.side .side-art .pb-art {
+  position: relative; display: block; width: min(100%, max(110px, calc(100vh - 620px))); height: auto; aspect-ratio: 1 / 1;
+  border-radius: var(--radius); box-shadow: 0 8px 30px rgba(0, 0, 0, .35);
+}
+.pb-art-ph { display: none; }
+.playerbar.side .side-art .pb-art.no-cover .pb-art-ph { display: flex; position: absolute; inset: 0; align-items: center; justify-content: center; color: var(--muted); }
+.playerbar.side .side-info { min-width: 0; }
+.playerbar.side .side-info .pb-text { gap: 4px; }
+.playerbar.side .side-info .pb-title {
+  font-size: 17px; line-height: 1.25; white-space: normal; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.playerbar.side .side-info .pb-artist { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.playerbar.side .side-info .pb-artist a:not(.side-avatar) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.pb-artist .side-avatar { display: none; }
+.playerbar.side .side-info .pb-artist .side-avatar { display: inline-flex; flex: none; }
+.playerbar.side .side-actions { display: flex; align-items: center; justify-content: space-between; }
+.playerbar.side .side-progress .pb-progress-row { max-width: none; }
+.playerbar.side .side-controls { display: flex; justify-content: center; }
+.playerbar.side .side-controls .pb-controls { gap: 14px; }
+.playerbar.side .side-tools { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.playerbar.side .side-volume { display: flex; align-items: center; gap: 6px; }
+.playerbar.side .side-volume .pb-volume { display: flex; flex: 1; width: auto; }
+.playerbar.side .side-buttons { display: flex; align-items: center; justify-content: space-between; }
+.playerbar.side .side-viz .pb-visualizer { display: block; position: static; transform: none; margin: 0 auto; max-width: 100%; }
+.playerbar.side .side-viz .pb-visualizer.hidden { display: none; }
+.playerbar.side .side-automix {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: var(--radius);
+  background: var(--hover); color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums;
+}
+.playerbar.side .side-automix[hidden] { display: none; }
+.playerbar.side .side-mix-name { color: var(--accent); font-weight: 700; }
+.playerbar.side .side-mix-next { margin-left: auto; }
+/* the controls above never move: only the details scroll, so Up next is always reachable */
+.playerbar.side .side-details {
+  flex: 1 1 0; min-height: 0; overflow-y: auto; padding: 12px 16px 16px;
+  border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px;
+}
+.playerbar.side .side-info-block { display: flex; flex-direction: column; gap: 12px; }
+.playerbar.side .side-info-block:empty, .playerbar.side .side-next:empty { display: none; }
+.playerbar.side .side-stats { display: flex; align-items: center; gap: 14px; }
+.playerbar.side .side-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.playerbar.side .side-description { font-size: 13px; line-height: 1.5; }
+.playerbar.side .side-description.clamped { -webkit-line-clamp: 4; }
+.playerbar.side .side-more { margin-top: 4px; color: var(--muted); font-weight: 600; font-size: 12px; }
+.playerbar.side .side-more:hover { color: var(--text); }
+.playerbar.side .side-label { margin-bottom: 6px; font: 700 11px/1.2 var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.playerbar.side .side-next-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px; border-radius: var(--radius); text-align: left; }
+.playerbar.side .side-next-row:hover, .playerbar.side .side-next-row:focus-visible { background: var(--hover); }
+.playerbar.side .side-next-art { width: 40px; height: 40px; flex: none; border-radius: calc(var(--radius) / 2); background: var(--surface-2) center / cover no-repeat; }
+.playerbar.side .side-next-meta { min-width: 0; }
+.playerbar.side .side-next-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.playerbar.side .side-next-meta .muted { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* nothing playing yet: dim what has no meaning, like the bar does */
+.playerbar.side.idle :is(.side-art, .side-info, .side-actions, .side-details) { opacity: .35; pointer-events: none; }
+html[data-side-player][data-player] .queue-panel { right: calc(var(--side-w) + 12px); transform: translateX(calc(100% + var(--side-w) + 24px)); }
+html[data-side-player][data-player] .queue-panel.open { transform: none; }
+html[data-side-player] #toasts { left: calc((100% - var(--side-w)) / 2); }
+html[data-side-player] .update-banner { right: calc(var(--side-w) + 16px); }
+
 /* --- sidebar navigation --- */
 [data-nav="sidebar"] { --nav-w: 210px; }
 [data-nav="sidebar"] .nav {

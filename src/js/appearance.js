@@ -27,7 +27,7 @@ export const WAVE_STYLES = [
 
 export const DEFAULTS = {
   density: 'comfortable',      // comfortable | compact
-  playerPosition: 'bottom',    // bottom | top
+  playerPosition: 'bottom',    // bottom | top | side
   nav: 'top',                  // top | sidebar
   showPlays: true,
   showGenres: true,

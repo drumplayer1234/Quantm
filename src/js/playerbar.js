@@ -1,16 +1,17 @@
-// Bottom player bar + queue panel
-import { h, clear, duration, coverOf } from './dom.js';
+// Player bar (bottom, top, or a docked side panel) + queue panel
+import { h, clear, duration, coverOf, compact, linkify } from './dom.js';
 import { icon } from './icons.js';
 import { player } from './player.js';
 import { createVisualizer } from './visualizer.js';
 import { store, settings, saveSettings } from './store.js';
 import { getSleepTimer, formatRemaining } from './sleep.js';
-import { iconButton, likeButton, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, menu, transitionDialog, toast } from './ui.js';
+import { iconButton, likeButton, repostButton, avatar, addToPlaylistDialog, trackMenu, link, userHref, trackHref, emptyState, menu, transitionDialog, toast } from './ui.js';
 import { getCues, cueEvents, transitionFor } from './cues.js';
 import { formatCueTime } from './cue-time.js';
 
 export function mountPlayerBar(root, { offline = false } = {}) {
-  const art = h('a.pb-art', { href: '#' });
+  // the placeholder icon only shows in the side panel, when the track has no cover
+  const art = h('a.pb-art', { href: '#' }, h('span.pb-art-ph', icon('album', 72)));
   const title = h('a.pb-title', { href: '#' });
   const artist = h('div.pb-artist');
   const likeSlot = h('div.pb-like');
@@ -27,6 +28,7 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   const hoverTime = h('div.pb-hovertime');
   const ticks = h('div.pb-cue-ticks');
   const progress = h('div.pb-progress', h('div.pb-track', buffer, fill, ticks, knob), hoverTime);
+  const progressRow = h('div.pb-progress-row', current, progress, total);
   const renderTicks = () => {
     clear(ticks);
     const track = player.current;
@@ -89,23 +91,97 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   const visualizer = createVisualizer();
   const pbText = h('div.pb-text', title, artist);
   const pbLeft = h('div.pb-left', art, pbText, likeSlot, addBtn);
-  const pbCenter = h('div.pb-center',
-      h('div.pb-controls',
-        shuffleBtn,
-        iconButton('prev', 'Previous (Ctrl+←)', () => player.prev(), 'pb-skip'),
-        playBtn,
-        iconButton('next', 'Next (Ctrl+→)', () => player.next(), 'pb-skip'),
-        repeatBtn
-      ),
-      h('div.pb-progress-row', current, progress, total)
+  const controls = h('div.pb-controls',
+    shuffleBtn,
+    iconButton('prev', 'Previous (Ctrl+←)', () => player.prev(), 'pb-skip'),
+    playBtn,
+    iconButton('next', 'Next (Ctrl+→)', () => player.next(), 'pb-skip'),
+    repeatBtn
   );
+  const pbCenter = h('div.pb-center', controls, progressRow);
   const pbRight = h('div.pb-right', moreBtn, speedBtn, eqBtn, sleepBtn, queueBtn, volIcon, volume);
   const bar = h('footer.playerbar.idle', pbLeft, pbCenter, pbRight);
-  root.append(bar);
+
+  // --- side layout ------------------------------------------------------------
+  // The "Side" player position moves these very same control elements (same listeners, same
+  // state) into a docked panel, so every theme's .pb-* styling still applies. Under
+  // SIDE_MIN_WIDTH, or in theme layouts that rebuild the screen (html[data-layout]), the normal
+  // bar stays. CSS keys off html[data-side-player], which is only set while the panel is shown.
+  const SIDE_MIN_WIDTH = 980;
+  const repostSlot = h('div.side-repost');
+  const slots = {
+    art: h('div.side-art'), info: h('div.side-info'), actions: h('div.side-actions'),
+    progress: h('div.side-progress'), controls: h('div.side-controls'),
+    volume: h('div.side-volume'), buttons: h('div.side-buttons'), viz: h('div.side-viz')
+  };
+  const mixTempo = h('span.side-mix-tempo');
+  const mixNext = h('span.side-mix-next');
+  const mixRow = h('div.side-automix', { hidden: true }, icon('mixOrder', 14), h('span.side-mix-name', 'Auto mix'), mixTempo, mixNext);
+  const detailsInfo = h('div.side-info-block');
+  const detailsNext = h('div.side-next');
+  const side = h('aside.playerbar.side.idle', { 'aria-label': 'Now playing', hidden: true },
+    h('div.side-main',
+      slots.art, slots.info, slots.actions, slots.progress, slots.controls,
+      h('div.side-tools', slots.volume, slots.buttons), slots.viz, mixRow
+    ),
+    h('div.side-details', detailsInfo, detailsNext)
+  );
+  root.append(bar, side);
+
+  let docked = false; // are the controls living in the side panel right now?
+  const sideWanted = () => {
+    const html = document.documentElement;
+    return html.dataset.player === 'side' && !html.dataset.layout && window.innerWidth >= SIDE_MIN_WIDTH;
+  };
+  const dockSide = () => {
+    slots.art.append(art);
+    slots.info.append(pbText);
+    slots.actions.append(likeSlot, repostSlot, addBtn, moreBtn);
+    slots.progress.append(progressRow);
+    slots.controls.append(controls);
+    slots.volume.append(volIcon, volume);
+    slots.buttons.append(speedBtn, eqBtn, sleepBtn, queueBtn);
+  };
+  const dockBar = () => {
+    pbLeft.append(art, pbText, likeSlot, addBtn);
+    pbCenter.prepend(controls, progressRow);
+    pbRight.prepend(moreBtn, speedBtn, eqBtn, sleepBtn, queueBtn, volIcon, volume);
+  };
+  // the panel starts right under the top bar, wherever the theme puts its bottom edge
+  // (Liquid floats the bar with margins, Tiling adds a gap and borders)
+  const measureTop = () => {
+    const topbar = document.querySelector('.topbar');
+    if (docked && topbar) document.documentElement.style.setProperty('--side-top', Math.ceil(topbar.getBoundingClientRect().bottom) + 'px');
+  };
+  const syncDock = () => {
+    const want = sideWanted();
+    if (want === docked) { measureTop(); return; }
+    // moving or hiding a focused control would drop keyboard focus: put it back afterwards
+    const focused = document.activeElement;
+    const keepFocus = focused && focused !== document.body && [art, pbText, likeSlot, repostSlot, addBtn, moreBtn, controls, progressRow, volIcon, volume, speedBtn, eqBtn, sleepBtn, queueBtn].some(el => el.contains(focused));
+    docked = want;
+    side.hidden = !docked;
+    document.documentElement.toggleAttribute('data-side-player', docked);
+    if (!docked) document.documentElement.style.removeProperty('--side-top');
+    if (docked) dockSide(); else dockBar();
+    measureTop();
+    placeVisualizer();
+    renderArt();
+    renderRepost();
+    renderSide();
+    syncAutoMix();
+    if (keepFocus) focused.focus({ preventScroll: true });
+  };
+  // the setting, theme and theme layouts live on <html>; the width check follows window size and zoom
+  new MutationObserver(syncDock).observe(document.documentElement, { attributes: true, attributeFilter: ['data-player', 'data-layout', 'data-style'] });
+  window.addEventListener('resize', syncDock);
+  document.addEventListener('themechange', () => { measureTop(); requestAnimationFrame(measureTop); });
 
   // the visualizer can live on the left, in the center beside the controls, or on the right
+  // (in the side panel it sits under the controls)
   const placeVisualizer = () => {
     const spot = settings.visualizerPosition;
+    if (docked) { if (visualizer.parentElement !== slots.viz) slots.viz.append(visualizer); return; }
     if (spot === 'left') { if (visualizer.parentElement !== pbLeft) pbLeft.insertBefore(visualizer, likeSlot); }
     else if (spot === 'center') { if (visualizer.parentElement !== pbCenter) pbCenter.append(visualizer); }
     else if (visualizer.parentElement !== pbRight) pbRight.insertBefore(visualizer, moreBtn);
@@ -197,26 +273,144 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   renderVolume();
 
   // --- track / state ------------------------------------------------------------
-  player.on('track', (track) => {
-    bar.classList.remove('idle');
-    const cover = coverOf(track, 't300x300');
+  let shown = null; // the track the bar / side panel currently describe
+  let likeBase = null; // the track's like count without your own like
+  // the repost button only exists while the panel is shown: the bar has none, and a button
+  // built while its slot is detached or hidden would keep its store subscription
+  const renderRepost = () => {
+    clear(repostSlot);
+    if (docked && shown && !offline) repostSlot.append(repostButton(shown));
+  };
+  // the side panel shows the artwork large, so it asks for a bigger size
+  const renderArt = () => {
+    const cover = shown && coverOf(shown, docked ? 't500x500' : 't300x300');
     art.style.backgroundImage = cover ? `url("${cover}")` : '';
+    art.classList.toggle('no-cover', !cover);
+  };
+  player.on('track', (track) => {
+    shown = track;
+    bar.classList.remove('idle');
+    side.classList.remove('idle');
+    renderArt();
     art.href = trackHref(track);
+    art.title = track.title;
+    art.setAttribute('aria-label', track.title);
     title.textContent = track.title;
     title.href = trackHref(track);
     title.title = track.title;
-    clear(artist).append(track.user ? link(userHref(track.user), track.user.username) : '');
+    // the small avatar only shows in the side panel
+    clear(artist).append(
+      track.user ? h('a.side-avatar', { href: userHref(track.user), tabindex: -1, 'aria-hidden': 'true' }, avatar(track.user, 20)) : null,
+      track.user ? link(userHref(track.user), track.user.username) : ''
+    );
     clear(likeSlot);
     if (!offline) likeSlot.append(likeButton(track));
+    likeBase = track.likes_count != null ? track.likes_count - (store.isLiked(track) ? 1 : 0) : null;
+    renderRepost();
     total.textContent = duration(track.duration);
     document.title = `${track.title} · ${track.user ? track.user.username : ''} — Quantm`;
+    renderSide();
+    syncAutoMix();
   });
   const renderState = () => {
     clear(playBtn).append(icon(player.playing ? 'pause' : 'play', 22));
     playBtn.title = player.playing ? 'Pause (Space)' : 'Play (Space)';
+    syncAutoMix();
   };
   player.on('state', renderState);
-  player.on('buffering', (on) => bar.classList.toggle('buffering', on));
+  player.on('buffering', (on) => [bar, side].forEach(el => el.classList.toggle('buffering', on)));
+
+  // --- side panel details ---------------------------------------------------------
+  /** 'techno "deep house"' -> ['techno', 'deep house'] */
+  const parseTags = (text) => {
+    const tags = [];
+    String(text || '').replace(/"([^"]+)"|(\S+)/g, (m, quoted, single) => { tags.push(quoted || single); return m; });
+    return tags;
+  };
+
+  let likesStat = null;
+  // the count follows the store's liked state, so liking the song on its own page updates it too
+  const likeCount = () => likeBase + (store.isLiked(shown) ? 1 : 0);
+  const renderLikes = () => {
+    if (likesStat && shown && likeBase !== null) likesStat.lastChild.textContent = compact(likeCount());
+  };
+  store.on('change', renderLikes);
+
+  // plays, likes, genre and tags, and the first few lines of the description
+  function renderInfo() {
+    clear(detailsInfo);
+    likesStat = null;
+    const track = shown;
+    if (!track) return;
+    const plays = track.playback_count != null ? h('span.stat', { title: 'Plays' }, icon('play', 12), compact(track.playback_count)) : null;
+    if (likeBase !== null) likesStat = h('span.stat', { title: 'Likes' }, icon('heart', 12), compact(likeCount()));
+    if (plays || likesStat) detailsInfo.append(h('div.side-stats', plays, likesStat));
+
+    const tags = parseTags(track.tag_list);
+    if (track.genre && !tags.some(t => t.toLowerCase() === track.genre.toLowerCase())) tags.unshift(track.genre);
+    if (tags.length) {
+      detailsInfo.append(h('div.side-tags', tags.slice(0, 10).map(tag =>
+        h('a.tag-pill', { href: '#/search?q=' + encodeURIComponent(tag) + '&tab=tracks' }, '#' + tag))));
+    }
+
+    const about = track.description && track.description.trim();
+    if (about) {
+      const text = h('div.description.side-description.clamped', { html: linkify(about) });
+      const toggle = h('button.side-more', { hidden: true, onclick: () => {
+        const clamped = text.classList.toggle('clamped');
+        toggle.textContent = clamped ? 'Show more' : 'Show less';
+      } }, 'Show more');
+      detailsInfo.append(h('div.side-about', text, toggle));
+      // only offer "Show more" when the 4-line clamp really cuts text off (measured once laid out)
+      requestAnimationFrame(() => {
+        if (text.classList.contains('clamped') && text.scrollHeight > text.clientHeight + 1) toggle.hidden = false;
+      });
+    }
+  }
+
+  // the next three songs in the queue; click one to jump to it
+  function renderNext() {
+    clear(detailsNext);
+    const first = player.index + 1;
+    const rows = player.queue.slice(first, first + 3);
+    if (!rows.length) return;
+    detailsNext.append(
+      h('h3.side-label', 'Up next'),
+      ...rows.map((track, i) => {
+        const cover = coverOf(track, 't67x67');
+        return h('button.side-next-row', { title: `Play ${track.title}`, onclick: () => player.jump(first + i) },
+          h('div.side-next-art', { style: { backgroundImage: cover ? `url("${cover}")` : '' } }),
+          h('div.side-next-meta', h('div.side-next-title', track.title), h('div.muted.small', track.user ? track.user.username : '')));
+      })
+    );
+  }
+
+  // nothing is built while the panel is not shown
+  function renderSide() {
+    if (!docked) return;
+    renderInfo();
+    renderNext();
+  }
+  player.on('queue', () => { if (docked) renderNext(); });
+
+  // tempo and the countdown to the next mix; a timer runs only while the panel is shown and playing
+  let mixTimer = null;
+  const showMix = () => docked && settings.autoMix === true && !!player.current;
+  function renderAutoMix() {
+    const status = player.autoMixStatus();
+    const bpm = status.live?.bpm || status.structure?.grid?.bpm || status.upNext?.bpm;
+    mixTempo.textContent = bpm ? `${Math.round(bpm)} BPM` : '';
+    mixNext.textContent = status.mix ? 'mixing…'
+      : status.mixIn > 0 ? `next mix in ${duration(status.mixIn * 1000)}` : '';
+  }
+  function syncAutoMix() {
+    mixRow.hidden = !showMix();
+    const run = showMix() && player.playing;
+    if (!mixRow.hidden) renderAutoMix();
+    if (run && !mixTimer) mixTimer = setInterval(renderAutoMix, 500);
+    else if (!run && mixTimer) { clearInterval(mixTimer); mixTimer = null; }
+  }
+  store.on('settings', syncAutoMix);
   const renderModes = () => {
     // shuffle has three states: off, shuffle, and mix order (songs that blend)
     const shuffleMode = player.shuffleMode;
@@ -308,5 +502,6 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   cueEvents.on('change', renderQueue);
   store.on('settings', renderQueue);
 
+  syncDock(); // in case the appearance was applied before the bar was built
   return { toggleQueue };
 }

@@ -597,7 +597,7 @@ async function appearanceTab() {
     ),
     card('Layout', 'Arrange Quantm the way you like it.',
       chipRow('Navigation', 'Links in the top bar, or in a sidebar on the left', [{ id: 'top', label: 'Top bar' }, { id: 'sidebar', label: 'Sidebar' }], a.nav, (v) => save({ nav: v })),
-      chipRow('Player bar', 'Where the playback controls sit', [{ id: 'bottom', label: 'Bottom' }, { id: 'top', label: 'Top' }], a.playerPosition, (v) => save({ playerPosition: v })),
+      chipRow('Player position', 'Where the playback controls sit. Side docks a full player panel on the right (windows under 980px wide use the bottom bar)', [{ id: 'bottom', label: 'Bottom' }, { id: 'top', label: 'Top' }, { id: 'side', label: 'Side' }], a.playerPosition, (v) => save({ playerPosition: v })),
       chipRow('Density', 'Compact fits more on screen', [{ id: 'comfortable', label: 'Comfortable' }, { id: 'compact', label: 'Compact' }], a.density, (v) => save({ density: v })),
       toggleRow('Show play counts', 'On track rows and feed cards', a.showPlays, (on) => save({ showPlays: on })),
       toggleRow('Show genre tags', 'On track rows and feed cards', a.showGenres, (on) => save({ showGenres: on }))
