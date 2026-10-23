@@ -754,6 +754,13 @@ async function autoMixTab(cleanups) {
         rows.push(row('Next mix', `${when}  ·  ${(s.plan.span / (player.audio.playbackRate || 1)).toFixed(1)} s` +
           (p ? `  ·  trying ${pct(p.length)} length, ${pct(p.dj)} DJ blend, up to ${pct(p.stretch, 1)} tempo stretch` : '')));
       } else if (!s.mix) rows.push(row('Next mix', 'planned about 40 s before the end'));
+      if (s.upNext && !s.mix) {
+        const u = s.upNext;
+        const sources = { memory: 'from memory', soundcloud: 'from SoundCloud', title: 'from its title', tags: 'from its tags', description: 'from its description', waveform: 'rough, from its waveform' };
+        rows.push(row('Up next', u.track.title + (u.bpm ? `  ·  ${Math.round(u.bpm)} BPM (${sources[u.source] || 'guessed'})` : '  ·  tempo unknown') +
+          (u.reasons && u.reasons.length ? '  ·  ' + u.reasons.slice(0, 3).join(', ') : '') +
+          (s.shuffleMode === 'mix' ? '  ·  picked by Mix order' : '')));
+      }
       if (s.preroll) {
         const p = s.preroll;
         rows.push(row('Next song', `${p.track.title}: ` + (p.done ? (p.grid ? `found ${p.grid.bpm.toFixed(1)} BPM` : 'no beat in its intro') : `listening silently (${(p.heard || 0).toFixed(1)} s)`) +

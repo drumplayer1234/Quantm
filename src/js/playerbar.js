@@ -16,7 +16,7 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   const likeSlot = h('div.pb-like');
 
   const playBtn = h('button.pb-play', { title: 'Play (Space)', onclick: () => player.toggle() }, icon('play', 22));
-  const shuffleBtn = iconButton('shuffle', 'Shuffle', () => player.toggleShuffle(), 'pb-mode');
+  const shuffleBtn = iconButton('shuffle', 'Shuffle', () => player.cycleShuffle(), 'pb-mode');
   const repeatBtn = iconButton('repeat', 'Repeat', () => player.cycleRepeat(), 'pb-mode');
 
   const current = h('span.pb-time', '0:00');
@@ -218,12 +218,20 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   player.on('state', renderState);
   player.on('buffering', (on) => bar.classList.toggle('buffering', on));
   const renderModes = () => {
-    shuffleBtn.classList.toggle('active', player.shuffle);
+    // shuffle has three states: off, shuffle, and mix order (songs that blend)
+    const shuffleMode = player.shuffleMode;
+    shuffleBtn.classList.toggle('active', shuffleMode !== 'off');
+    shuffleBtn.classList.toggle('mix', shuffleMode === 'mix');
+    clear(shuffleBtn).append(icon(shuffleMode === 'mix' ? 'mixOrder' : 'shuffle'));
+    shuffleBtn.title = { off: 'Shuffle: off', shuffle: 'Shuffle: on', mix: 'Shuffle: mix order (songs that blend)' }[shuffleMode];
+    shuffleBtn.setAttribute('aria-label', shuffleBtn.title);
+    shuffleBtn.setAttribute('aria-pressed', String(shuffleMode !== 'off'));
     repeatBtn.classList.toggle('active', player.repeat !== 'off');
     clear(repeatBtn).append(icon(player.repeat === 'one' ? 'repeatOne' : 'repeat'));
     repeatBtn.title = { off: 'Repeat: off', all: 'Repeat: all', one: 'Repeat: one' }[player.repeat];
   };
   player.on('modes', renderModes);
+  store.on('settings', renderModes); // turning Auto mix off drops mix order
   renderModes();
 
   // --- queue panel --------------------------------------------------------------
@@ -279,10 +287,12 @@ export function mountPlayerBar(root, { offline = false } = {}) {
       const next = player.queue[i + 1];
       if (next) {
         const transition = transitionFor(track.id, next.id, player.crossfadeSeconds());
-        const label = transition.custom
+        // in mix order, say how this song blends into the next
+        const blend = player.blendNote(i);
+        const label = (transition.custom
           ? `↘ ${transition.out == null ? 'end' : formatCueTime(transition.out)} → ${formatCueTime(transition.in)} · ${transition.fade}s`
-          : 'Transition';
-        list.append(h('button.queue-transition' + (transition.custom ? '.custom' : ''), {
+          : 'Transition') + (blend ? ` · ${blend.text}` : '');
+        list.append(h('button.queue-transition' + (transition.custom ? '.custom' : '') + (blend && blend.ok === true ? '.blend-ok' : blend && blend.ok === false ? '.blend-warn' : ''), {
           title: `Edit transition: ${track.title} → ${next.title}`,
           onclick: () => transitionDialog(track, next)
         }, label));

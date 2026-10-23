@@ -139,6 +139,7 @@ const defaults = {
   keepPitch: true,          // custom speed keeps the original pitch
   crossfade: 0,             // seconds (0-12), 0 = off
   autoMix: false,           // DJ-style transitions: beat-matched, bass swap (automix.js)
+  mixOrder: false,          // shuffle orders songs so each blends into the next (needs autoMix; mixorder.js)
   ...VISUALIZER_DEFAULTS
 };
 

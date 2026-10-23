@@ -5,6 +5,7 @@ import * as localPlaylists from './local-playlists.js';
 import { offline } from './offline.js';
 import { getCues, addCue, removeCue, renameCue, setMixIn, setMixOut, cueEvents, getPair, setPair, transitionFor } from './cues.js';
 import { formatCueTime, parseCueTime } from './cue-time.js';
+import { settings } from './store.js'; // only read when a menu opens, so the store <-> ui import cycle is safe
 
 // Lazy imports avoid circular-import timing issues (store/player import ui.js)
 let _store, _player, _api;
@@ -476,7 +477,7 @@ export function trackRow(tracks, index, opts = {}) {
     likeButton(track),
     repostButton(track),
     iconButton('addToPlaylist', 'Add to playlist', () => addToPlaylistDialog(track)),
-    iconButton('more', 'More', (e) => trackMenu(track, e, opts)),
+    iconButton('more', 'More', (e) => trackMenu(track, e, { ...opts, tracks, index, context: opts.context })),
     ...(opts.extraActions ? opts.extraActions(track) : [])
   );
 
@@ -500,7 +501,7 @@ export function trackRow(tracks, index, opts = {}) {
   }
   row.addEventListener('dblclick', play);
   cover.addEventListener('click', (e) => { e.stopPropagation(); play(); });
-  row.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(track, e, opts); });
+  row.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(track, e, { ...opts, tracks, index, context: opts.context }); });
 
   const sync = () => {
     const isCurrent = p.current && p.current.id === track.id;
@@ -631,7 +632,7 @@ export function feedItem(tracks, index, opts = {}) {
           repostButton(track, { withCount: true }),
           iconButton('addToPlaylist', 'Add to playlist', () => addToPlaylistDialog(track)),
           iconButton('link', 'Copy link', () => { window.native.copy(track.permalink_url); toast('Link copied'); }),
-          iconButton('more', 'More', (e) => trackMenu(track, e, opts)),
+          iconButton('more', 'More', (e) => trackMenu(track, e, { ...opts, tracks, index })),
           h('div.spacer'),
           track.playback_count != null ? h('span.stat', icon('play', 12), compact(track.playback_count)) : null,
           track.comment_count != null ? h('a.stat', { href: trackHref(track) }, icon('comment', 12), compact(track.comment_count)) : null
@@ -639,7 +640,7 @@ export function feedItem(tracks, index, opts = {}) {
       )
     )
   );
-  card.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(track, e, opts); });
+  card.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(track, e, { ...opts, tracks, index }); });
   return card;
 }
 
@@ -713,7 +714,7 @@ export function trackCard(tracks, index, context) {
     h('div.card-title', track.title),
     h('div.card-sub', track.user ? track.user.username : '')
   );
-  card.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(track, e, {}); });
+  card.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(track, e, { tracks, index, context }); });
   return card;
 }
 
@@ -947,6 +948,7 @@ export function trackMenu(track, event, opts = {}) {
     } : null,
     { label: 'Play next', icon: 'next', onclick: () => p.playNext(track) },
     { label: 'Add to queue', icon: 'queue', onclick: () => p.addToQueue(track) },
+    opts.tracks && settings.autoMix ? { label: 'Mix from here', icon: 'mixOrder', onclick: () => p.mixFrom(opts.tracks, opts.index, opts.context || null) } : null,
     { label: 'Mix points…', onclick: () => mixPointsDialog(track) },
     { label: 'Add to playlist', icon: 'addToPlaylist', onclick: () => addToPlaylistDialog(track) },
     { label: 'Add to Quantm playlist', icon: 'playlist', onclick: () => addToPlaylistDialog(track) },

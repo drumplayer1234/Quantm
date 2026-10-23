@@ -260,13 +260,21 @@ function entryFor(value) {
   };
 }
 
+// The parsed store, reused while the stored text is unchanged (Mix order looks up many songs at once)
+let cachedRaw = null;
+let cachedEntries = null;
+
 function read() {
   try {
-    const parsed = JSON.parse(globalThis.localStorage.getItem(KEY));
+    const raw = globalThis.localStorage.getItem(KEY);
+    if (raw !== null && raw === cachedRaw && cachedEntries) return Object.assign(Object.create(null), cachedEntries);
+    const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return Object.create(null);
     const entries = Object.entries(parsed).filter(([id, entry]) => idFor(id) && entryFor(entry));
     entries.sort((a, b) => (b[1].updated || 0) - (a[1].updated || 0));
-    return Object.assign(Object.create(null), Object.fromEntries(entries.slice(0, LIMIT)));
+    cachedEntries = Object.assign(Object.create(null), Object.fromEntries(entries.slice(0, LIMIT)));
+    cachedRaw = raw;
+    return Object.assign(Object.create(null), cachedEntries);
   } catch { return Object.create(null); }
 }
 

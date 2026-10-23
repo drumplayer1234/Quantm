@@ -372,7 +372,7 @@ function setupShortcuts(searchInput) {
     else if (e.key === 'ArrowDown' && ctrl) { e.preventDefault(); player.setVolume(player.volume - 0.05); }
     else if (e.key.toLowerCase() === 'm') player.toggleMute();
     else if (e.key.toLowerCase() === 'l' && player.current) store.toggleLike(player.current);
-    else if (e.key.toLowerCase() === 's') player.toggleShuffle();
+    else if (e.key.toLowerCase() === 's') player.cycleShuffle();
     else if (e.key.toLowerCase() === 'r') player.cycleRepeat();
     else if (e.key === '>') player.nudgeSpeed(0.05);
     else if (e.key === '<') player.nudgeSpeed(-0.05);

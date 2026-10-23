@@ -9,6 +9,7 @@ import { Normalizer } from './normalizer.js';
 import { BeatWatcher, BeatLock, ANALYZE_SECONDS, ANALYZE_MAX_SECONDS, MAX_MIX_SECONDS, matchTempo, alignedStart, mixSeconds, memoryGrid } from './automix.js';
 import * as mixmemory from './mixmemory.js';
 import * as mixlearn from './mixlearn.js';
+import * as mixorder from './mixorder.js';
 import { phaseError } from './beats.js';
 
 const mmss = (t) => { const s = Math.max(0, Math.round(t || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
@@ -68,6 +69,10 @@ class Player extends Emitter {
     this.original = null;   // un-shuffled queue, when shuffle is on
     this.context = null;    // { label, href } where the queue came from
     this.shuffle = settings.shuffle;
+    this.mixOrder = settings.mixOrder === true; // with shuffle on: order songs to blend (shuffleMode 'mix')
+    this.mixFeatureCache = new Map(); // track id → mixorder features (tempo, genre, energy)
+    this.queueRev = 0;                // bumped by every change you make to the queue; background reorders check it
+    this.waveSamples = new Map();     // track id → SoundCloud waveform samples (or null), shared by the guesses below
     this.repeat = settings.repeat;
     this.loadId = 0;
     this.loading = false;
@@ -175,6 +180,7 @@ class Player extends Emitter {
    * context: { label: 'Likes', href: '#/library/likes' } shown in the queue panel
    */
   playList(tracks, index = 0, context = null) {
+    this.queueRev++;
     // something new entirely: says nothing about the last mix
     if (this.mixOutcome) { clearTimeout(this.mixOutcome.timer); this.mixOutcome = null; }
     const playable = tracks.filter(t => t && t.kind !== 'playlist');
@@ -227,6 +233,7 @@ class Player extends Emitter {
   }
 
   playNext(track) {
+    this.queueRev++;
     this.queue.splice(this.index + 1, 0, track);
     if (this.original) this.original.push(track);
     this.emit('queue');
@@ -235,6 +242,7 @@ class Player extends Emitter {
   }
 
   addToQueue(tracks) {
+    this.queueRev++;
     tracks = [].concat(tracks);
     this.queue.push(...tracks);
     if (this.original) this.original.push(...tracks);
@@ -245,6 +253,7 @@ class Player extends Emitter {
 
   removeFromQueue(position) {
     if (position === this.index) return;
+    this.queueRev++;
     const [track] = this.queue.splice(position, 1);
     if (position < this.index) this.index--;
     // keep the un-shuffled copy in sync, or the track comes back when shuffle is turned off
@@ -256,6 +265,7 @@ class Player extends Emitter {
   }
 
   moveInQueue(from, to) {
+    this.queueRev++;
     const [track] = this.queue.splice(from, 1);
     this.queue.splice(to, 0, track);
     if (from === this.index) this.index = to;
@@ -265,6 +275,7 @@ class Player extends Emitter {
   }
 
   clearQueue() {
+    this.queueRev++;
     const current = this.current;
     this.queue = current ? [current] : [];
     this.index = current ? 0 : -1;
@@ -473,6 +484,13 @@ class Player extends Emitter {
     }
     const o = this.mixOutcome;
     if (o) status.outcome = { listened: o.position != null && this.current.id === o.trackId ? Math.max(0, audio.currentTime - o.position) : null, during: !o.mixEnd };
+    status.shuffleMode = this.shuffleMode;
+    const next = this.queue[this.index + 1];
+    if (next && this.autoMix) {
+      const a = this.mixFeatures(this.current);
+      const b = this.mixFeatures(next);
+      status.upNext = { track: next, bpm: b.bpm, source: b.bpmSource, reasons: mixorder.blendCost(a, b).reasons };
+    }
     return status;
   }
 
@@ -499,6 +517,7 @@ class Player extends Emitter {
     try {
       const summary = l.listener.summary(duration);
       if (summary) {
+        this.mixFeatureCache.delete(l.trackId);
         const entry = mixmemory.learn(l.trackId, summary) || mixmemory.get(l.trackId);
         if (entry && (summary.grid || summary.drumsIn != null || summary.outroStart != null)) {
           const parts = [entry.bpm ? entry.bpm.toFixed(1) + ' BPM' : 'no clear beat'];
@@ -529,9 +548,171 @@ class Player extends Emitter {
     if (!track || this.waves.has(track.id)) return;
     this.waves.set(track.id, null);
     if (this.waves.size > 200) this.waves.delete(this.waves.keys().next().value);
-    api.waveform(track).then((samples) => {
+    this.waveformOf(track).then((samples) => {
       if (samples) this.waves.set(track.id, mixmemory.fromWaveform({ samples, width: samples.length, height: 1 }, (track.duration || 0) / 1000));
-    }).catch(() => {});
+    });
+  }
+
+  /** SoundCloud's waveform for a track (normalized samples), fetched once */
+  waveformOf(track) {
+    if (!track) return Promise.resolve(null);
+    const known = this.waveSamples.get(track.id);
+    if (known !== undefined) return Promise.resolve(known instanceof Promise ? known : known);
+    const pending = api.waveform(track).catch(() => null).then((samples) => {
+      this.waveSamples.set(track.id, samples || null);
+      if (this.waveSamples.size > 3000) this.waveSamples.delete(this.waveSamples.keys().next().value);
+      this.mixFeatureCache.delete(track.id);
+      return samples || null;
+    });
+    this.waveSamples.set(track.id, pending);
+    return pending;
+  }
+
+  // ---- Mix order: shuffle that orders songs so each one blends into the next (mixorder.js) ----
+
+  /** off | shuffle | mix (Mix order needs Auto mix) */
+  get shuffleMode() {
+    if (!this.shuffle) return 'off';
+    return this.mixOrder && settings.autoMix === true ? 'mix' : 'shuffle';
+  }
+
+  /** The shuffle button: off → shuffle → Mix order (when Auto mix is on) → off */
+  cycleShuffle() {
+    const mode = this.shuffleMode;
+    if (mode === 'shuffle' && settings.autoMix === true) return this.setMixOrder(true);
+    if (this.mixOrder) { this.mixOrder = false; saveSettings({ mixOrder: false }); }
+    this.toggleShuffle();
+  }
+
+  setMixOrder(on) {
+    this.mixOrder = !!on;
+    saveSettings({ mixOrder: this.mixOrder });
+    if (this.shuffle) {
+      // reorder what's coming (random or blending), keeping what played and the song already lined up
+      this.reorderUpcoming(true);
+      this.logMix('plan', this.mixOrder ? 'Mix order on: the queue now flows song to song' : 'Mix order off: back to a random shuffle');
+    }
+    this.emit('modes');
+  }
+
+  /** Turn on Mix order and play these tracks from index, the rest ordered to blend ("Mix from here") */
+  mixFrom(tracks, index = 0, context = null) {
+    if (settings.autoMix !== true) return this.playList(tracks, index, context);
+    this.mixOrder = true;
+    this.shuffle = true;
+    saveSettings({ mixOrder: true, shuffle: true });
+    this.emit('modes');
+    return this.playList(tracks, index, context);
+  }
+
+  /** What Mix order knows about a track: tempo (memory, title, tags or waveform), genre, energy */
+  mixFeatures(track) {
+    if (!track) return null;
+    const cached = this.mixFeatureCache.get(track.id);
+    if (cached) return cached;
+    const mem = mixmemory.get(track.id);
+    const wave = this.waveSamples.get(track.id);
+    const f = mixorder.features(track, {
+      memory: mem && mem.bpm ? { bpm: mem.bpm, confidence: mem.confidence } : null,
+      waveform: Array.isArray(wave) ? wave : null
+    });
+    this.mixFeatureCache.set(track.id, f);
+    if (this.mixFeatureCache.size > 5000) this.mixFeatureCache.delete(this.mixFeatureCache.keys().next().value);
+    return f;
+  }
+
+  /** Songs in shuffle order after `after`: random, or in Mix order each blending into the next */
+  shuffled(rest, after = this.current) {
+    if (this.shuffleMode !== 'mix' || rest.length < 2) return randomOrder(rest);
+    const items = after ? [after, ...rest] : rest.slice();
+    const order = mixorder.orderForMixing(items.map(t => this.mixFeatures(t)), { start: 0 });
+    const out = order.map(i => items[i]);
+    if (after) out.shift();
+    this.warmFeatures(rest);
+    return out;
+  }
+
+  /** A whole new pass through the queue (repeat all): starts where the last song left off */
+  wrapOrder() {
+    if (this.shuffleMode !== 'mix') return randomOrder(this.queue);
+    const current = this.current;
+    return [...this.shuffled(this.queue.filter((t, i) => i !== this.index), current), ...(current ? [current] : [])];
+  }
+
+  /**
+   * Reorder the songs still to come (after the current one, and after the next one when it's
+   * already lined up for a crossfade). random: a fresh random order when Mix order is off.
+   */
+  reorderUpcoming(random = false) {
+    if (!this.shuffle || this.index < 0) return;
+    if (this.shuffleMode !== 'mix' && !random) return;
+    const lined = this.prepared && this.prepared.loadId === this.loadId && this.prepared.track ? 1 : 0;
+    const keep = this.index + 1 + (this.fading ? 0 : lined);
+    if (this.queue.length - keep < 2) return;
+    const anchor = this.queue[keep - 1];
+    this.queue = [...this.queue.slice(0, keep), ...this.shuffled(this.queue.slice(keep), anchor)];
+    this.emit('queue');
+  }
+
+  /**
+   * Songs whose tempo isn't known from memory, title or tags: fetch their waveforms (a few at a
+   * time, up to 60 per call) for a rough tempo, then reorder what's coming with the new knowledge.
+   */
+  warmFeatures(tracks) {
+    if (this.shuffleMode !== 'mix') return;
+    const todo = tracks.filter(t => t && this.waveSamples.get(t.id) === undefined && !this.mixFeatures(t).bpm).slice(0, 60);
+    if (!todo.length) return;
+    this.warmQueue = (this.warmQueue || []).concat(todo);
+    this.warmRev = this.queueRev;
+    if (this.warming) return;
+    this.warming = true;
+    const work = async () => {
+      let learned = 0;
+      while (this.warmQueue.length) {
+        const batch = this.warmQueue.splice(0, 4);
+        const results = await Promise.all(batch.map(t => this.waveformOf(t)));
+        learned += results.filter(Boolean).length;
+      }
+      this.warming = false;
+      // only if you haven't changed the queue yourself meanwhile (moved a song, started another list)
+      if (learned && this.shuffleMode === 'mix' && this.warmRev === this.queueRev) this.reorderUpcoming();
+    };
+    work().catch(() => { this.warming = false; });
+  }
+
+  /** How queue[i] blends into queue[i + 1], for the queue panel (Mix order only) */
+  blendNote(i) {
+    if (this.shuffleMode !== 'mix' || !this.queue[i] || !this.queue[i + 1]) return null;
+    try {
+      const a = this.mixFeatures(this.queue[i]);
+      const b = this.mixFeatures(this.queue[i + 1]);
+      const note = mixorder.describeBlend(a, b);
+      // unknown tempo: neither a good nor a bad sign
+      return a.bpm && b.bpm ? note : { ok: null, text: note.text };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /** Smarter autoplay: of the related songs, the ones that blend best, chained like a set */
+  async blendingRelated(related, count = 10) {
+    // a rough tempo for related songs without one, but don't hold up playback for long
+    const unknown = related.filter(t => !this.mixFeatures(t).bpm);
+    await Promise.race([Promise.all(unknown.map(t => this.waveformOf(t))), new Promise(r => setTimeout(r, 2500))]);
+    const pool = related.slice();
+    const out = [];
+    let last = this.current;
+    while (out.length < count && pool.length) {
+      const [best] = mixorder.pickNext(this.mixFeatures(last), pool.map(t => this.mixFeatures(t)), { count: 1 });
+      const pick = pool.splice(best == null ? 0 : best, 1)[0];
+      out.push(pick);
+      last = pick;
+    }
+    if (out[0]) {
+      const f = this.mixFeatures(out[0]);
+      this.logMix('plan', `Autoplay picked ${out.length} related songs that blend, starting with "${(out[0].title || '').slice(0, 60)}"${f.bpm ? ` (${Math.round(f.bpm)} BPM)` : ''}`);
+    }
+    return out;
   }
 
   /** What Auto mix knows about a song's structure: its memory, else the waveform guess */
@@ -681,7 +862,7 @@ class Player extends Emitter {
         prep.track = this.queue[this.index + 1];
       } else if (this.repeat === 'all') {
         prep.wrap = true;
-        prep.order = this.shuffle ? randomOrder(this.queue) : null;
+        prep.order = this.shuffle ? this.wrapOrder() : null;
         prep.track = (prep.order || this.queue)[0];
       } else if (settings.autoplayRelated && this.current) {
         const added = await this.appendRelated();
@@ -959,7 +1140,7 @@ class Player extends Emitter {
     if (this.index < this.queue.length - 1) {
       this.index++;
     } else if (this.repeat === 'all') {
-      if (this.shuffle) this.queue = randomOrder(this.queue);
+      if (this.shuffle) this.queue = this.wrapOrder();
       this.index = 0;
     } else if (settings.autoplayRelated && this.current) {
       // like soundcloud.com: keep playing related tracks
@@ -973,17 +1154,36 @@ class Player extends Emitter {
     return this.load();
   }
 
-  async appendRelated() {
-    try {
-      const pager = api.relatedTracks(this.current.id);
-      const related = (await pager.next()).filter(t => !this.queue.some(q => q.id === t.id));
-      if (!related.length) return false;
-      this.queue.push(...related.slice(0, 10));
-      if (this.original) this.original.push(...related.slice(0, 10));
-      return true;
-    } catch (e) {
-      return false;
-    }
+  appendRelated() {
+    const current = this.current;
+    const queue = this.queue;
+    const rev = this.queueRev;
+    // the look-ahead and a press of Next can both ask: share one fetch
+    const pending = this.relatedPending;
+    if (pending && pending.current === current && pending.queue === queue) return pending.promise;
+    let promise = null;
+    promise = (async () => {
+      try {
+        const pager = api.relatedTracks(current.id);
+        let related = (await pager.next()).filter(t => !queue.some(q => q.id === t.id));
+        if (!related.length) return false;
+        // with Auto mix on, keep the ones that blend best, in an order that flows
+        related = this.autoMix ? await this.blendingRelated(related) : related.slice(0, 10);
+        // something else started meanwhile (another list, a new queue): don't touch it
+        if (this.queue !== queue || this.current !== current || this.queueRev !== rev) return false;
+        related = related.filter(t => !this.queue.some(q => q.id === t.id));
+        if (!related.length) return false;
+        this.queue.push(...related);
+        if (this.original) this.original.push(...related);
+        return true;
+      } catch (e) {
+        return false;
+      } finally {
+        if (this.relatedPending && this.relatedPending.promise === promise) this.relatedPending = null;
+      }
+    })();
+    this.relatedPending = { current, queue, promise };
+    return promise;
   }
 
   prev() {
@@ -1054,7 +1254,7 @@ class Player extends Emitter {
   applyShuffle() {
     const current = this.current;
     this.original = this.queue.slice();
-    const rest = randomOrder(this.queue.filter((t, i) => i !== this.index));
+    const rest = this.shuffled(this.queue.filter((t, i) => i !== this.index), current);
     this.queue = current ? [current, ...rest] : rest;
     this.index = current ? 0 : -1;
   }
@@ -1082,7 +1282,7 @@ class Player extends Emitter {
     const tracks = all.filter(t => t && t.kind !== 'playlist');
     if (tracks.length <= this.queue.length) return;
     const played = this.queue.slice(0, this.index);
-    const rest = randomOrder(tracks.filter(t => (!current || t.id !== current.id) && !played.some(p => p.id === t.id)));
+    const rest = this.shuffled(tracks.filter(t => (!current || t.id !== current.id) && !played.some(p => p.id === t.id)), current);
     this.original = tracks;
     this.queue = [...played, ...(current ? [current] : []), ...rest];
     this.emit('queue');

@@ -287,6 +287,9 @@ a.stat:hover { color: var(--text); }
 .queue-transition { display: block; width: 100%; min-height: 24px; padding: 3px 12px; color: var(--muted); font-size: 11px; opacity: .35; }
 .queue-transition.custom, .queue-transition:hover, .queue-transition:focus-visible { opacity: 1; background: var(--hover); }
 .queue-transition.custom { color: var(--accent); }
+/* mix order: how this song blends into the next */
+.queue-transition.blend-ok { color: var(--accent); opacity: .7; }
+.queue-transition.blend-warn { color: #e0a33a; opacity: .85; }
 .cue-editor, .cue-field, .cue-list { display: flex; flex-direction: column; gap: 10px; }
 .cue-editor { gap: 16px; }
 .cue-editor .modal-actions { flex-wrap: wrap; }
@@ -443,6 +446,7 @@ a.stat:hover { color: var(--text); }
 @keyframes pulse { 50% { opacity: .6; } }
 .pb-mode.active { color: var(--accent); position: relative; }
 .pb-mode.active::after { content: ""; position: absolute; bottom: 2px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+.pb-mode.mix::after { width: 10px; border-radius: 2px; } /* mix order: a small bar instead of a dot */
 .pb-progress-row { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 640px; }
 .pb-time { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 38px; text-align: center; }
 .pb-progress, .pb-volume { flex: 1; height: 16px; display: flex; align-items: center; cursor: pointer; position: relative; }
