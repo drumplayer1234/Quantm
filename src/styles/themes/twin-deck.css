@@ -104,8 +104,10 @@ html[data-style="twin-deck"] .td-platter {
   animation: td-platter-turn calc(240s / max(1, var(--bpm, var(--td-live-bpm, 0)))) linear infinite;
   animation-play-state: paused;
 }
-html[data-style="twin-deck"] .td-console[data-playing="true"] .td-deck-a[data-tempo="known"] .td-platter,
-html[data-style="twin-deck"][data-automix="mixing"] .td-console[data-playing="true"][data-mixing="true"] .td-deck-b[data-tempo="known"] .td-platter { animation-play-state: running; }
+/* a record always turns while it plays: one turn every 4 beats once the tempo is known, 33 1/3 rpm until then */
+html[data-style="twin-deck"] .td-console[data-playing="true"] .td-deck-a .td-platter,
+html[data-style="twin-deck"][data-automix="mixing"] .td-console[data-playing="true"][data-mixing="true"] .td-deck-b .td-platter { animation-play-state: running; }
+html[data-style="twin-deck"] .td-deck[data-tempo="unknown"] .td-platter { animation-duration: 1.8s; }
 html[data-style="twin-deck"][data-automix="off"] .td-deck-a .td-platter { animation-duration: calc(240s / max(1, var(--td-live-bpm, 0))); }
 html[data-style="twin-deck"] .td-label { position: absolute; inset: 32%; display: grid; place-items: center; border-radius: 50%; overflow: hidden; background: var(--td-deck-color); color: #11151a; font: 700 20px var(--td-mono); box-shadow: 0 0 0 3px var(--td-record); }
 html[data-style="twin-deck"] .td-label::after { content: ""; position: absolute; left: calc(50% - 3px); top: calc(50% - 3px); width: 6px; height: 6px; background: #dce2e8; border-radius: 50%; border: 1px solid #11151a; }
