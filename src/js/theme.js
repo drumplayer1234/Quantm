@@ -226,6 +226,14 @@ export const PRESETS = {
     accent: '#ff3b30', accentText: '#000000', bg: '#000000', surface: '#0e0302', bar: '#090201',
     text: '#ff8a80', muted: '#c4524b', wave: '#5c1511', wavePlayed: '#ff3b30'
   },
+  'Risograph': {
+    accent: '#006bac', accentText: '#ffffff', bg: '#f1ead9', surface: '#f8f3e6', bar: '#ebe2cc',
+    text: '#1b1630', muted: '#5a5670', wave: '#ec7fbc', wavePlayed: '#0078bf'
+  },
+  'Risograph Night': {
+    accent: '#ff6ac0', accentText: '#1b1630', bg: '#17142b', surface: '#221e40', bar: '#1d1936',
+    text: '#f1ead9', muted: '#b3add0', wave: '#7a4f9c', wavePlayed: '#ff6ac0'
+  },
   // colors are replaced live from the playing song's artwork (appearance.js)
   'Album Match': {
     accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
@@ -277,6 +285,8 @@ export const PRESET_STYLES = {
   'LED Board': 'led-board',
   'LED Board Green': 'led-board',
   'LED Board Red': 'led-board',
+  'Risograph': 'risograph',
+  'Risograph Night': 'risograph',
   'Album Match': 'album'
 };
 
@@ -293,11 +303,12 @@ export const PRESET_FAMILIES = {
   'Tiling': { 'Dark': 'Tiling', 'Light': 'Tiling Light' },
   'Felt': { 'Moss': 'Felt', 'Burgundy': 'Felt Burgundy' },
   'Ink Wash': { 'Paper': 'Ink Wash', 'Night': 'Ink Wash Night' },
-  'LED Board': { 'Amber': 'LED Board', 'Green': 'LED Board Green', 'Red': 'LED Board Red' }
+  'LED Board': { 'Amber': 'LED Board', 'Green': 'LED Board Green', 'Red': 'LED Board Red' },
+  'Risograph': { 'Light': 'Risograph', 'Night': 'Risograph Night' }
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8, 'Rosé Pine': 10, 'Rosé Pine Moon': 10, 'Rosé Pine Dawn': 10, 'Gruvbox Dark': 4, 'Gruvbox Light': 4, 'Sodium Underpass': 8, 'Sodium Blue Hour': 8, 'Sodium Last Tram': 8, 'Tiling': 0, 'Tiling Light': 0, 'Glitch': 0, 'Vapor Mall': 12, 'Felt': 18, 'Felt Burgundy': 18, 'Blueprint': 0, 'Ink Wash': 2, 'Ink Wash Night': 2, 'LED Board': 2, 'LED Board Green': 2, 'LED Board Red': 2 };
+export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8, 'Rosé Pine': 10, 'Rosé Pine Moon': 10, 'Rosé Pine Dawn': 10, 'Gruvbox Dark': 4, 'Gruvbox Light': 4, 'Sodium Underpass': 8, 'Sodium Blue Hour': 8, 'Sodium Last Tram': 8, 'Tiling': 0, 'Tiling Light': 0, 'Glitch': 0, 'Vapor Mall': 12, 'Felt': 18, 'Felt Burgundy': 18, 'Blueprint': 0, 'Ink Wash': 2, 'Ink Wash Night': 2, 'LED Board': 2, 'LED Board Green': 2, 'LED Board Red': 2, 'Risograph': 2, 'Risograph Night': 2 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
 // window.QUANTM_LOCAL_THEMES = { presets, styles, radius, families } before this module runs

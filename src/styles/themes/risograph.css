@@ -1,0 +1,240 @@
+/* Risograph: a two-ink zine. Pink + blue on warm paper, misregistered, halftone dots.
+   Active when <html data-style="risograph">. Colors still come from the theme variables;
+   the two inks and the paper effects live in the variables below. */
+
+@property --reg-x { syntax: "<length>"; inherits: true; initial-value: 3px; }
+@property --reg-y { syntax: "<length>"; inherits: true; initial-value: 2px; }
+
+html[data-style="risograph"] {
+  --font: "Gill Sans", "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+  --font-display: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Black", sans-serif;
+  --riso-pink: #ff48b0; --riso-blue: #0078bf; --riso-ink: #1b1630; --riso-tape: #f2d46b;
+  --riso-blend: multiply; --grain: rgba(80, 55, 25, .07); --dot-on: rgba(0, 0, 0, .28);
+  --reg-x: 3px; --reg-y: 2px;
+  --b: var(--beat, 0); --mixp: 0; --dot: calc(8px - 2px * var(--b));
+  --ink-a: color-mix(in srgb, var(--riso-pink) calc((1 - var(--mixp)) * 100%), var(--riso-blue));
+  --ink-b: color-mix(in srgb, var(--riso-blue) calc((1 - var(--mixp)) * 100%), var(--riso-pink));
+  --halftone: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--ink-a) 38%, transparent) 0 calc(var(--dot) * .32), transparent calc(var(--dot) * .34)) 0 0 / var(--dot) var(--dot);
+  --halftone-on: radial-gradient(circle at 50% 50%, var(--dot-on) 0 calc(var(--dot) * .3), transparent calc(var(--dot) * .32)) 0 0 / var(--dot) var(--dot);
+  --border: color-mix(in srgb, var(--text) 38%, var(--surface));
+  --hover: color-mix(in srgb, var(--riso-pink) 12%, var(--surface));
+  --hover-strong: color-mix(in srgb, var(--riso-pink) 22%, var(--surface));
+  --surface-2: color-mix(in srgb, var(--bg) 88%, var(--text));
+  --accent-soft: var(--hover);
+  --makeover-edge: 2px solid var(--text);
+  --makeover-shadow: var(--reg-x) var(--reg-y) 0 var(--ink-a);
+}
+html[data-style="risograph"][data-scheme="dark"] {
+  --riso-pink: #ff6ac0; --riso-blue: #3a9ff0; --riso-blend: screen; --grain: rgba(255, 255, 255, .06); --dot-on: rgba(255, 255, 255, .3);
+}
+/* Auto mix: the inks trade places during a mix, the registration slams once on the bass swap. */
+html[data-style="risograph"][data-automix="mixing"] { --mixp: var(--mix, 0); }
+html[data-style="risograph"][data-swap="after"] { animation: riso-slam .7s cubic-bezier(.2, .9, .3, 1) 1; }
+@keyframes riso-slam {
+  0% { --reg-x: 13px; --reg-y: 9px; }
+  35% { --reg-x: -5px; --reg-y: -3px; }
+  65% { --reg-x: 5px; --reg-y: 3px; }
+  100% { --reg-x: 3px; --reg-y: 2px; }
+}
+
+/* ---------------------------------------------------------------- paper */
+
+html[data-style="risograph"] body { background: var(--bg); }
+html[data-style="risograph"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 30%, var(--grain) 0 .6px, transparent .9px) 0 0 / 5px 6px,
+    radial-gradient(circle at 70% 60%, var(--grain) 0 .5px, transparent .8px) 2px 3px / 7px 5px,
+    radial-gradient(ellipse at 8% 6%, color-mix(in srgb, var(--riso-pink) 9%, transparent), transparent 50%),
+    radial-gradient(ellipse at 94% 96%, color-mix(in srgb, var(--riso-blue) 9%, transparent), transparent 50%);
+  /* grain only in the gutters, never behind the reading area */
+  -webkit-mask-image: linear-gradient(90deg, #000, transparent 12%, transparent 88%, #000);
+  mask-image: linear-gradient(90deg, #000, transparent 12%, transparent 88%, #000);
+}
+html[data-style="risograph"][data-bg] body::before { display: none; }
+html[data-style="risograph"] #app { position: relative; z-index: 1; }
+html[data-style="risograph"] #view { background: transparent; }
+html[data-style="risograph"] :focus-visible { outline: 3px solid var(--ink-b); outline-offset: 2px; }
+html[data-style="risograph"] ::selection { background: var(--riso-pink); color: var(--riso-ink); }
+
+/* ---------------------------------------------------------------- headings */
+
+html[data-style="risograph"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title, .queue-head h2) {
+  font-family: var(--font-display); font-weight: 400; text-transform: uppercase; letter-spacing: .01em; line-height: .98;
+  text-shadow: var(--reg-x) var(--reg-y) 0 var(--ink-a);
+}
+html[data-style="risograph"] .page-title { font-size: 58px; transform: rotate(-1.4deg); transform-origin: left bottom; }
+html[data-style="risograph"] .hero-title { font-size: clamp(34px, 5vw, 64px); transform: rotate(-1deg); transform-origin: left bottom; }
+html[data-style="risograph"] .shelf-title { font-size: 32px; transform: rotate(-.8deg); transform-origin: left bottom; }
+html[data-style="risograph"] .section-title { font-size: 26px; }
+html[data-style="risograph"][data-density="compact"] .page-title { font-size: 44px; }
+html[data-style="risograph"] :is(.page-header, .shelf-head) { border-bottom: 3px solid var(--text); box-shadow: 0 var(--reg-y) 0 var(--ink-b); padding-bottom: 10px; }
+html[data-style="risograph"] :is(.hero-eyebrow, .queue-label, .card-sub, .track-sub) { letter-spacing: .04em; }
+html[data-style="risograph"] .hero-eyebrow { text-transform: uppercase; font-weight: 800; }
+
+/* ---------------------------------------------------------------- top bar + nav */
+
+html[data-style="risograph"] .topbar,
+html[data-style="risograph"][data-bg] .topbar {
+  background: var(--bar); border-bottom: 3px solid var(--text); box-shadow: 0 var(--reg-y) 0 var(--ink-a);
+}
+html[data-style="risograph"][data-nav="sidebar"] .nav {
+  background: var(--bar); border-right: 3px solid var(--text); box-shadow: var(--reg-x) 0 0 var(--ink-a); backdrop-filter: none;
+}
+html[data-style="risograph"] .logo { filter: drop-shadow(var(--reg-x) var(--reg-y) 0 var(--ink-a)); }
+html[data-style="risograph"] :is(.nav-link, .settings-nav-link, .tab) {
+  border-radius: var(--radius); color: var(--text); font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+}
+html[data-style="risograph"] :is(.nav-link, .settings-nav-link):hover { background: var(--hover-strong); color: var(--text); }
+html[data-style="risograph"] :is(.nav-link, .settings-nav-link).active {
+  background: var(--riso-pink); color: var(--riso-ink); box-shadow: var(--reg-x) var(--reg-y) 0 var(--ink-b);
+}
+html[data-style="risograph"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="risograph"] .tabs { border-bottom: 3px solid var(--text); }
+html[data-style="risograph"] .tab.active { color: var(--accent); border-bottom-color: var(--riso-pink); }
+html[data-style="risograph"] :is(.search-input, .input) {
+  border: 2px solid var(--text); border-radius: var(--radius); background: var(--surface); color: var(--text); box-shadow: inset var(--reg-x) var(--reg-y) 0 var(--hover-strong);
+}
+html[data-style="risograph"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--ink-b); }
+html[data-style="risograph"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+
+/* ---------------------------------------------------------------- buttons: halftone dots */
+
+html[data-style="risograph"] :is(.btn, .hero .btn, .chip, .tag-pill) {
+  border: 2px solid var(--text); border-radius: var(--radius); color: var(--text); background: var(--halftone), var(--surface);
+  box-shadow: var(--reg-x) var(--reg-y) 0 var(--ink-b); font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+}
+html[data-style="risograph"] :is(.btn, .hero .btn, .chip):hover { color: var(--text); background: var(--halftone), var(--hover-strong); filter: none; }
+html[data-style="risograph"] :is(.btn, .chip):active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink-b); }
+html[data-style="risograph"] :is(.btn-outline, .btn-ghost) { box-shadow: none; }
+html[data-style="risograph"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="risograph"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+  background: var(--halftone-on), var(--accent); color: var(--accent-text); border-color: var(--text);
+}
+html[data-style="risograph"] .icon-btn { border-radius: var(--radius); }
+html[data-style="risograph"] .icon-btn:hover, html[data-style="risograph"] .hero .icon-btn:hover { background: var(--hover-strong); color: var(--text); }
+html[data-style="risograph"] :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
+html[data-style="risograph"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
+  color: var(--text); border: 2px dashed var(--text); background: var(--surface);
+}
+html[data-style="risograph"] :is(.play-btn, .card-play, .pb-play) {
+  background: var(--halftone-on), var(--accent); color: var(--accent-text); border: 2px solid var(--text); box-shadow: var(--reg-x) var(--reg-y) 0 var(--ink-a);
+}
+html[data-style="risograph"] .card-play { z-index: 3; }
+
+/* ---------------------------------------------------------------- cards + rows */
+
+html[data-style="risograph"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
+  background: var(--surface); border: 2px solid var(--text); border-radius: var(--radius); box-shadow: var(--reg-x) var(--reg-y) 0 var(--ink-a);
+}
+html[data-style="risograph"] .card { position: relative; padding: 12px; }
+html[data-style="risograph"] .card:hover { background: var(--surface); border-color: var(--text); }
+/* the second ink: a blue outline printed slightly off, multiplied so overlaps go dark */
+html[data-style="risograph"] .card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border: 2px solid var(--ink-b); border-radius: inherit;
+  transform: translate(calc(var(--reg-x) * -1), calc(var(--reg-y) * -1)); mix-blend-mode: var(--riso-blend);
+}
+html[data-style="risograph"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="risograph"] .card:nth-child(even) .card-art:not(.round) { transform: rotate(.7deg); }
+html[data-style="risograph"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) { border: 2px solid var(--text); border-radius: var(--radius); box-shadow: none; }
+html[data-style="risograph"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="risograph"] .hero-bg { display: none; }
+html[data-style="risograph"] :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+html[data-style="risograph"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="risograph"] .track-list { padding: 4px; }
+html[data-style="risograph"] :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: 2px dashed var(--border); }
+html[data-style="risograph"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="risograph"] :is(.track-row, .queue-row).current {
+  background: color-mix(in srgb, var(--riso-pink) 14%, var(--surface)); box-shadow: inset 5px 0 0 var(--ink-a);
+}
+html[data-style="risograph"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+
+/* artwork: grayscale + contrast under the pink ink (images only; text and buttons stay above) */
+html[data-style="risograph"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art) { position: relative; }
+html[data-style="risograph"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art)::before,
+html[data-style="risograph"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art)::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+}
+html[data-style="risograph"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art)::before { backdrop-filter: grayscale(1) contrast(1.2); }
+html[data-style="risograph"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art)::after { background: var(--riso-pink); mix-blend-mode: var(--riso-blend); opacity: .8; }
+html[data-style="risograph"] .card-art > :not(.card-play) { position: relative; z-index: 3; }
+html[data-style="risograph"] .track-art-overlay { z-index: 3; }
+
+/* tape-strip corners on queue rows */
+html[data-style="risograph"] .queue-row { position: relative; }
+html[data-style="risograph"] .queue-row::before,
+html[data-style="risograph"] .queue-row:nth-child(odd)::after {
+  content: ""; position: absolute; width: 26px; height: 11px; pointer-events: none; z-index: 2;
+  background: color-mix(in srgb, var(--riso-tape) 72%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--riso-tape) 40%, transparent);
+  clip-path: polygon(0 10%, 8% 0, 16% 12%, 24% 0, 100% 0, 100% 100%, 24% 100%, 16% 88%, 8% 100%, 0 90%);
+}
+html[data-style="risograph"] .queue-row::before { left: -5px; top: -3px; transform: rotate(-38deg); }
+html[data-style="risograph"] .queue-row:nth-child(odd)::after { right: -5px; bottom: -3px; transform: rotate(-38deg); }
+
+/* ---------------------------------------------------------------- player + waveform */
+
+html[data-style="risograph"] .playerbar,
+html[data-style="risograph"][data-bg] .playerbar {
+  background: var(--bar); color: var(--text); border-top: 3px solid var(--text); box-shadow: 0 calc(var(--reg-y) * -1) 0 var(--ink-a);
+}
+html[data-style="risograph"][data-player="top"] .playerbar { border-top: 0; border-bottom: 3px solid var(--text); box-shadow: 0 var(--reg-y) 0 var(--ink-a); }
+html[data-style="risograph"] .pb-track { height: 9px; background: var(--wave); border: 2px solid var(--text); border-radius: var(--radius); }
+html[data-style="risograph"] .pb-fill,
+html[data-style="risograph"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
+  background: radial-gradient(circle at 50% 50%, var(--dot-on) 0 1.2px, transparent 1.5px) 0 0 / 4px 4px, var(--wave-played); border-radius: 0;
+}
+html[data-style="risograph"] .pb-knob { background: var(--riso-pink); border: 2px solid var(--text); border-radius: 0; box-shadow: 2px 2px 0 var(--ink-b); }
+html[data-style="risograph"] .pb-visualizer { opacity: 1; filter: none; }
+/* chunky halftone waveform */
+html[data-style="risograph"] .waveform canvas {
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px); mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px);
+}
+html[data-style="risograph"] .waveform::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: var(--riso-blend); opacity: .5;
+  background: radial-gradient(circle at 50% 50%, var(--ink-b) 0 calc(var(--dot) * .28), transparent calc(var(--dot) * .3)) 0 0 / var(--dot) var(--dot);
+}
+html[data-style="risograph"] :is(.wave-markers, .wave-comments) { z-index: 2; }
+
+/* ---------------------------------------------------------------- menus, modals, settings */
+
+html[data-style="risograph"] :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
+  background: var(--surface); color: var(--text); border: 2px solid var(--text); border-radius: var(--radius); box-shadow: var(--reg-x) var(--reg-y) 0 var(--ink-a);
+}
+html[data-style="risograph"] :is(.modal-head, .queue-head) { background: var(--bar); border-bottom: 3px solid var(--text); }
+html[data-style="risograph"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover-strong); color: var(--text); }
+html[data-style="risograph"] .menu-item .icon { color: inherit; }
+html[data-style="risograph"] .queue-label { color: var(--text); font-weight: 800; }
+html[data-style="risograph"] .queue-transition { border-top: 1px dashed var(--border); }
+html[data-style="risograph"] .atp-track { background: var(--bg); border: 2px solid var(--text); border-radius: var(--radius); }
+html[data-style="risograph"] .settings-switch-track { border: 2px solid var(--text); background: var(--wave); border-radius: var(--radius); }
+html[data-style="risograph"] .settings-switch-knob { border-radius: var(--radius); }
+html[data-style="risograph"] .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--ink-b); }
+html[data-style="risograph"] .settings-preset { border: 2px solid var(--border); border-radius: var(--radius); }
+html[data-style="risograph"] .settings-preset.active { border-color: var(--text); box-shadow: var(--reg-x) var(--reg-y) 0 var(--ink-a); }
+html[data-style="risograph"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="risograph"] ::-webkit-scrollbar-thumb { background: var(--accent); border: 3px solid var(--bg); border-radius: 0; }
+html[data-style="risograph"] ::-webkit-scrollbar-thumb:hover { background: var(--riso-pink); }
+html[data-style="risograph"] .login { background: transparent; }
+
+/* ---------------------------------------------------------------- motion + performance */
+
+html[data-style="risograph"][data-theme-motion="off"] { --b: 0; --mixp: 0; animation: none; }
+html[data-style="risograph"][data-theme-motion="off"] *,
+html[data-style="risograph"][data-perf] *,
+html[data-style="risograph"][data-perf] *::before,
+html[data-style="risograph"][data-perf] *::after,
+html[data-style="risograph"][data-hidden] * { animation: none !important; transition: none !important; }
+html[data-style="risograph"][data-perf] { --b: 0; animation: none; }
+html[data-style="risograph"][data-perf] *, html[data-style="risograph"][data-perf] *::before, html[data-style="risograph"][data-perf] *::after {
+  backdrop-filter: none !important; text-shadow: none !important; filter: none !important;
+}
+html[data-style="risograph"][data-perf] body::before, html[data-style="risograph"][data-perf] .waveform::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="risograph"]:not([data-theme-motion="on"]) { --b: 0; --mixp: 0; animation: none; }
+  html[data-style="risograph"]:not([data-theme-motion="on"]) *,
+  html[data-style="risograph"]:not([data-theme-motion="on"]) *::before,
+  html[data-style="risograph"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  html[data-style="risograph"] :is(.page-title, .hero-title, .shelf-title) { text-shadow: none; }
+}
