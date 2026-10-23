@@ -147,16 +147,16 @@ html[data-style="rave-flyer"][data-player="top"] .playerbar::after {
 /* a plain 12-point starburst showing the tempo; a MIXING stamp during mixes */
 html[data-style="rave-flyer"] .playerbar::before {
   content: "PLAY\A LOUD"; white-space: pre; text-align: center; counter-reset: bpm calc(var(--bpm, 0));
-  position: absolute; right: 22px; top: -50px; width: 54px; height: 54px; z-index: 5; pointer-events: none; display: flex; align-items: center; justify-content: center;
+  position: absolute; right: 26px; top: -58px; width: 54px; height: 54px; z-index: 5; pointer-events: none; display: flex; align-items: center; justify-content: center;
   background: var(--accent); color: var(--accent-text); clip-path: var(--starburst); transform: rotate(12deg);
   font: 900 9px/1.05 var(--font-display); letter-spacing: .02em;
 }
-html[data-style="rave-flyer"][data-beat] .playerbar::before { content: counter(bpm) "\A BPM"; font-size: 13px; }
+html[data-style="rave-flyer"][data-tempo="known"] .playerbar::before { content: counter(bpm) "\A BPM"; font-size: 13px; }
 html[data-style="rave-flyer"][data-automix="mixing"] .playerbar::before {
   content: "MIXING"; width: 82px; height: 30px; right: 14px; top: -42px; clip-path: none; background: var(--bg); color: var(--accent);
   border: 3px double var(--accent); font-size: 14px; letter-spacing: .1em; transform: rotate(-8deg);
 }
-html[data-style="rave-flyer"][data-player="top"] .playerbar::before { top: auto; bottom: -50px; }
+html[data-style="rave-flyer"][data-player="top"] .playerbar::before { top: auto; bottom: -58px; }
 html[data-style="rave-flyer"][data-player="top"][data-automix="mixing"] .playerbar::before { bottom: -42px; }
 /* on the bass swap: one inverted frame of the player bar only */
 html[data-style="rave-flyer"][data-swap="after"] .playerbar { animation: rave-invert .1s steps(1, end) 1; }

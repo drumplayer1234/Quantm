@@ -38,6 +38,8 @@ html[data-style="led-board"] .logo { color: var(--accent); }
 html[data-style="led-board"] :is(.search-input, .input) { border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-input); color: var(--text); }
 html[data-style="led-board"] :is(.search-input, .input):focus { background: var(--makeover-input); border-color: var(--accent); }
 html[data-style="led-board"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="led-board"] .search-input { font-size: 11px; letter-spacing: 0; text-transform: none; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+html[data-style="led-board"] .search-input::placeholder { letter-spacing: 0; text-transform: none; text-overflow: ellipsis; }
 html[data-style="led-board"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) { border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-button); color: var(--text); }
 html[data-style="led-board"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover { background: var(--hover); color: var(--text); filter: none; }
 html[data-style="led-board"] :is(.btn-primary, .hero .btn-primary, .chip.active),
@@ -116,13 +118,18 @@ html[data-style="led-board"] :is(.search-input, .input) { border-radius: 0; back
 html[data-style="led-board"] ::-webkit-scrollbar-thumb { border-radius: 0; background: var(--border); }
 
 /* ---- player bar: marquee title, LED-segment rails ---- */
-html[data-style="led-board"] .pb-title { text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--accent); text-shadow: var(--led-glow); }
-html[data-style="led-board"] .pb-artist { text-transform: uppercase; letter-spacing: .08em; }
+html[data-style="led-board"] .pb-title { text-transform: uppercase; letter-spacing: .05em; font-weight: 700; color: var(--accent); text-shadow: var(--led-glow); }
+html[data-style="led-board"] .pb-artist { text-transform: uppercase; letter-spacing: .05em; }
 html[data-style="led-board"] .pb-time { color: var(--text); letter-spacing: .08em; }
 html[data-style="led-board"] .pb-text { container-type: inline-size; flex: 1 1 auto; overflow: hidden; }
-html[data-style="led-board"] .pb-title { display: inline-block; align-self: flex-start; width: max-content; min-width: 100%; overflow: visible; text-overflow: clip; animation: led-marquee var(--led-marquee) linear infinite alternate; }
+/* the title shows as much as fits with an ellipsis; it marquees (only if it overflows) while the player text is hovered or focused */
+html[data-style="led-board"] .pb-title { display: block; width: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 @keyframes led-marquee { 0%, 14% { transform: translateX(0); } 86%, 100% { transform: translateX(min(0px, calc(100cqw - 100%))); } }
-html[data-style="led-board"] .pb-title:hover { animation-play-state: paused; text-decoration: none; }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-style="led-board"]:not([data-theme-motion="off"], [data-perf], [data-hidden]) .pb-text:is(:hover, :focus-within) .pb-title { display: inline-block; align-self: flex-start; width: max-content; min-width: 100%; overflow: visible; text-overflow: clip; animation: led-marquee var(--led-marquee) linear infinite alternate; }
+}
+html[data-style="led-board"][data-theme-motion="on"]:not([data-perf], [data-hidden]) .pb-text:is(:hover, :focus-within) .pb-title { display: inline-block; align-self: flex-start; width: max-content; min-width: 100%; overflow: visible; text-overflow: clip; animation: led-marquee var(--led-marquee) linear infinite alternate; }
+html[data-style="led-board"] .pb-title:hover { text-decoration: none; }
 html[data-style="led-board"] .pb-track { height: 9px; border-radius: 0; background: repeating-linear-gradient(90deg, var(--led-off) 0 4px, transparent 4px 6px); }
 html[data-style="led-board"] .pb-fill, html[data-style="led-board"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
   border-radius: 0; background: var(--wave-played); filter: drop-shadow(0 0 3px var(--accent));

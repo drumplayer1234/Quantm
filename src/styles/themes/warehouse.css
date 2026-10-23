@@ -4,7 +4,7 @@ html[data-style="warehouse"] .wh-home { min-width: 0; }
 html[data-style="warehouse"] .wh-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 24px; }
 html[data-style="warehouse"] .wh-kicker { color: var(--accent); font: 700 12px/1.5 Consolas, monospace; letter-spacing: .15em; margin-bottom: 8px; }
 html[data-style="warehouse"] .wh-header p + p { font-size: 24px; font-weight: 900; letter-spacing: -.02em; }
-html[data-style="warehouse"] :is(.page-title, .hero-title, .shelf-title, .section-title, .wh-title, .wh-queue h2, .nav-link, .btn, .pb-title) { font-family: Impact, "Arial Narrow", "Segoe UI", sans-serif; font-stretch: condensed; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+html[data-style="warehouse"] :is(.page-title, .hero-title, .shelf-title, .section-title, .wh-title, .wh-queue h2, .nav-link, .btn, .pb-title) { font-family: Impact, "Arial Narrow", "Segoe UI", sans-serif; font-stretch: condensed; font-weight: 400; text-shadow: none; -webkit-font-smoothing: antialiased; text-transform: uppercase; letter-spacing: .05em; }
 html[data-style="warehouse"] .wh-stage { border: 1px solid var(--border); background: var(--bar); padding: 20px 20px 12px; overflow: hidden; }
 html[data-style="warehouse"] .wh-wall { height: clamp(170px, 23vw, 300px); display: flex; align-items: end; gap: clamp(2px, .5vw, 7px); contain: paint; }
 html[data-style="warehouse"] .wh-bar { display: block; flex: 1; height: 100%; min-width: 1px; background: color-mix(in srgb, var(--accent) 42%, var(--surface)); transform-origin: center bottom; transform: scaleY(.06); }
@@ -38,10 +38,10 @@ html[data-style="warehouse"] .playerbar { border-top: 4px solid var(--accent); b
 html[data-style="warehouse"][data-player="top"] .playerbar { border-top: 0; border-bottom: 4px solid var(--accent); }
 html[data-style="warehouse"] .wh-browse:not([hidden]) { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--border); }
 html[data-style="warehouse"][data-theme-motion="off"] .wh-kick-ring { opacity: .28 !important; }
-html[data-style="warehouse"][data-theme-motion="off"] .wh-bar { transform: scaleY(.06) !important; }
+html[data-style="warehouse"][data-theme-motion="off"] .wh-bar { transform: scaleY(var(--wh-idle, .06)) !important; }
 @media (prefers-reduced-motion: reduce) {
   html[data-style="warehouse"]:not([data-theme-motion="on"]) .wh-kick-ring { opacity: .28 !important; }
-  html[data-style="warehouse"]:not([data-theme-motion="on"]) .wh-bar { transform: scaleY(.06) !important; }
+  html[data-style="warehouse"]:not([data-theme-motion="on"]) .wh-bar { transform: scaleY(var(--wh-idle, .06)) !important; }
 }
 @media (max-width: 620px) {
   html[data-style="warehouse"] .wh-header { flex-wrap: wrap; }
@@ -69,7 +69,8 @@ html[data-style="warehouse"][data-nav="sidebar"] .nav {
 }
 html[data-style="warehouse"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) { font-family: var(--font-display); }
 html[data-style="warehouse"] .logo { color: var(--accent); }
-html[data-style="warehouse"] :is(.nav-link, .settings-nav-link, .tab) { color: var(--muted); border-radius: var(--radius); }
+html[data-style="warehouse"] :is(.nav-link, .settings-nav-link, .tab) { color: color-mix(in srgb, var(--text) 84%, var(--bar)); border-radius: var(--radius); text-shadow: none; }
+html[data-style="warehouse"] .nav-link:not(.active):hover { color: var(--text); background: var(--hover-strong); }
 html[data-style="warehouse"] :is(.nav-link, .settings-nav-link).active { background: var(--accent); color: var(--accent-text); }
 html[data-style="warehouse"] .settings-nav-link.active .icon { color: inherit; }
 html[data-style="warehouse"] :is(.tab.active, .icon-btn.active) { color: var(--accent); }

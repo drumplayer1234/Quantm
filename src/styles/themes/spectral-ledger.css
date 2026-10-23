@@ -114,13 +114,13 @@ html[data-style="spectral-ledger"] .ledger-heading {
 }
 html[data-style="spectral-ledger"] .ledger-heading > div { min-width: 0; flex: 1 1 220px; }
 html[data-style="spectral-ledger"] .ledger-heading h2 { font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 500; }
-html[data-style="spectral-ledger"] .ledger-current { color: var(--muted); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-html[data-style="spectral-ledger"] .ledger-status { font: 11px Consolas, "Courier New", monospace; color: var(--muted); }
+html[data-style="spectral-ledger"] .ledger-current { color: color-mix(in srgb, var(--text) 90%, var(--surface)); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-style="spectral-ledger"] .ledger-status { font: 11px Consolas, "Courier New", monospace; color: color-mix(in srgb, var(--text) 90%, var(--surface)); }
 html[data-style="spectral-ledger"] .ledger-figure { margin: 0; }
 html[data-style="spectral-ledger"] .ledger-canvas { display: block; width: 100%; height: auto; pointer-events: none; }
 html[data-style="spectral-ledger"] .ledger-figure figcaption {
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px;
-  padding: 12px 22px; background: var(--surface); color: var(--muted); border-block: 1px solid var(--border);
+  padding: 12px 22px; background: var(--surface); color: color-mix(in srgb, var(--text) 90%, var(--surface)); border-block: 1px solid var(--border);
   font: 11px/1.6 Consolas, "Courier New", monospace;
 }
 html[data-style="spectral-ledger"] .ledger-overlap { flex: 1 1 220px; overflow-wrap: anywhere; }
@@ -128,7 +128,7 @@ html[data-style="spectral-ledger"] .ledger-log { list-style: none; margin: 0; pa
 html[data-style="spectral-ledger"] .ledger-log li { display: flex; gap: 16px; padding: 5px 0; color: var(--text); font-size: 12px; }
 html[data-style="spectral-ledger"] .ledger-log li > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 html[data-style="spectral-ledger"] .ledger-log-time {
-  flex: none; color: var(--muted); font-family: Consolas, "Courier New", monospace; font-variant-numeric: tabular-nums;
+  flex: none; color: color-mix(in srgb, var(--text) 90%, var(--surface)); font-family: Consolas, "Courier New", monospace; font-variant-numeric: tabular-nums;
 }
 html[data-style="spectral-ledger"] :is(.card, .feed-card, .settings-card) { box-shadow: none; }
 html[data-style="spectral-ledger"] .card { overflow: hidden; }

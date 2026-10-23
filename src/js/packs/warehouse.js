@@ -76,14 +76,22 @@ function home(container, ctx) {
       rows[player.index]?.setAttribute('aria-current', 'true'); lastCurrent = player.index;
     }
   }
+  // Idle profile: a gentle low skyline, so a paused wall reads as a standby display, not an empty box.
+  const idle = bars.map((_, index) => 0.07 + 0.09 * (0.5 + 0.5 * Math.sin(index * 0.55)) * (1 - index / (bars.length * 1.6)));
+  const levels = new Float32Array(bars.length);
+  let reference = 0.4;
+  let idling = false;
   function still() {
     node.classList.add('wh-still');
-    glow = 0; previousPulse = 0;
+    glow = 0; previousPulse = 0; reference = 0.4; levels.fill(0);
     ring.style.opacity = '0.28';
-    bars.forEach(bar => { bar.style.transform = 'scaleY(0.06)'; });
+    if (idling) return;
+    idling = true;
+    bars.forEach((bar, index) => { bar.style.setProperty('--wh-idle', idle[index].toFixed(3)); bar.style.transform = `scaleY(${idle[index].toFixed(3)})`; });
   }
   function frame(frame, spectrum, sampleRate, fftSize) {
     if (!frame.playing) { still(); return; }
+    idling = false;
     node.classList.remove('wh-still');
     // Accept only a new kick onset, spaced at least 350 ms apart (< 3 Hz).
     if (frame.pulse >= 0.72 && previousPulse < 0.72 && frame.time - lastPulse >= 350) {
@@ -93,18 +101,38 @@ function home(container, ctx) {
     glow *= Math.exp(-Math.max(0, frame.dt) * 7);
     // The ring is an empty border element; its interior never paints or flashes.
     ring.style.opacity = String(0.28 + glow * 0.2);
-    bars.forEach((bar, index) => {
-      let sum = 0;
-      let count = 0;
-      if (spectrum) {
-        const low = 35 * (16000 / 35) ** (index / bars.length);
-        const high = 35 * (16000 / 35) ** ((index + 1) / bars.length);
-        const start = Math.min(spectrum.length - 1, Math.max(1, Math.floor(low * fftSize / sampleRate)));
-        const end = Math.min(spectrum.length, Math.max(start + 1, Math.ceil(high * fftSize / sampleRate)));
-        for (let bin = start; bin < end; bin++) { sum += (spectrum[bin] / 255) ** 2; count++; }
+    const count = bars.length;
+    const raw = new Float32Array(count);
+    let peak = 0;
+    if (spectrum) {
+      const binHz = sampleRate / fftSize;
+      for (let index = 0; index < count; index++) {
+        // Log-spaced bands from 40 Hz to 14 kHz; bands narrower than one FFT bin interpolate between bins.
+        const low = 40 * (14000 / 40) ** (index / count) / binHz;
+        const high = 40 * (14000 / 40) ** ((index + 1) / count) / binHz;
+        let value;
+        if (high - low < 1) {
+          const at = Math.min(spectrum.length - 1, Math.max(0, (low + high) / 2 - 0.5));
+          const i = Math.floor(at);
+          value = spectrum[i] + (spectrum[Math.min(spectrum.length - 1, i + 1)] - spectrum[i]) * (at - i);
+        } else {
+          const start = Math.min(spectrum.length - 1, Math.max(0, Math.floor(low)));
+          const end = Math.min(spectrum.length, Math.max(start + 1, Math.ceil(high)));
+          let sum = 0;
+          for (let bin = start; bin < end; bin++) sum += spectrum[bin];
+          value = sum / (end - start);
+        }
+        // Music rolls off toward the treble: tilt the high bands up so the whole wall moves.
+        raw[index] = clamp(value / 255) * (1 + 1.6 * index / count);
+        peak = Math.max(peak, raw[index]);
       }
-      const energy = count ? Math.sqrt(sum / count) : 0;
-      bar.style.transform = `scaleY(${0.06 + clamp(energy) * 0.94})`;
+    }
+    // Auto gain: follow the loudest band slowly so quiet and loud tracks both fill the panel.
+    reference = Math.max(peak, reference * Math.exp(-Math.max(0, frame.dt) * 0.3), 0.25);
+    bars.forEach((bar, index) => {
+      const target = clamp(raw[index] / reference * 0.96) ** 0.85;
+      levels[index] += (target - levels[index]) * (target > levels[index] ? 0.6 : 0.22);
+      bar.style.transform = `scaleY(${(0.05 + levels[index] * 0.95).toFixed(3)})`;
     });
   }
   queue(); still();

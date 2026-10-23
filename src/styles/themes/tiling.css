@@ -78,6 +78,8 @@ html[data-style="tiling"] .search-input { height: 28px; font: 12px var(--mono); 
 html[data-style="tiling"] :is(.search-input, .input) { border: 1px solid var(--tl-line); border-radius: 0; background: var(--surface); color: var(--text); }
 html[data-style="tiling"] :is(.search-input, .input):focus { border-color: var(--accent); background: var(--surface); }
 html[data-style="tiling"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="tiling"] .search-input { font-size: 11px; letter-spacing: 0; text-transform: none; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+html[data-style="tiling"] .search-input::placeholder { letter-spacing: 0; text-transform: none; text-overflow: ellipsis; }
 html[data-style="tiling"] .search-suggest { top: 32px; padding: 2px; }
 
 /* titles, labels */

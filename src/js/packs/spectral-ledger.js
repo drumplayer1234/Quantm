@@ -116,6 +116,8 @@ export function mount(ctx) {
     const first = Math.max(0, serial - WIDTH);
     const cursor = serial % WIDTH;
     const xAt = index => x0 + w * (1 - (serial - index) / WIDTH);
+    // The canvas is drawn at 2x so labels stay crisp when the panel is scaled up.
+    paint.setTransform(2, 0, 0, 2, 0, 0);
     paint.fillStyle = colors.bg;
     paint.fillRect(0, 0, 640, 208);
     paint.imageSmoothingEnabled = false;
@@ -125,8 +127,8 @@ export function mount(ctx) {
       if (cursor < WIDTH) paint.drawImage(buffer, cursor, 0, WIDTH - cursor, BINS, x0, y0, w * (WIDTH - cursor) / WIDTH, height);
       if (cursor) paint.drawImage(buffer, 0, 0, cursor, BINS, x0 + w * (WIDTH - cursor) / WIDTH, y0, w * cursor / WIDTH, height);
     }
-    paint.font = '11px Consolas, monospace';
-    paint.fillStyle = colors.muted;
+    paint.font = '600 12px Consolas, monospace';
+    paint.fillStyle = colors.ivory;
     const midY = y0 + height * (1 - Math.log(1000 / 20) / Math.log(16000 / 20));
     paint.fillText('16k', 4, y0 + 9); paint.fillText('1k', 10, midY + 4); paint.fillText('20Hz', 2, y0 + height);
     const oldest = count ? times[first % WIDTH] : 0;
@@ -166,7 +168,7 @@ export function mount(ctx) {
   function attach(page, path = location.hash.replace(/^#/, '')) {
     panel?.remove(); panel = null; canvas = null; paint = null; status = null; log = null;
     if (path && path !== '/' && !/^\/home(?:[/?]|$)/.test(path)) return;
-    canvas = h('canvas.ledger-canvas', { width: 640, height: 208, 'aria-hidden': 'true' });
+    canvas = h('canvas.ledger-canvas', { width: 1280, height: 416, 'aria-hidden': 'true' });
     paint = canvas.getContext('2d');
     status = h('span.ledger-status');
     current = h('p.ledger-current');
