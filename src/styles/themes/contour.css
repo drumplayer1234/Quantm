@@ -1,0 +1,129 @@
+/* contour: scoped surfaces keep all reading and controls on opaque colors. */
+html[data-style="contour"] {
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-display: "Segoe UI", Arial, sans-serif;
+  --border: color-mix(in srgb, var(--text) 24%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 92%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 85%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: var(--hover);
+}
+html[data-style="contour"] body,
+html[data-style="contour"] #app { background: var(--bg); color: var(--text); }
+html[data-style="contour"] #view { background: transparent; }
+html[data-style="contour"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html[data-style="contour"] :is(.topbar, .playerbar),
+html[data-style="contour"][data-bg] :is(.topbar, .playerbar),
+html[data-style="contour"][data-nav="sidebar"] .nav {
+  background: var(--bar); color: var(--text); backdrop-filter: none;
+}
+html[data-style="contour"] .logo { color: var(--accent); filter: none; }
+html[data-style="contour"] :is(.nav-link, .settings-nav-link, .tab) { color: var(--muted); border-radius: var(--radius); }
+html[data-style="contour"] :is(.nav-link, .settings-nav-link).active { background: var(--surface); color: var(--text); }
+html[data-style="contour"] :is(.nav-link, .settings-nav-link, .tab):hover { background: var(--hover); color: var(--text); }
+html[data-style="contour"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+html[data-style="contour"] :is(.search-input, .input, textarea.input, select.input) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="contour"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
+html[data-style="contour"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="contour"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
+  background: var(--surface); color: var(--text); border-radius: var(--radius);
+}
+html[data-style="contour"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill):hover {
+  background: var(--hover); color: var(--text); filter: none;
+}
+html[data-style="contour"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="contour"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+  background: var(--accent); color: var(--accent-text);
+}
+html[data-style="contour"] :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
+html[data-style="contour"] :is(.play-btn, .pb-play, .card-play) { background: var(--accent); color: var(--accent-text); box-shadow: none; }
+html[data-style="contour"] :is(.card, .feed-card, .track-list, .track-artist, .settings-card, .hero, .login-card) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+  backdrop-filter: none;
+}
+html[data-style="contour"] .card:hover { background: var(--surface); border-color: var(--accent); }
+html[data-style="contour"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="contour"] :is(.track-row, .queue-row) { background: var(--surface); border-radius: var(--radius); }
+html[data-style="contour"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="contour"] :is(.track-row, .queue-row).current {
+  background: var(--hover); box-shadow: inset 3px 0 0 var(--accent);
+}
+html[data-style="contour"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="contour"] :is(.hero-bg, .hero-bg::after) { display: none; }
+html[data-style="contour"] :is(.hero-inner, .hero .stat, .track-hero-wave) { color: var(--text); }
+html[data-style="contour"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="contour"] :is(.hero-subtitle, .hero-meta, .hero-eyebrow) { color: var(--muted); }
+html[data-style="contour"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art) { border-radius: var(--radius); }
+html[data-style="contour"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="contour"] .pb-track { background: var(--wave); }
+html[data-style="contour"] .pb-fill,
+html[data-style="contour"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); }
+html[data-style="contour"] .pb-knob { background: var(--accent); }
+html[data-style="contour"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="contour"] :is(.queue-panel, .menu, .modal, .search-suggest, .pb-hovertime, .toast) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); backdrop-filter: none; box-shadow: 0 8px 24px color-mix(in srgb, var(--bg) 45%, transparent);
+}
+html[data-style="contour"] :is(.queue-head, .modal-head) { background: var(--bar); color: var(--text); border-bottom: 1px solid var(--border); }
+html[data-style="contour"] :is(.queue-transition, .atp-track) { background: var(--bar); color: var(--muted); }
+html[data-style="contour"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="contour"] .menu-item .icon { color: inherit; }
+html[data-style="contour"] :is(.menu-item.danger, .login-error, .toast-error) { color: var(--text); background: var(--surface); text-decoration: underline; }
+html[data-style="contour"] .btn-danger { background: var(--text); color: var(--surface); }
+html[data-style="contour"] .settings-switch-track { background: var(--wave); border: 1px solid var(--border); }
+html[data-style="contour"] :is(.settings-preset, .settings-flavor) { border-radius: var(--radius); }
+html[data-style="contour"] .settings-preset.active { border-color: var(--accent); }
+html[data-style="contour"] .settings-flavor.active { background: var(--accent); color: var(--accent-text); }
+html[data-style="contour"] .login { background: var(--bg); }
+html[data-style="contour"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="contour"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+html[data-style="contour"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+/* Disable inherited app motion too, while still allowing an explicit "on" choice. */
+html[data-style="contour"][data-theme-motion="off"] *,
+html[data-style="contour"][data-theme-motion="off"] *::before,
+html[data-style="contour"][data-theme-motion="off"] *::after,
+html[data-style="contour"][data-perf] *,
+html[data-style="contour"][data-hidden] * {
+  animation: none !important; transition: none !important; scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="contour"]:not([data-theme-motion="on"]) *,
+  html[data-style="contour"]:not([data-theme-motion="on"]) *::before,
+  html[data-style="contour"]:not([data-theme-motion="on"]) *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  html[data-style="contour"] canvas { visibility: hidden; }
+}
+
+html[data-style="contour"] { --contour-ink: #91cdb7; --contour-ground: var(--bg); }
+html[data-style="contour"] :is(.page-title, .home-greeting, .hero-title) { font-weight: 600; letter-spacing: -.035em; }
+html[data-style="contour"] .contour-panel {
+  background: var(--contour-ground); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 28px;
+}
+html[data-style="contour"] .contour-heading {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px 24px; padding: 18px 22px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+html[data-style="contour"] .contour-heading > div { min-width: 0; flex: 1 1 220px; }
+html[data-style="contour"] .contour-heading h2 { font-size: 22px; font-weight: 500; letter-spacing: -.025em; }
+html[data-style="contour"] .contour-track { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px; }
+html[data-style="contour"] .contour-seed { color: var(--muted); font: 11px Consolas, "Courier New", monospace; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+html[data-style="contour"] .contour-canvas { display: block; width: 100%; height: 220px; pointer-events: none; }
+html[data-style="contour"] .contour-key {
+  background: var(--surface); color: var(--muted); border-top: 1px solid var(--border);
+  padding: 10px 22px; font: 10px/1.6 Consolas, "Courier New", monospace; white-space: pre-wrap;
+}
+html[data-style="contour"] .contour-strip .contour-heading { padding: 8px 16px; }
+html[data-style="contour"] .contour-strip .contour-heading h2 { display: none; }
+html[data-style="contour"] .contour-strip .contour-track { margin: 0; font-size: 12px; }
+html[data-style="contour"] .contour-strip .contour-canvas { height: 64px; }
+html[data-style="contour"] :is(.settings-card, .card, .feed-card) { box-shadow: none; }
+html[data-style="contour"] .card { overflow: hidden; }
+html[data-style="contour"] :is(.card-title, .card-sub) { padding-inline: 10px; }
+html[data-style="contour"] .card-sub { padding-bottom: 10px; }
+html[data-style="contour"] .shelf-head { border-bottom: 1px solid var(--border); padding-bottom: 10px; }

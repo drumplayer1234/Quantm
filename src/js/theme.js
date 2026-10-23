@@ -250,6 +250,10 @@ export const PRESETS = {
     accent: '#efbc83', accentText: '#25203a', bg: '#141a2d', surface: '#23283e', bar: '#1b2135',
     text: '#fff0d9', muted: '#bcb2ca', wave: '#62637b', wavePlayed: '#efbc83'
   },
+  'Contour': {
+    accent: '#9be1c2', accentText: '#0b2926', bg: '#0c252b', surface: '#19343d', bar: '#102b32',
+    text: '#e3f5ed', muted: '#a7c5bf', wave: '#507b7d', wavePlayed: '#9be1c2'
+  },
   // colors are replaced live from the playing song's artwork (appearance.js)
   'Album Match': {
     accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
@@ -307,6 +311,7 @@ export const PRESET_STYLES = {
   'Rave Flyer': 'rave-flyer',
   'Sunrise': 'sunrise',
   'Sunrise Night': 'sunrise',
+  'Contour': 'contour',
   'Album Match': 'album'
 };
 
@@ -329,7 +334,7 @@ export const PRESET_FAMILIES = {
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8, 'Rosé Pine': 10, 'Rosé Pine Moon': 10, 'Rosé Pine Dawn': 10, 'Gruvbox Dark': 4, 'Gruvbox Light': 4, 'Sodium Underpass': 8, 'Sodium Blue Hour': 8, 'Sodium Last Tram': 8, 'Tiling': 0, 'Tiling Light': 0, 'Glitch': 0, 'Vapor Mall': 12, 'Felt': 18, 'Felt Burgundy': 18, 'Blueprint': 0, 'Ink Wash': 2, 'Ink Wash Night': 2, 'LED Board': 2, 'LED Board Green': 2, 'LED Board Red': 2, 'Risograph': 2, 'Risograph Night': 2, 'Chrome': 14, 'Rave Flyer': 0, 'Sunrise': 14, 'Sunrise Night': 14 };
+export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8, 'Rosé Pine': 10, 'Rosé Pine Moon': 10, 'Rosé Pine Dawn': 10, 'Gruvbox Dark': 4, 'Gruvbox Light': 4, 'Sodium Underpass': 8, 'Sodium Blue Hour': 8, 'Sodium Last Tram': 8, 'Tiling': 0, 'Tiling Light': 0, 'Glitch': 0, 'Vapor Mall': 12, 'Felt': 18, 'Felt Burgundy': 18, 'Blueprint': 0, 'Ink Wash': 2, 'Ink Wash Night': 2, 'LED Board': 2, 'LED Board Green': 2, 'LED Board Red': 2, 'Risograph': 2, 'Risograph Night': 2, 'Chrome': 14, 'Rave Flyer': 0, 'Sunrise': 14, 'Sunrise Night': 14, 'Contour': 8 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
 // window.QUANTM_LOCAL_THEMES = { presets, styles, radius, families } before this module runs
