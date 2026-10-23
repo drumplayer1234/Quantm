@@ -1,0 +1,193 @@
+/* Chrome: hyperpop / Y3K liquid chrome. Graphite body, brushed steel bars, chrome blob controls,
+   icy cyan + hot pink. Active when <html data-style="chrome">. Colors still come from the theme variables. */
+
+@property --sweep { syntax: "<percentage>"; inherits: true; initial-value: 150%; }
+
+html[data-style="chrome"] {
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-display: Impact, "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --hot: #ff2d78; --accent2: var(--hot);
+  --b: var(--beat, 0); --mixp: 0;
+  --spec: calc(112deg + var(--b) * 40deg);        /* the specular angle rides the beat */
+  --spec-h: calc(172deg + var(--b) * 14deg);
+  --edge-glow: color-mix(in srgb, var(--accent) calc((1 - var(--mixp)) * 100%), var(--hot));
+  --sweep-layer: linear-gradient(var(--spec), transparent calc(var(--sweep) - 9%), rgba(255, 255, 255, .92) var(--sweep), transparent calc(var(--sweep) + 9%));
+  --chrome-text: linear-gradient(var(--spec-h), #ffffff 0%, #dbe6ee 30%, #7f8c99 48%, #5d6975 52%, #a5dcee 60%, #f3fcff 100%);
+  --chrome-bar: linear-gradient(90deg, #4b5560, #dbe8f1 20%, #7e8b97 40%, #f4fbff 55%, #5b6672 75%, #cfe3ee);
+  --chrome-blob: radial-gradient(ellipse 60% 38% at 35% 22%, rgba(255, 255, 255, .95), transparent 72%),
+    linear-gradient(color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 24%, transparent)),
+    conic-gradient(from var(--spec) at 50% 55%, #f4fbff, #9fb4c4, #ffffff, #8ea8ba, #e2f4ff, #a7c4d6, #f4fbff);
+  --border: color-mix(in srgb, #fff 16%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 90%, #fff);
+  --hover-strong: color-mix(in srgb, var(--surface) 80%, #fff);
+  --surface-2: var(--hover);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  --brushed: repeating-linear-gradient(115deg, rgba(255, 255, 255, .045) 0 1px, transparent 1px 3px);
+  --bevel: inset 0 1px 0 rgba(255, 255, 255, .22), 0 6px 18px rgba(0, 0, 0, .45);
+  --shard: conic-gradient(from 135deg at 50% 0, #000 0 90deg, #0000 0) 0 0 / 16px 100%;
+}
+html[data-style="chrome"][data-scheme="light"] {
+  --chrome-text: linear-gradient(var(--spec-h), #0c1117 0%, #3b4650 35%, #7f8c99 48%, #1a2129 52%, #2d6f87 62%, #0c1117 100%);
+  --bevel: inset 0 1px 0 rgba(255, 255, 255, .7), 0 4px 12px rgba(0, 0, 0, .2); --brushed: repeating-linear-gradient(115deg, rgba(0, 0, 0, .04) 0 1px, transparent 1px 3px);
+}
+html[data-style="chrome"][data-automix="mixing"] { --mixp: var(--mix, 0); }
+html[data-style="chrome"][data-swap="after"] { animation: chrome-sweep .9s ease-in-out 1; }
+@keyframes chrome-sweep { from { --sweep: -20%; } to { --sweep: 130%; } }
+
+html[data-style="chrome"] body { background: linear-gradient(135deg, color-mix(in srgb, var(--bg) 84%, #fff), var(--bg) 45%, color-mix(in srgb, var(--bg) 90%, #fff) 78%, var(--bg)); }
+html[data-style="chrome"] #view { background: transparent; }
+html[data-style="chrome"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html[data-style="chrome"] ::selection { background: var(--hot); color: #fff; }
+
+/* ---------------------------------------------------------------- headings: chrome-filled (solid color first) */
+
+html[data-style="chrome"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title, .queue-head h2) {
+  font-family: var(--font-display); font-weight: 400; text-transform: uppercase; letter-spacing: .07em; color: var(--text); line-height: 1.05;
+}
+html[data-style="chrome"] .page-title { font-size: 40px; }
+html[data-style="chrome"] .shelf-title { font-size: 26px; }
+html[data-style="chrome"] .hero-title { font-size: clamp(30px, 4.4vw, 54px); }
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  html[data-style="chrome"] :is(.page-title, .hero-title, .shelf-title) {
+    background: var(--sweep-layer), var(--chrome-text); -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .8)) drop-shadow(0 0 9px color-mix(in srgb, var(--edge-glow) 35%, transparent));
+  }
+  html[data-style="chrome"] :is(.page-title, .hero-title, .shelf-title) a { -webkit-text-fill-color: transparent; }
+}
+/* thin spiky shard dividers */
+html[data-style="chrome"] :is(.page-header, .shelf-head) { position: relative; padding-bottom: 14px; }
+html[data-style="chrome"] :is(.page-header, .shelf-head)::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; pointer-events: none;
+  background: var(--sweep-layer), var(--chrome-bar); -webkit-mask: var(--shard); mask: var(--shard);
+}
+html[data-style="chrome"] .hero-eyebrow { color: var(--accent); letter-spacing: .16em; }
+
+/* ---------------------------------------------------------------- bars */
+
+html[data-style="chrome"] .topbar,
+html[data-style="chrome"][data-bg] .topbar {
+  background: var(--brushed), linear-gradient(180deg, color-mix(in srgb, var(--bar) 86%, #fff), var(--bar)); border-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, .45);
+}
+html[data-style="chrome"] .topbar::after, html[data-style="chrome"] .playerbar::before {
+  content: ""; position: absolute; left: 0; right: 0; height: 2px; pointer-events: none;
+  background: var(--sweep-layer), linear-gradient(90deg, transparent, var(--edge-glow), #fff 50%, var(--edge-glow), transparent);
+}
+html[data-style="chrome"] .topbar::after { bottom: 0; }
+html[data-style="chrome"] .playerbar::before { top: 0; }
+html[data-style="chrome"][data-player="top"] .playerbar::before { top: auto; bottom: 0; }
+html[data-style="chrome"] .playerbar,
+html[data-style="chrome"][data-bg] .playerbar {
+  background: var(--brushed), linear-gradient(180deg, color-mix(in srgb, var(--bar) 90%, #fff), var(--bar) 60%); color: var(--text); border-top: 0; box-shadow: 0 -4px 16px rgba(0, 0, 0, .4);
+}
+html[data-style="chrome"][data-nav="sidebar"] .nav { background: var(--brushed), var(--bar); border-right: 1px solid var(--border); backdrop-filter: none; }
+html[data-style="chrome"] .logo { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--edge-glow) 70%, transparent)); }
+html[data-style="chrome"] :is(.nav-link, .settings-nav-link, .tab) { border-radius: 999px; color: var(--muted); font-weight: 700; letter-spacing: .04em; }
+html[data-style="chrome"] :is(.nav-link, .settings-nav-link):hover { color: var(--text); background: var(--hover-strong); }
+html[data-style="chrome"] :is(.nav-link, .settings-nav-link).active {
+  color: var(--text); background: linear-gradient(180deg, var(--hover-strong), var(--hover)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), inset 0 -2px 0 var(--hot);
+}
+html[data-style="chrome"] .settings-nav-link.active .icon { color: var(--accent); }
+html[data-style="chrome"] .tab.active { color: var(--accent); border-bottom-color: var(--hot); }
+html[data-style="chrome"] .tabs { border-bottom: 1px solid var(--border); }
+html[data-style="chrome"] :is(.search-input, .input) {
+  border: 1px solid var(--border); border-radius: 999px; background: color-mix(in srgb, var(--bg) 70%, #000); color: var(--text); box-shadow: inset 0 2px 5px rgba(0, 0, 0, .5);
+}
+html[data-style="chrome"] :is(.search-input, .input):focus { background: color-mix(in srgb, var(--bg) 70%, #000); border-color: var(--accent); box-shadow: inset 0 2px 5px rgba(0, 0, 0, .5), 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+html[data-style="chrome"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+
+/* ---------------------------------------------------------------- buttons: steel pills + chrome blobs */
+
+html[data-style="chrome"] :is(.btn, .hero .btn, .chip, .tag-pill) {
+  border: 1px solid color-mix(in srgb, #fff 26%, var(--surface)); border-radius: 999px; color: var(--text); box-shadow: var(--bevel);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 80%, #fff) 0%, var(--surface) 49%, color-mix(in srgb, var(--surface) 88%, #000) 51%, color-mix(in srgb, var(--surface) 92%, #fff) 100%);
+}
+html[data-style="chrome"] :is(.btn, .hero .btn, .chip):hover { color: var(--text); border-color: var(--accent); filter: none; box-shadow: var(--bevel), 0 0 14px color-mix(in srgb, var(--accent) 35%, transparent); }
+html[data-style="chrome"] :is(.btn-outline, .btn-ghost) { background: transparent; box-shadow: none; }
+html[data-style="chrome"] :is(.btn-primary, .hero .btn-primary, .chip.active, .play-btn, .card-play, .pb-play),
+html[data-style="chrome"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+  background: var(--sweep-layer), var(--chrome-blob); color: var(--accent-text); border: 1px solid rgba(0, 0, 0, .75);
+  box-shadow: inset 0 -3px 7px rgba(10, 50, 70, .35), 0 0 0 1px rgba(255, 255, 255, .28), 0 4px 14px color-mix(in srgb, var(--edge-glow) 38%, transparent); font-weight: 800;
+}
+html[data-style="chrome"] .icon-btn { color: var(--muted); }
+html[data-style="chrome"] .icon-btn:hover, html[data-style="chrome"] .hero .icon-btn:hover { color: var(--text); background: var(--hover-strong); }
+html[data-style="chrome"] :is(.icon-btn.active, .hero .icon-btn.active, .pb-queue-btn.active, .pb-mode.active) { color: var(--accent); }
+html[data-style="chrome"] .pb-mode.active::after { background: var(--hot); }
+html[data-style="chrome"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) {
+  color: #fff; background: linear-gradient(180deg, #ff5b93, var(--hot) 49%, #b3114d 51%, #e0225f); border: 1px solid rgba(0, 0, 0, .6);
+}
+
+/* ---------------------------------------------------------------- cards + rows */
+
+html[data-style="chrome"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) {
+  border: 1px solid transparent; border-radius: var(--radius); box-shadow: var(--bevel);
+  background: linear-gradient(var(--surface), var(--surface)) padding-box, linear-gradient(135deg, #5c6773, #f2fbff 22%, #5c6773 45%, #2b323a 62%, #bfeaff 86%, #5c6773) border-box;
+}
+html[data-style="chrome"] .card { padding: 12px; }
+html[data-style="chrome"] .card:hover { background: linear-gradient(var(--hover), var(--hover)) padding-box, linear-gradient(135deg, #7d8996, #fff 22%, #7d8996 45%, #39424c 62%, #d4f2ff 86%, #7d8996) border-box; }
+html[data-style="chrome"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="chrome"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) { border: 1px solid color-mix(in srgb, #fff 28%, var(--surface)); border-radius: var(--radius); box-shadow: 0 4px 14px rgba(0, 0, 0, .5); }
+html[data-style="chrome"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="chrome"] .hero-bg { display: none; }
+html[data-style="chrome"] :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+html[data-style="chrome"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="chrome"] :is(.track-row, .queue-row) { border-radius: var(--radius); }
+html[data-style="chrome"] .track-row { border-bottom: 1px solid var(--border); }
+html[data-style="chrome"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="chrome"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--hot); }
+html[data-style="chrome"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+
+/* ---------------------------------------------------------------- player: seek, thumb, waveform */
+
+html[data-style="chrome"] .pb-track { height: 6px; background: var(--wave); border-radius: 999px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .65), 0 1px 0 rgba(255, 255, 255, .12); }
+html[data-style="chrome"] .pb-fill,
+html[data-style="chrome"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
+  background: var(--sweep-layer), linear-gradient(180deg, #fff, var(--wave-played) 45%, color-mix(in srgb, var(--wave-played) 55%, #000)); border-radius: 999px;
+}
+html[data-style="chrome"] .pb-knob {
+  width: 14px; height: 14px; margin: -7px 0 0 -7px; opacity: 1; border: 1px solid rgba(0, 0, 0, .7); border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #fff 0 14%, transparent 34%), conic-gradient(from var(--spec), #f4fbff, #8ea8ba, #fff, #7f98aa, #e2f4ff, #f4fbff);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .25), 0 2px 7px rgba(0, 0, 0, .6), 0 0 9px color-mix(in srgb, var(--edge-glow) 50%, transparent);
+}
+html[data-style="chrome"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="chrome"] .waveform { border-bottom: 1px solid var(--border); }
+html[data-style="chrome"] .waveform canvas { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 40%, transparent)); }
+
+/* ---------------------------------------------------------------- menus, modals, settings */
+
+html[data-style="chrome"] :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, #fff), var(--surface)); color: var(--text);
+  border: 1px solid color-mix(in srgb, #fff 22%, var(--surface)); border-radius: var(--radius); box-shadow: var(--bevel), 0 12px 32px rgba(0, 0, 0, .5);
+}
+html[data-style="chrome"] :is(.modal-head, .queue-head) { background: var(--brushed), var(--bar); border-bottom: 1px solid var(--border); }
+html[data-style="chrome"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover-strong); color: var(--text); }
+html[data-style="chrome"] .menu-item .icon { color: inherit; }
+html[data-style="chrome"] .queue-label { color: var(--muted); letter-spacing: .12em; }
+html[data-style="chrome"] .atp-track { background: color-mix(in srgb, var(--bg) 70%, #000); border: 1px solid var(--border); border-radius: var(--radius); }
+html[data-style="chrome"] .settings-switch-track { border: 1px solid var(--border); background: var(--wave); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .6); }
+html[data-style="chrome"] .settings-switch-knob { background: radial-gradient(circle at 35% 28%, #fff 0 16%, transparent 40%), conic-gradient(from var(--spec), #f4fbff, #8ea8ba, #fff, #f4fbff); }
+html[data-style="chrome"] .settings-preset { border: 1px solid var(--border); border-radius: var(--radius); }
+html[data-style="chrome"] .settings-preset.active { border-color: var(--accent); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent); }
+html[data-style="chrome"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="chrome"] ::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #4b5560, #c9d6e0 50%, #4b5560); border: 3px solid var(--bg); border-radius: 999px; }
+html[data-style="chrome"] ::-webkit-scrollbar-thumb:hover { background: linear-gradient(90deg, var(--accent), #fff 50%, var(--accent)); }
+html[data-style="chrome"] .login { background: transparent; }
+
+/* ---------------------------------------------------------------- motion + performance */
+
+html[data-style="chrome"][data-theme-motion="off"] { --b: 0; --mixp: 0; animation: none; }
+html[data-style="chrome"][data-theme-motion="off"] *,
+html[data-style="chrome"][data-perf] *,
+html[data-style="chrome"][data-perf] *::before,
+html[data-style="chrome"][data-perf] *::after,
+html[data-style="chrome"][data-hidden] * { animation: none !important; transition: none !important; }
+html[data-style="chrome"][data-perf] { --b: 0; animation: none; }
+html[data-style="chrome"][data-perf] * { filter: none !important; backdrop-filter: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="chrome"]:not([data-theme-motion="on"]) { --b: 0; --mixp: 0; animation: none; }
+  html[data-style="chrome"]:not([data-theme-motion="on"]) *,
+  html[data-style="chrome"]:not([data-theme-motion="on"]) *::before,
+  html[data-style="chrome"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  html[data-style="chrome"] :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; background: none; filter: none; }
+}
