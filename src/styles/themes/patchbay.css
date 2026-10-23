@@ -1,0 +1,138 @@
+/* Patchbay: recessed sockets are read-only; actual buttons use clear edges. */
+html[data-style="patchbay"] { --px-cyan: var(--accent); --px-orange: #e8ad78; --px-recess: var(--bg); }
+html[data-style="patchbay"] .px-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 24px; }
+html[data-style="patchbay"] .px-kicker { font: 700 12px/1.5 Consolas, monospace; letter-spacing: .12em; color: var(--muted); margin-bottom: 8px; }
+html[data-style="patchbay"] .px-header p + p { color: var(--text); font-size: 18px; }
+html[data-style="patchbay"] .px-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr); gap: 22px; align-items: stretch; }
+html[data-style="patchbay"] :is(.px-rack, .px-transport-panel, .px-queue) { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: inset 8px 0 0 var(--bar), inset -8px 0 0 var(--bar); }
+html[data-style="patchbay"] .px-rack { padding: 20px; position: relative; min-width: 0; }
+html[data-style="patchbay"] .px-rack::before,
+html[data-style="patchbay"] .px-rack::after { content: ''; position: absolute; width: 4px; height: 4px; background: var(--wave); border-radius: 50%; box-shadow: inset 0 1px 2px var(--bg); pointer-events: none; }
+html[data-style="patchbay"] .px-rack::before { top: 8px; left: 2px; }
+html[data-style="patchbay"] .px-rack::after { bottom: 8px; right: 2px; }
+html[data-style="patchbay"] .px-rack-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 15px; border-bottom: 1px solid var(--border); font: 700 11px Consolas, monospace; letter-spacing: .07em; }
+html[data-style="patchbay"] .px-output-state { color: var(--muted); font-size: 10px; }
+html[data-style="patchbay"] .px-flow { overflow-x: auto; margin: 8px 0; }
+html[data-style="patchbay"] .px-diagram { width: 100%; min-width: 530px; height: auto; display: block; cursor: default; }
+html[data-style="patchbay"] .px-module { fill: var(--bar); stroke: var(--border); stroke-width: 1.5; }
+html[data-style="patchbay"] .px-diagram text { fill: var(--text); font: 700 12px Consolas, monospace; letter-spacing: .03em; }
+html[data-style="patchbay"] .px-cable { fill: none; stroke: var(--px-cyan); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: calc(var(--px-energy, .75) * var(--px-out, 1)); }
+html[data-style="patchbay"] .px-cable.px-b { stroke: var(--px-orange); opacity: calc(var(--px-energy, .75) * var(--px-in, .18)); }
+html[data-style="patchbay"] .px-cable.px-low { stroke-width: 9; stroke: var(--px-cyan); stroke-dasharray: 3 1; opacity: .68; }
+html[data-style="patchbay"] .px-cable.px-low-b { stroke: var(--px-orange); opacity: .08; }
+html[data-style="patchbay"] [data-swap="after"] .px-low-a { opacity: .08; }
+html[data-style="patchbay"] [data-swap="after"] .px-low-b { opacity: .68; }
+html[data-style="patchbay"][data-swap="after"] [data-mixing="true"] .px-low-a { opacity: .08; }
+html[data-style="patchbay"][data-swap="after"] [data-mixing="true"] .px-low-b { opacity: .68; }
+html[data-style="patchbay"] .px-socket { fill: var(--px-recess); stroke: var(--wave); stroke-width: 4; }
+html[data-style="patchbay"] .px-source-labels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 6px; }
+html[data-style="patchbay"] .px-source-labels h2 { color: var(--text); font: 700 12px/1.6 Consolas, monospace; padding-bottom: 6px; }
+html[data-style="patchbay"] :is(.px-source, .px-incoming) { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+html[data-style="patchbay"] .px-source-labels > div { border-top: 3px solid var(--px-cyan); padding-top: 8px; }
+html[data-style="patchbay"] .px-source-labels > div + div { border-top-color: var(--px-orange); }
+html[data-style="patchbay"] .px-mix-text { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--muted); font: 11px/1.7 Consolas, monospace; }
+html[data-style="patchbay"] .px-transport-panel { padding: 26px; display: flex; flex-direction: column; align-items: start; }
+html[data-style="patchbay"] .px-title { font-size: clamp(26px, 2.6vw, 38px); line-height: 1.15; letter-spacing: -.035em; overflow-wrap: anywhere; }
+html[data-style="patchbay"] .px-artist { color: var(--muted); margin: 14px 0 24px; font-size: 15px; }
+html[data-style="patchbay"] .px-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+html[data-style="patchbay"] .px-note { color: var(--muted); font-size: 12px; margin-top: 20px; }
+html[data-style="patchbay"] .px-queue { margin-top: 24px; overflow: hidden; }
+html[data-style="patchbay"] .px-queue h2 { font: 700 13px Consolas, monospace; text-transform: uppercase; letter-spacing: .1em; border-bottom: 1px solid var(--border); padding: 20px; }
+html[data-style="patchbay"] .px-queue-list { max-height: 400px; overflow: auto; }
+html[data-style="patchbay"] .px-queue-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 16px; align-items: center; width: 100%; padding: 13px 22px; text-align: left; color: var(--text); border-bottom: 1px solid var(--border); }
+html[data-style="patchbay"] .px-queue-row:hover { background: var(--hover); }
+html[data-style="patchbay"] .px-queue-row:focus-visible { outline-offset: -3px; }
+html[data-style="patchbay"] .px-queue-row[aria-current] { box-shadow: inset 3px 0 var(--accent); background: var(--bar); }
+html[data-style="patchbay"] .px-track-number { color: var(--muted); font: 12px Consolas, monospace; }
+html[data-style="patchbay"] .px-track-meta { display: grid; gap: 4px; min-width: 0; }
+html[data-style="patchbay"] .px-track-meta strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-style="patchbay"] .px-track-meta span { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-style="patchbay"] .px-queue-row > span:last-child { color: var(--muted); font: 12px Consolas, monospace; }
+html[data-style="patchbay"] .px-empty { padding: 22px; color: var(--muted); }
+html[data-style="patchbay"] .px-browse:not([hidden]) { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--border); }
+html[data-style="patchbay"][data-theme-motion="off"] :is(.px-cable.px-a, .px-cable.px-b) { opacity: .7; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="patchbay"]:not([data-theme-motion="on"]) :is(.px-cable.px-a, .px-cable.px-b) { opacity: .7; }
+}
+@media (max-width: 1000px) {
+  html[data-style="patchbay"] .px-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  html[data-style="patchbay"] .px-header { flex-wrap: wrap; }
+  html[data-style="patchbay"] .px-rack { padding: 16px; }
+  html[data-style="patchbay"] .px-source-labels { grid-template-columns: minmax(0, 1fr); }
+}
+/* Standalone pack makeover; all shell controls retain their base geometry. */
+html[data-style="patchbay"] {
+  --font: "Segoe UI", Arial, sans-serif;
+  --font-display: var(--font);
+  --border: color-mix(in srgb, var(--text) 26%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 91%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 80%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: var(--hover);
+}
+html[data-style="patchbay"] body { background: var(--bg); color: var(--text); }
+html[data-style="patchbay"] #view { background: var(--bg); }
+html[data-style="patchbay"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html[data-style="patchbay"] :is(.topbar, .playerbar),
+html[data-style="patchbay"][data-bg] :is(.topbar, .playerbar),
+html[data-style="patchbay"][data-nav="sidebar"] .nav {
+  background: var(--bar); color: var(--text); border-color: var(--border); backdrop-filter: none;
+}
+html[data-style="patchbay"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) { font-family: var(--font-display); }
+html[data-style="patchbay"] .logo { color: var(--accent); }
+html[data-style="patchbay"] :is(.nav-link, .settings-nav-link, .tab) { color: var(--muted); border-radius: var(--radius); }
+html[data-style="patchbay"] :is(.nav-link, .settings-nav-link).active { background: var(--accent); color: var(--accent-text); }
+html[data-style="patchbay"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="patchbay"] :is(.tab.active, .icon-btn.active) { color: var(--accent); }
+html[data-style="patchbay"] :is(.search-input, .input, select, textarea) {
+  background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="patchbay"] :is(input, textarea)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="patchbay"] :is(.btn, .icon-btn, .chip, .tag-pill) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="patchbay"] :is(.btn, .icon-btn, .chip):hover { background: var(--hover); filter: none; }
+html[data-style="patchbay"] :is(.btn-primary, .btn-primary:hover, .chip.active, .play-btn, .card-play, .pb-play) {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+}
+html[data-style="patchbay"] button:disabled { cursor: default; opacity: .6; }
+html[data-style="patchbay"] :is(.card, .feed-card, .settings-card, .login-card, .track-artist, .hero, .track-list) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="patchbay"] .card:hover { border-color: var(--accent); }
+html[data-style="patchbay"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="patchbay"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art) { border-radius: var(--radius); }
+html[data-style="patchbay"] .hero-bg { display: none; }
+html[data-style="patchbay"] :is(.hero-inner, .hero .stat) { color: var(--text); }
+html[data-style="patchbay"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta, .queue-transition) { opacity: 1; }
+html[data-style="patchbay"] :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: 1px solid var(--border); }
+html[data-style="patchbay"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="patchbay"] :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 3px 0 var(--accent); }
+html[data-style="patchbay"] .queue-row.past { opacity: 1; }
+html[data-style="patchbay"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="patchbay"] .pb-track { background: var(--wave); }
+html[data-style="patchbay"] .pb-fill,
+html[data-style="patchbay"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); }
+html[data-style="patchbay"] .pb-knob { background: var(--accent); }
+html[data-style="patchbay"] :is(.queue-panel, .menu, .modal, .search-suggest, .pb-hovertime, .toast) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="patchbay"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="patchbay"] :is(.queue-head, .modal-head) { border-bottom: 1px solid var(--border); background: var(--bar); }
+html[data-style="patchbay"] .settings-preset { border-color: var(--border); border-radius: var(--radius); }
+html[data-style="patchbay"] :is(.settings-preset.active, .settings-flavor.active) { border-color: var(--accent); }
+html[data-style="patchbay"] .settings-switch-track { background: var(--wave); border: 1px solid var(--border); }
+html[data-style="patchbay"] .login { background: var(--bg); }
+html[data-style="patchbay"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="patchbay"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+html[data-style="patchbay"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+html[data-style="patchbay"][data-theme-motion="off"] *,
+html[data-style="patchbay"][data-theme-motion="off"] *::before,
+html[data-style="patchbay"][data-theme-motion="off"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="patchbay"]:not([data-theme-motion="on"]) *,
+  html[data-style="patchbay"]:not([data-theme-motion="on"]) *::before,
+  html[data-style="patchbay"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
