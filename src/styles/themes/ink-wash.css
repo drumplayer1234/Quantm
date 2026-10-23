@@ -1,0 +1,174 @@
+/* Ink Wash: sumi-e calm. Rice paper, soft ink washes, one vermilion seal. Paper (light) and Night (dark, gold lines) flavors. Colors remain editable in Settings. */
+
+html[data-style="ink-wash"] {
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-display: Georgia, "Yu Mincho", "Hiragino Mincho ProN", serif;
+  --ink: var(--text);
+  --ink-seal: #c4382a;
+  --ink-seal-text: #fbf6ec;
+  --ink-line: color-mix(in srgb, var(--text) 24%, transparent);
+  --border: var(--ink-line);
+  --hover: color-mix(in srgb, var(--text) 5%, transparent);
+  --hover-strong: color-mix(in srgb, var(--text) 9%, transparent);
+  --surface-2: var(--hover);
+  --accent-soft: color-mix(in srgb, var(--accent) 9%, transparent);
+  --makeover-edge: 1px solid var(--ink-line);
+  --makeover-shadow: none;
+  --makeover-panel: color-mix(in srgb, var(--surface) 80%, transparent);
+  --makeover-bar: var(--bar);
+  --makeover-button: transparent;
+  --makeover-input: var(--surface);
+  --makeover-primary: var(--text);
+  --makeover-primary-text: var(--bg);
+  --ink-beat: calc(60s / max(var(--bpm, 120), 60));
+}
+/* Night: sumi black with soft gold lines and gold washes */
+html[data-style="ink-wash"][data-scheme="dark"] {
+  --ink: var(--accent);
+  --ink-line: color-mix(in srgb, var(--accent) 38%, transparent);
+  --hover: color-mix(in srgb, var(--text) 6%, transparent);
+}
+html[data-style="ink-wash"] body { background: var(--bg); }
+html[data-style="ink-wash"] #view { background: transparent; }
+html[data-style="ink-wash"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html[data-style="ink-wash"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) { font-family: var(--font-display); }
+html[data-style="ink-wash"] :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
+html[data-style="ink-wash"] .topbar,
+html[data-style="ink-wash"][data-bg] .topbar { background: var(--makeover-bar); border-bottom: var(--makeover-edge); box-shadow: var(--makeover-shadow); }
+html[data-style="ink-wash"][data-nav="sidebar"] .nav { background: var(--makeover-bar); border-right: var(--makeover-edge); backdrop-filter: none; }
+html[data-style="ink-wash"] :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
+html[data-style="ink-wash"] :is(.nav-link, .settings-nav-link).active { background: var(--hover-strong); color: var(--accent); }
+html[data-style="ink-wash"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="ink-wash"] .logo { color: var(--accent); }
+html[data-style="ink-wash"] :is(.search-input, .input) { border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-input); color: var(--text); }
+html[data-style="ink-wash"] :is(.search-input, .input):focus { background: var(--makeover-input); border-color: var(--accent); }
+html[data-style="ink-wash"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="ink-wash"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) { border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-button); color: var(--text); }
+html[data-style="ink-wash"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover { background: var(--hover); color: var(--text); filter: none; }
+html[data-style="ink-wash"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="ink-wash"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--makeover-primary); color: var(--makeover-primary-text); border-color: var(--makeover-primary); }
+html[data-style="ink-wash"] :is(.icon-btn.active, .hero .icon-btn.active, .pb-mode.active, .pb-queue-btn.active, .pb-speed.active) { color: var(--accent); }
+html[data-style="ink-wash"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) { color: var(--text); border: 1px dashed var(--text); background: var(--surface); }
+html[data-style="ink-wash"] :is(.play-btn, .card-play, .pb-play) { background: var(--accent); color: var(--accent-text); border: var(--makeover-edge); box-shadow: var(--makeover-shadow); }
+html[data-style="ink-wash"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) { background: var(--makeover-panel); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow); }
+html[data-style="ink-wash"] .card { padding: 12px; }
+html[data-style="ink-wash"] .card:hover { background: var(--makeover-panel); border-color: var(--accent); }
+html[data-style="ink-wash"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="ink-wash"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) { border: var(--makeover-edge); border-radius: var(--radius); box-shadow: none; }
+html[data-style="ink-wash"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="ink-wash"] :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
+html[data-style="ink-wash"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="ink-wash"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+html[data-style="ink-wash"] :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
+/* Keep hero text independent of arbitrary artwork luminance. */
+html[data-style="ink-wash"] .hero-bg { display: none; }
+html[data-style="ink-wash"] :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+html[data-style="ink-wash"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="ink-wash"] .tabs { border-bottom: var(--makeover-edge); }
+html[data-style="ink-wash"] .tab.active { border-bottom-color: var(--accent); }
+html[data-style="ink-wash"] .playerbar,
+html[data-style="ink-wash"][data-bg] .playerbar { background: var(--makeover-bar); color: var(--text); border-top: var(--makeover-edge); box-shadow: var(--makeover-shadow); }
+html[data-style="ink-wash"][data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
+html[data-style="ink-wash"] .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
+html[data-style="ink-wash"] .pb-fill,
+html[data-style="ink-wash"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); border-radius: var(--radius); }
+html[data-style="ink-wash"] .pb-knob { background: var(--accent); border: 1px solid var(--text); }
+html[data-style="ink-wash"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="ink-wash"] :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) { background: var(--surface); color: var(--text); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow); }
+html[data-style="ink-wash"] :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
+html[data-style="ink-wash"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="ink-wash"] .menu-item .icon { color: inherit; }
+html[data-style="ink-wash"] .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
+html[data-style="ink-wash"] .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
+html[data-style="ink-wash"] .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--accent); }
+html[data-style="ink-wash"] :is(.settings-preset, .settings-flavor) { border-color: var(--border); border-radius: var(--radius); }
+html[data-style="ink-wash"] :is(.settings-preset.active, .settings-flavor[aria-pressed="true"]) { border-color: var(--accent); }
+html[data-style="ink-wash"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="ink-wash"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+html[data-style="ink-wash"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+html[data-style="ink-wash"] .login { background: transparent; }
+
+/* ---- paper and washes (decorative layer only, never under small text at more than a whisper) ---- */
+html[data-style="ink-wash"] body { background: var(--bg); letter-spacing: .01em; }
+html[data-style="ink-wash"] body::before {
+  content: ""; position: fixed; inset: -40px; z-index: -1; pointer-events: none; filter: blur(30px);
+  background:
+    radial-gradient(ellipse 34% 26% at 10% 16%, color-mix(in srgb, var(--ink) 9%, transparent), transparent 72%),
+    radial-gradient(ellipse 42% 22% at 90% 82%, color-mix(in srgb, var(--ink) 7%, transparent), transparent 72%),
+    radial-gradient(ellipse 22% 34% at 74% 8%, color-mix(in srgb, var(--ink) 5%, transparent), transparent 72%);
+}
+html[data-style="ink-wash"] :is(.page-title, .hero-title, .shelf-title, .section-title, .settings-card-title) { font-weight: 500; letter-spacing: .02em; }
+html[data-style="ink-wash"] .page-title { font-size: 34px; }
+html[data-style="ink-wash"] .page-header { margin-bottom: 36px; padding-bottom: 16px; }
+html[data-style="ink-wash"] .shelf-head { margin-bottom: 20px; }
+html[data-style="ink-wash"] :is(.page-header, .shelf-head) { border-bottom: 0; background: linear-gradient(90deg, var(--ink-line), transparent 70%) left bottom / 100% 1px no-repeat; }
+html[data-style="ink-wash"] .topbar { border-bottom: 0; background: linear-gradient(90deg, transparent, var(--ink-line) 18%, var(--ink-line) 82%, transparent) left bottom / 100% 1px no-repeat, var(--bar); }
+html[data-style="ink-wash"] :is(.nav-link, .tab) { border-radius: 0; color: var(--muted); font-family: var(--font-display); font-weight: 500; letter-spacing: .04em; }
+html[data-style="ink-wash"] :is(.nav-link, .settings-nav-link).active { background: transparent; color: var(--text); box-shadow: inset 0 -2px 0 var(--ink-line); }
+html[data-style="ink-wash"] :is(.nav-link, .tab):hover { color: var(--text); }
+html[data-style="ink-wash"] .logo { color: var(--text); }
+
+/* ---- buttons, cards, rows: quiet, hairline, generous space ---- */
+html[data-style="ink-wash"] :is(.btn, .chip, .icon-btn, .tag-pill) { border-radius: 2px; }
+html[data-style="ink-wash"] :is(.btn, .icon-btn, .chip):hover { background: var(--hover-strong); }
+html[data-style="ink-wash"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+html[data-style="ink-wash"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .track-list, .hero) { border: 0; border-radius: 2px; box-shadow: 0 0 0 1px var(--ink-line); }
+html[data-style="ink-wash"] .card { padding: 16px 16px 18px; }
+html[data-style="ink-wash"] .card:hover { box-shadow: 0 0 0 1px var(--accent); background: var(--makeover-panel); }
+html[data-style="ink-wash"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) { border: 0; border-radius: 2px; }
+html[data-style="ink-wash"] :is(.card-art, .hero-art) { filter: saturate(.85) contrast(.97); }
+html[data-style="ink-wash"] :is(.track-row, .queue-row) { border-radius: 0; border-bottom: 1px solid color-mix(in srgb, var(--ink-line) 60%, transparent); }
+html[data-style="ink-wash"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: none; }
+html[data-style="ink-wash"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--text); text-decoration: underline; text-decoration-color: var(--ink-line); text-underline-offset: 4px; text-decoration-thickness: 2px; }
+html[data-style="ink-wash"] :is(.menu, .modal, .queue-panel, .search-suggest, .toast) { border: 0; border-radius: 2px; box-shadow: 0 0 0 1px var(--ink-line), 0 18px 40px -22px color-mix(in srgb, var(--ink) 55%, transparent); }
+html[data-style="ink-wash"] :is(.settings-preset, .settings-flavor, .settings-switch-track, .settings-switch-knob) { border-radius: 2px; }
+html[data-style="ink-wash"] ::-webkit-scrollbar-thumb { border-radius: 0; background: var(--ink-line); }
+html[data-style="ink-wash"] :is(.field-label, .queue-label) { letter-spacing: .12em; font-family: var(--font-display); font-weight: 500; }
+
+/* ---- the play button is a square vermilion seal stamp ---- */
+html[data-style="ink-wash"] :is(.pb-play, .play-btn, .card-play) {
+  background: var(--ink-seal); color: var(--ink-seal-text); border: 0; border-radius: 3px; transform: rotate(-2deg);
+  box-shadow: inset 0 0 0 3px var(--ink-seal), inset 0 0 0 4px color-mix(in srgb, var(--ink-seal-text) 65%, transparent);
+}
+html[data-style="ink-wash"] :is(.pb-play, .play-btn, .card-play):hover { transform: rotate(-2deg) scale(1.05); filter: none; }
+html[data-style="ink-wash"] .card-play { transform: rotate(-2deg) !important; }
+
+/* ---- hero: vertical inscription, soft wash behind the artwork ---- */
+html[data-style="ink-wash"] .hero { overflow: visible; margin-bottom: 44px; }
+html[data-style="ink-wash"] .hero-inner { padding: 40px 56px 40px 40px; }
+html[data-style="ink-wash"] .hero-text { padding-right: 36px; }
+html[data-style="ink-wash"] .hero-eyebrow { position: absolute; top: 36px; right: 22px; writing-mode: vertical-rl; letter-spacing: .5em; font-family: var(--font-display); color: var(--muted); padding-left: 10px; border-left: 1px solid var(--ink-line); }
+html[data-style="ink-wash"] .hero-art { position: relative; isolation: isolate; }
+html[data-style="ink-wash"] .hero-art::before { content: ""; position: absolute; inset: -18% -14% -26% -14%; z-index: -1; pointer-events: none; filter: blur(22px); border-radius: 50%; background: radial-gradient(ellipse at 50% 55%, color-mix(in srgb, var(--ink) 16%, transparent), transparent 70%); }
+
+/* ---- player bar: ink rail, brush waveform ---- */
+html[data-style="ink-wash"] .playerbar { border-top: 0; background: linear-gradient(90deg, transparent, var(--ink-line) 18%, var(--ink-line) 82%, transparent) left top / 100% 1px no-repeat, var(--bar); }
+html[data-style="ink-wash"][data-player="top"] .playerbar { background: linear-gradient(90deg, transparent, var(--ink-line) 18%, var(--ink-line) 82%, transparent) left bottom / 100% 1px no-repeat, var(--bar); }
+html[data-style="ink-wash"] :is(.pb-title, .queue-title) { font-family: var(--font-display); font-weight: 500; }
+html[data-style="ink-wash"] .pb-track { height: 3px; border-radius: 3px; background: color-mix(in srgb, var(--wave) 45%, transparent); }
+html[data-style="ink-wash"] .pb-fill, html[data-style="ink-wash"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); border-radius: 3px; opacity: .85; box-shadow: 0 0 3px color-mix(in srgb, var(--wave-played) 40%, transparent); }
+html[data-style="ink-wash"] .pb-knob { border: 0; background: var(--text); }
+html[data-style="ink-wash"] .waveform canvas { opacity: .8; filter: blur(.45px) drop-shadow(0 0 1.5px color-mix(in srgb, var(--wave-played) 40%, transparent)); }
+
+/* ---- Auto mix: ink-drop rings on each beat, one wash sweep at the swap (decorative, behind the controls) ---- */
+html[data-style="ink-wash"] .pb-center::before { content: ""; position: absolute; left: 50%; top: 22px; width: 150px; height: 150px; margin: -75px 0 0 -75px; z-index: -1; pointer-events: none; opacity: 0; border-radius: 50%; background: radial-gradient(circle, transparent 0 56%, color-mix(in srgb, var(--ink) 26%, transparent) 58% 61%, transparent 65%); }
+html[data-style="ink-wash"]:is([data-automix="on"], [data-automix="mixing"])[data-beat="a"] .pb-center::before { animation: ink-ring-a calc(var(--ink-beat) * 1.8) ease-out both; }
+html[data-style="ink-wash"]:is([data-automix="on"], [data-automix="mixing"])[data-beat="b"] .pb-center::before { animation: ink-ring-b calc(var(--ink-beat) * 1.8) ease-out both; }
+@keyframes ink-ring-a { from { opacity: .9; transform: scale(.2); } to { opacity: 0; transform: scale(1); } }
+@keyframes ink-ring-b { from { opacity: .9; transform: scale(.2); } to { opacity: 0; transform: scale(1); } }
+html[data-style="ink-wash"] .playerbar::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 14%, transparent) 50%, transparent) -67% 0 / 40% 100% no-repeat; filter: blur(6px); }
+html[data-style="ink-wash"][data-swap="after"] .playerbar::after { animation: ink-sweep 2.6s ease-in-out 1 both; }
+@keyframes ink-sweep { 0% { opacity: 0; background-position: -67% 0; } 15%, 85% { opacity: 1; } 100% { opacity: 0; background-position: 167% 0; } }
+
+/* Motion: off when theme effects are off, in Performance mode, while hidden, or with reduced motion (unless forced on). */
+html[data-style="ink-wash"]:is([data-theme-motion="off"], [data-perf], [data-hidden]) *,
+html[data-style="ink-wash"]:is([data-theme-motion="off"], [data-perf], [data-hidden]) *::before,
+html[data-style="ink-wash"]:is([data-theme-motion="off"], [data-perf], [data-hidden]) *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="ink-wash"]:not([data-theme-motion="on"]) *, html[data-style="ink-wash"]:not([data-theme-motion="on"]) *::before, html[data-style="ink-wash"]:not([data-theme-motion="on"]) *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  html[data-style="ink-wash"] :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
+}
