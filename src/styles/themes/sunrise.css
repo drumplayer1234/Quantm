@@ -1,0 +1,141 @@
+/* sunrise: scoped surfaces keep all reading and controls on opaque colors. */
+html[data-style="sunrise"] {
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-display: "Segoe UI", Arial, sans-serif;
+  --border: color-mix(in srgb, var(--text) 24%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 92%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 85%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: var(--hover);
+}
+html[data-style="sunrise"] body,
+html[data-style="sunrise"] #app { background: var(--bg); color: var(--text); }
+html[data-style="sunrise"] #view { background: transparent; }
+html[data-style="sunrise"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html[data-style="sunrise"] :is(.topbar, .playerbar),
+html[data-style="sunrise"][data-bg] :is(.topbar, .playerbar),
+html[data-style="sunrise"][data-nav="sidebar"] .nav {
+  background: var(--bar); color: var(--text); backdrop-filter: none;
+}
+html[data-style="sunrise"] .logo { color: var(--accent); filter: none; }
+html[data-style="sunrise"] :is(.nav-link, .settings-nav-link, .tab) { color: var(--muted); border-radius: var(--radius); }
+html[data-style="sunrise"] :is(.nav-link, .settings-nav-link).active { background: var(--surface); color: var(--text); }
+html[data-style="sunrise"] :is(.nav-link, .settings-nav-link, .tab):hover { background: var(--hover); color: var(--text); }
+html[data-style="sunrise"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+html[data-style="sunrise"] :is(.search-input, .input, textarea.input, select.input) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="sunrise"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
+html[data-style="sunrise"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="sunrise"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
+  background: var(--surface); color: var(--text); border-radius: var(--radius);
+}
+html[data-style="sunrise"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill):hover {
+  background: var(--hover); color: var(--text); filter: none;
+}
+html[data-style="sunrise"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="sunrise"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+  background: var(--accent); color: var(--accent-text);
+}
+html[data-style="sunrise"] :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
+html[data-style="sunrise"] :is(.play-btn, .pb-play, .card-play) { background: var(--accent); color: var(--accent-text); box-shadow: none; }
+html[data-style="sunrise"] :is(.card, .feed-card, .track-list, .track-artist, .settings-card, .hero, .login-card) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+  backdrop-filter: none;
+}
+html[data-style="sunrise"] .card:hover { background: var(--surface); border-color: var(--accent); }
+html[data-style="sunrise"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="sunrise"] :is(.track-row, .queue-row) { background: var(--surface); border-radius: var(--radius); }
+html[data-style="sunrise"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="sunrise"] :is(.track-row, .queue-row).current {
+  background: var(--hover); box-shadow: inset 3px 0 0 var(--accent);
+}
+html[data-style="sunrise"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="sunrise"] :is(.hero-bg, .hero-bg::after) { display: none; }
+html[data-style="sunrise"] :is(.hero-inner, .hero .stat, .track-hero-wave) { color: var(--text); }
+html[data-style="sunrise"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="sunrise"] :is(.hero-subtitle, .hero-meta, .hero-eyebrow) { color: var(--muted); }
+html[data-style="sunrise"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art) { border-radius: var(--radius); }
+html[data-style="sunrise"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="sunrise"] .pb-track { background: var(--wave); }
+html[data-style="sunrise"] .pb-fill,
+html[data-style="sunrise"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); }
+html[data-style="sunrise"] .pb-knob { background: var(--accent); }
+html[data-style="sunrise"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="sunrise"] :is(.queue-panel, .menu, .modal, .search-suggest, .pb-hovertime, .toast) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); backdrop-filter: none; box-shadow: 0 8px 24px color-mix(in srgb, var(--bg) 45%, transparent);
+}
+html[data-style="sunrise"] :is(.queue-head, .modal-head) { background: var(--bar); color: var(--text); border-bottom: 1px solid var(--border); }
+html[data-style="sunrise"] :is(.queue-transition, .atp-track) { background: var(--bar); color: var(--muted); }
+html[data-style="sunrise"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="sunrise"] .menu-item .icon { color: inherit; }
+html[data-style="sunrise"] :is(.menu-item.danger, .login-error, .toast-error) { color: var(--text); background: var(--surface); text-decoration: underline; }
+html[data-style="sunrise"] .btn-danger { background: var(--text); color: var(--surface); }
+html[data-style="sunrise"] .settings-switch-track { background: var(--wave); border: 1px solid var(--border); }
+html[data-style="sunrise"] :is(.settings-preset, .settings-flavor) { border-radius: var(--radius); }
+html[data-style="sunrise"] .settings-preset.active { border-color: var(--accent); }
+html[data-style="sunrise"] .settings-flavor.active { background: var(--accent); color: var(--accent-text); }
+html[data-style="sunrise"] .login { background: var(--bg); }
+html[data-style="sunrise"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="sunrise"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+html[data-style="sunrise"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+/* Disable inherited app motion too, while still allowing an explicit "on" choice. */
+html[data-style="sunrise"][data-theme-motion="off"] *,
+html[data-style="sunrise"][data-theme-motion="off"] *::before,
+html[data-style="sunrise"][data-theme-motion="off"] *::after,
+html[data-style="sunrise"][data-perf] *,
+html[data-style="sunrise"][data-hidden] * {
+  animation: none !important; transition: none !important; scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="sunrise"]:not([data-theme-motion="on"]) *,
+  html[data-style="sunrise"]:not([data-theme-motion="on"]) *::before,
+  html[data-style="sunrise"]:not([data-theme-motion="on"]) *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  html[data-style="sunrise"] canvas { visibility: hidden; }
+}
+
+html[data-style="sunrise"] {
+  --font-display: Georgia, "Times New Roman", serif;
+  --sunrise-dusk: linear-gradient(180deg, #302c63 0%, #714878 39%, #b96978 65%, #f1b470 100%);
+  --sunrise-night: linear-gradient(180deg, #10172f 0%, #27274c 43%, #514064 76%, #986a76 100%);
+  --sunrise-sun: #ffe1a0;
+  --sunrise-hill-far: #6b4d78;
+  --sunrise-hill-mid: #473c66;
+  --sunrise-hill-near: #292c4d;
+}
+html[data-style="sunrise"] #app,
+html[data-style="sunrise"][data-see-through] #app { background: transparent; }
+html[data-style="sunrise"] .sunrise-layer { background: var(--sunrise-dusk); }
+html[data-style="sunrise"] :is(.sunrise-sky, .sunrise-landscape) { position: absolute; inset: 0; width: 100%; height: 100%; }
+html[data-style="sunrise"] .sunrise-sky { background: var(--sunrise-dusk); }
+html[data-style="sunrise"] .sunrise-sky-next { background: var(--sunrise-night); opacity: clamp(0, var(--mix, var(--sunrise-progress, 0)), 1); }
+html[data-style="sunrise"] .sunrise-night .sunrise-sky { background: var(--sunrise-night); }
+html[data-style="sunrise"] .sunrise-night .sunrise-sky-next { background: var(--sunrise-dusk); }
+html[data-style="sunrise"] .sunrise-still .sunrise-sky-next { opacity: 0; }
+html[data-style="sunrise"] .sunrise-landscape { object-fit: cover; object-position: center bottom; }
+html[data-style="sunrise"] .page { background: var(--surface); border-radius: var(--radius); }
+html[data-style="sunrise"] .page:has(> .sunrise-home) { background: transparent; }
+html[data-style="sunrise"] .sunrise-vista { height: clamp(130px, 24vh, 230px); }
+html[data-style="sunrise"] .sunrise-content {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+}
+html[data-style="sunrise"] :is(.page-title, .home-greeting, .hero-title) { font-weight: 500; letter-spacing: -.025em; }
+html[data-style="sunrise"] :is(.shelf-title, .section-title, .settings-card-title, .login-card h1) { font-family: var(--font-display); }
+html[data-style="sunrise"] :is(.topbar, .playerbar) { border-color: var(--border); }
+html[data-style="sunrise"] :is(.card, .settings-card, .login-card) { box-shadow: 0 4px 0 color-mix(in srgb, var(--text) 10%, var(--surface)); }
+html[data-style="sunrise"] .card { overflow: hidden; }
+html[data-style="sunrise"] :is(.card-title, .card-sub) { padding-inline: 10px; }
+html[data-style="sunrise"] .card-sub { padding-bottom: 10px; }
+html[data-style="sunrise"][data-theme-motion="off"] .sunrise-sky-next { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="sunrise"]:not([data-theme-motion="on"]) .sunrise-sky-next { opacity: 0; }
+}
+@media (max-width: 650px) {
+  html[data-style="sunrise"] .sunrise-content { padding: 16px; }
+}

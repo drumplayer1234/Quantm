@@ -4,6 +4,7 @@ export const PACKS = {
   'pocket': { layout: 'device', load: () => import('./packs/pocket.js') },
   'tmux': { layout: 'panes', base: 'terminal', load: () => import('./packs/tmux.js') },
   'listening-room': { layout: 'stage', load: () => import('./packs/listening-room.js') },
+  'sunrise': { load: () => import('./packs/sunrise.js') },
   ...((typeof window !== 'undefined' && window.QUANTM_LOCAL_THEMES?.packs) || {})
 };
 
