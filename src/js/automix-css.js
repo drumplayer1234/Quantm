@@ -27,6 +27,7 @@ export function startAutoMixCss(player) {
   function reset() {
     mark('automix', 'off');
     mark('lock', 'none');
+    mark('tempo', 'unknown');
     delete html.dataset.swap;
     if (motion() || !html.dataset.beat) mark('beat', 'a');
     for (const key of ['--mix', '--beat', '--bpm']) html.style.setProperty(key, '0');
@@ -64,6 +65,7 @@ export function startAutoMixCss(player) {
     const rate = player.audio?.playbackRate || 1;
     const bpm = grid ? (Number.isFinite(grid.bpm) && grid.bpm > 0 ? grid.bpm : 60 / grid.period) * rate : 0;
     html.style.setProperty('--bpm', String(bpm));
+    mark('tempo', bpm > 0 ? 'known' : 'unknown'); // lets CSS hide a tempo readout when there's none
     const beats = grid && Number.isFinite(player.audio?.currentTime) ?
       (player.audio.currentTime - grid.offset) / grid.period : 0;
     if (BEAT_STYLES.has(html.dataset.style) || BEAT_STYLES.has(html.dataset.baseStyle)) {
