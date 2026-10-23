@@ -1,0 +1,162 @@
+/* LED Board: a station departure board / dot-matrix display. Amber, Green and Red flavors share this sheet; the glow follows --accent. Colors remain editable in Settings. */
+
+html[data-style="led-board"] {
+  --font: "Lucida Console", Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-display: var(--font);
+  --led-off: color-mix(in srgb, var(--accent) 17%, #000);
+  --led-dots: radial-gradient(circle at 50% 50%, var(--led-off) 0 1px, transparent 1.5px) 0 0 / 6px 6px;
+  --led-glow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 2px var(--accent);
+  --led-marquee: 16s;
+  --border: color-mix(in srgb, var(--accent) 34%, #000);
+  --hover: color-mix(in srgb, var(--accent) 9%, transparent);
+  --hover-strong: color-mix(in srgb, var(--accent) 16%, transparent);
+  --surface-2: var(--hover);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --makeover-edge: 1px solid var(--border);
+  --makeover-shadow: none;
+  --makeover-panel: var(--surface);
+  --makeover-bar: var(--bar);
+  --makeover-button: transparent;
+  --makeover-input: #000;
+  --makeover-primary: var(--accent);
+  --makeover-primary-text: var(--accent-text);
+}
+/* Auto mix: marquee pace follows the song tempo (32 beats per pass) */
+html[data-style="led-board"]:is([data-automix="on"], [data-automix="mixing"]) { --led-marquee: calc(32 * 60s / max(var(--bpm, 120), 60)); }
+html[data-style="led-board"] body { background: var(--bg); }
+html[data-style="led-board"] #view { background: transparent; }
+html[data-style="led-board"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html[data-style="led-board"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) { font-family: var(--font-display); }
+html[data-style="led-board"] :is(.page-header, .shelf-head) { border-bottom: var(--makeover-edge); padding-bottom: 12px; }
+html[data-style="led-board"] .topbar,
+html[data-style="led-board"][data-bg] .topbar { background: var(--makeover-bar); border-bottom: var(--makeover-edge); box-shadow: var(--makeover-shadow); }
+html[data-style="led-board"][data-nav="sidebar"] .nav { background: var(--makeover-bar); border-right: var(--makeover-edge); backdrop-filter: none; }
+html[data-style="led-board"] :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--radius); color: var(--text); }
+html[data-style="led-board"] :is(.nav-link, .settings-nav-link).active { background: var(--hover-strong); color: var(--accent); }
+html[data-style="led-board"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="led-board"] .logo { color: var(--accent); }
+html[data-style="led-board"] :is(.search-input, .input) { border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-input); color: var(--text); }
+html[data-style="led-board"] :is(.search-input, .input):focus { background: var(--makeover-input); border-color: var(--accent); }
+html[data-style="led-board"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="led-board"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) { border: var(--makeover-edge); border-radius: var(--radius); background: var(--makeover-button); color: var(--text); }
+html[data-style="led-board"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover { background: var(--hover); color: var(--text); filter: none; }
+html[data-style="led-board"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="led-board"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--makeover-primary); color: var(--makeover-primary-text); border-color: var(--makeover-primary); }
+html[data-style="led-board"] :is(.icon-btn.active, .hero .icon-btn.active, .pb-mode.active, .pb-queue-btn.active, .pb-speed.active) { color: var(--accent); }
+html[data-style="led-board"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) { color: var(--text); border: 1px dashed var(--text); background: var(--surface); }
+html[data-style="led-board"] :is(.play-btn, .card-play, .pb-play) { background: var(--accent); color: var(--accent-text); border: var(--makeover-edge); box-shadow: var(--makeover-shadow); }
+html[data-style="led-board"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .hero, .track-list) { background: var(--makeover-panel); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow); }
+html[data-style="led-board"] .card { padding: 12px; }
+html[data-style="led-board"] .card:hover { background: var(--makeover-panel); border-color: var(--accent); }
+html[data-style="led-board"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="led-board"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) { border: var(--makeover-edge); border-radius: var(--radius); box-shadow: none; }
+html[data-style="led-board"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="led-board"] :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: var(--makeover-edge); }
+html[data-style="led-board"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="led-board"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+html[data-style="led-board"] :is(.track-row.current .track-title, .queue-row.current .queue-title, .tab.active) { color: var(--accent); }
+/* Keep hero text independent of arbitrary artwork luminance. */
+html[data-style="led-board"] .hero-bg { display: none; }
+html[data-style="led-board"] :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+html[data-style="led-board"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="led-board"] .tabs { border-bottom: var(--makeover-edge); }
+html[data-style="led-board"] .tab.active { border-bottom-color: var(--accent); }
+html[data-style="led-board"] .playerbar,
+html[data-style="led-board"][data-bg] .playerbar { background: var(--makeover-bar); color: var(--text); border-top: var(--makeover-edge); box-shadow: var(--makeover-shadow); }
+html[data-style="led-board"][data-player="top"] .playerbar { border-top: 0; border-bottom: var(--makeover-edge); }
+html[data-style="led-board"] .pb-track { height: 6px; background: var(--wave); border-radius: var(--radius); }
+html[data-style="led-board"] .pb-fill,
+html[data-style="led-board"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); border-radius: var(--radius); }
+html[data-style="led-board"] .pb-knob { background: var(--accent); border: 1px solid var(--text); }
+html[data-style="led-board"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="led-board"] :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) { background: var(--surface); color: var(--text); border: var(--makeover-edge); border-radius: var(--radius); box-shadow: var(--makeover-shadow); }
+html[data-style="led-board"] :is(.modal-head, .queue-head) { background: var(--makeover-bar); border-bottom: var(--makeover-edge); }
+html[data-style="led-board"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="led-board"] .menu-item .icon { color: inherit; }
+html[data-style="led-board"] .atp-track { background: var(--bg); border: var(--makeover-edge); border-radius: var(--radius); }
+html[data-style="led-board"] .settings-switch-track { border: var(--makeover-edge); background: var(--wave); }
+html[data-style="led-board"] .settings-switch input:focus-visible + .settings-switch-track { outline-color: var(--accent); }
+html[data-style="led-board"] :is(.settings-preset, .settings-flavor) { border-color: var(--border); border-radius: var(--radius); }
+html[data-style="led-board"] :is(.settings-preset.active, .settings-flavor[aria-pressed="true"]) { border-color: var(--accent); }
+html[data-style="led-board"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="led-board"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+html[data-style="led-board"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+html[data-style="led-board"] .login { background: transparent; }
+
+/* ---- pure black, blocky uppercase; glow only on big labels, body text stays crisp ---- */
+html[data-style="led-board"] body { background: #000; letter-spacing: .03em; }
+html[data-style="led-board"] :is(.page-title, .hero-title, .shelf-title, .section-title, .settings-card-title) { font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); text-shadow: var(--led-glow); }
+html[data-style="led-board"] .page-title { font-size: 28px; }
+html[data-style="led-board"] :is(.nav-link, .tab, .btn, .chip, .tag-pill, .field-label, .queue-label, .hero-eyebrow, .settings-nav-link) { text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+html[data-style="led-board"] :is(.track-title, .card-title, .queue-title, .feed-title) { text-transform: uppercase; letter-spacing: .06em; }
+html[data-style="led-board"] :is(.page-header, .shelf-head) { border-bottom: 2px solid var(--border); }
+html[data-style="led-board"] .logo { text-shadow: var(--led-glow); filter: drop-shadow(0 0 4px var(--accent)); }
+
+/* ---- dot-matrix panels: unlit dots visible behind bars and headers ---- */
+html[data-style="led-board"] :is(.topbar, .playerbar, .page-header, .shelf-head, .queue-head, .modal-head, .hero),
+html[data-style="led-board"][data-bg] :is(.topbar, .playerbar) { background: var(--led-dots), var(--makeover-bar); }
+html[data-style="led-board"] .hero { background: var(--led-dots), #000; }
+html[data-style="led-board"] :is(.page-header, .shelf-head) { background: var(--led-dots); }
+html[data-style="led-board"] :is(.card-art, .hero-art) { position: relative; overflow: hidden; }
+html[data-style="led-board"] :is(.card-art, .hero-art)::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(circle at 50% 50%, transparent 0 38%, #000 62%) 0 0 / 4px 4px; opacity: .85; }
+html[data-style="led-board"] .card-play { z-index: 2; }
+
+/* ---- controls, cards, rows: square, hard-edged ---- */
+html[data-style="led-board"] :is(.btn, .chip, .icon-btn, .tag-pill, .nav-link, .tab, .settings-nav-link) { border-radius: 0; }
+html[data-style="led-board"] :is(.nav-link, .settings-nav-link).active { background: transparent; color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); text-shadow: var(--led-glow); }
+html[data-style="led-board"] :is(.btn-primary, .hero .btn-primary, .chip.active), html[data-style="led-board"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+html[data-style="led-board"] :is(.card, .feed-card, .settings-card, .track-artist, .login-card, .track-list, .hero, .menu, .modal, .queue-panel, .search-suggest, .toast, .pb-hovertime) { border-radius: 0; }
+html[data-style="led-board"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art, .settings-preset, .settings-flavor, .settings-switch-track, .settings-switch-knob) { border-radius: 0; }
+html[data-style="led-board"] .card:hover { border-color: var(--accent); box-shadow: 0 0 10px -2px color-mix(in srgb, var(--accent) 60%, transparent); }
+html[data-style="led-board"] :is(.track-row, .queue-row) { border-radius: 0; border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, #000); }
+html[data-style="led-board"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--accent); }
+html[data-style="led-board"] .track-row .track-num, html[data-style="led-board"] .queue-row .queue-num { font-variant-numeric: tabular-nums; }
+html[data-style="led-board"] :is(.play-btn, .card-play, .pb-play) { border-radius: 0; border: 0; box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 55%, transparent); }
+html[data-style="led-board"] :is(.search-input, .input) { border-radius: 0; background: #000; }
+html[data-style="led-board"] ::-webkit-scrollbar-thumb { border-radius: 0; background: var(--border); }
+
+/* ---- player bar: marquee title, LED-segment rails ---- */
+html[data-style="led-board"] .pb-title { text-transform: uppercase; letter-spacing: .1em; font-weight: 700; color: var(--accent); text-shadow: var(--led-glow); }
+html[data-style="led-board"] .pb-artist { text-transform: uppercase; letter-spacing: .08em; }
+html[data-style="led-board"] .pb-time { color: var(--text); letter-spacing: .08em; }
+html[data-style="led-board"] .pb-text { container-type: inline-size; flex: 1 1 auto; overflow: hidden; }
+html[data-style="led-board"] .pb-title { display: inline-block; align-self: flex-start; width: max-content; min-width: 100%; overflow: visible; text-overflow: clip; animation: led-marquee var(--led-marquee) linear infinite alternate; }
+@keyframes led-marquee { 0%, 14% { transform: translateX(0); } 86%, 100% { transform: translateX(min(0px, calc(100cqw - 100%))); } }
+html[data-style="led-board"] .pb-title:hover { animation-play-state: paused; text-decoration: none; }
+html[data-style="led-board"] .pb-track { height: 9px; border-radius: 0; background: repeating-linear-gradient(90deg, var(--led-off) 0 4px, transparent 4px 6px); }
+html[data-style="led-board"] .pb-fill, html[data-style="led-board"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill {
+  border-radius: 0; background: var(--wave-played); filter: drop-shadow(0 0 3px var(--accent));
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px); mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px);
+}
+html[data-style="led-board"] .pb-buffer { display: none; }
+html[data-style="led-board"] .pb-knob { border-radius: 0; width: 4px; height: 15px; margin: -7px 0 0 -2px; border: 0; background: var(--text); }
+
+/* ---- waveform: segmented VU, green / amber / red stacking ---- */
+html[data-style="led-board"] .waveform canvas {
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 4px), repeating-linear-gradient(0deg, #000 0 3px, transparent 3px 4px);
+  -webkit-mask-composite: source-in; mask-image: repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 4px), repeating-linear-gradient(0deg, #000 0 3px, transparent 3px 4px); mask-composite: intersect;
+}
+html[data-style="led-board"] .waveform::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: color; background: linear-gradient(0deg, #29e05a 0 55%, #ffb000 55% 82%, #ff3b30 82%); }
+
+/* ---- Auto mix: lock lamp, inverted flash on the swap ---- */
+html[data-style="led-board"] .playerbar::before { content: ""; display: none; position: absolute; left: 5px; top: 5px; width: 6px; height: 6px; border-radius: 50%; background: #ff3b30; box-shadow: 0 0 6px #ff3b30; z-index: 2; pointer-events: none; }
+html[data-style="led-board"]:is([data-automix="on"], [data-automix="mixing"]) .playerbar::before { display: block; }
+html[data-style="led-board"][data-lock="locked"] .playerbar::before { background: #29e05a; box-shadow: 0 0 6px #29e05a; }
+html[data-style="led-board"][data-swap="after"] .playerbar { animation: led-invert calc(60s / max(var(--bpm, 120), 60)) ease-out 1; }
+@keyframes led-invert { 0%, 55% { filter: invert(1) brightness(.5); } 100% { filter: none; } }
+/* the title scrolls only while motion is on; otherwise a plain ellipsis */
+html[data-style="led-board"]:is([data-theme-motion="off"], [data-perf], [data-hidden]) .pb-title { display: block; width: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; transform: none; }
+@media (prefers-reduced-motion: reduce) { html[data-style="led-board"]:not([data-theme-motion="on"]) .pb-title { display: block; width: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; transform: none; } }
+
+/* Motion: off when theme effects are off, in Performance mode, while hidden, or with reduced motion (unless forced on). */
+html[data-style="led-board"]:is([data-theme-motion="off"], [data-perf], [data-hidden]) *,
+html[data-style="led-board"]:is([data-theme-motion="off"], [data-perf], [data-hidden]) *::before,
+html[data-style="led-board"]:is([data-theme-motion="off"], [data-perf], [data-hidden]) *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="led-board"]:not([data-theme-motion="on"]) *, html[data-style="led-board"]:not([data-theme-motion="on"]) *::before, html[data-style="led-board"]:not([data-theme-motion="on"]) *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  html[data-style="led-board"] :is(.page-title, .hero-title, .shelf-title) { -webkit-text-fill-color: currentColor; }
+}
