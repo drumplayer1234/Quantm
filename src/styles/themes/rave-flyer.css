@@ -1,0 +1,209 @@
+/* Rave Flyer: a xeroxed early-90s rave flyer. Black + acid yellow, stencil type, odd cuts, warning tape.
+   Active when <html data-style="rave-flyer">. Colors still come from the theme variables. */
+
+html[data-style="rave-flyer"] {
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-display: Stencil, "Stencil Std", Impact, "Arial Black", sans-serif;
+  --b: var(--beat, 0);
+  --tape: linear-gradient(135deg, var(--accent-text) 25%, transparent 25% 50%, var(--accent-text) 50% 75%, transparent 75%) 0 0 / 24px 24px, var(--accent);
+  --starburst: polygon(50% 0%, 59.8% 13.3%, 75% 6.7%, 76.9% 23.1%, 93.3% 25%, 86.7% 40.2%, 100% 50%, 86.7% 59.8%, 93.3% 75%, 76.9% 76.9%, 75% 93.3%, 59.8% 86.7%, 50% 100%, 40.2% 86.7%, 25% 93.3%, 23.1% 76.9%, 6.7% 75%, 13.3% 59.8%, 0% 50%, 13.3% 40.2%, 6.7% 25%, 23.1% 23.1%, 25% 6.7%, 40.2% 13.3%);
+  --teeth-up: conic-gradient(from 135deg at 50% 0, #000 0 90deg, #0000 0);
+  --teeth-down: conic-gradient(from -45deg at 50% 100%, #000 0 90deg, #0000 0);
+  --border: color-mix(in srgb, var(--text) 32%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 88%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 78%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  --makeover-edge: 3px solid var(--text);
+}
+
+/* ---------------------------------------------------------------- the photocopy */
+
+html[data-style="rave-flyer"] body { background: var(--bg); }
+html[data-style="rave-flyer"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--text) 20%, transparent) 0 1px, transparent 1.4px) 0 0 / 6px 6px,
+    radial-gradient(circle at 30% 70%, color-mix(in srgb, var(--accent) 22%, transparent) 0 .7px, transparent 1.1px) 2px 3px / 9px 11px;
+  /* noise only in the gutters, never behind the reading area */
+  -webkit-mask-image: linear-gradient(90deg, #000, transparent 10%, transparent 90%, #000); mask-image: linear-gradient(90deg, #000, transparent 10%, transparent 90%, #000);
+}
+html[data-style="rave-flyer"][data-bg] body::before { display: none; }
+html[data-style="rave-flyer"] #app { position: relative; z-index: 1; }
+html[data-style="rave-flyer"] #view { background: transparent; }
+html[data-style="rave-flyer"] :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+html[data-style="rave-flyer"] ::selection { background: var(--accent); color: var(--accent-text); }
+
+/* ---------------------------------------------------------------- type */
+
+html[data-style="rave-flyer"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title, .queue-head h2) {
+  font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: .03em; line-height: 1;
+}
+html[data-style="rave-flyer"] .page-title { font-size: 46px; color: var(--accent); text-shadow: 3px 3px 0 color-mix(in srgb, var(--text) 30%, transparent); transform: skew(-8deg) rotate(-1deg); transform-origin: left bottom; }
+html[data-style="rave-flyer"] .hero-title { font-size: clamp(30px, 4.6vw, 58px); color: var(--accent); transform: skew(-8deg); transform-origin: left bottom; }
+/* section titles: outline strokes (dark fill, yellow outline) */
+html[data-style="rave-flyer"] :is(.shelf-title, .section-title, .settings-card-title) {
+  color: var(--bg); -webkit-text-stroke: 2px var(--accent); paint-order: stroke fill; font-size: 28px; transform: skew(-8deg); transform-origin: left bottom;
+}
+html[data-style="rave-flyer"] .section-title { font-size: 24px; }
+html[data-style="rave-flyer"] .settings-card-title { font-size: 20px; }
+html[data-style="rave-flyer"] .hero-eyebrow { color: var(--accent); font-weight: 900; letter-spacing: .14em; }
+/* warning-stripe dividers */
+html[data-style="rave-flyer"] :is(.page-header, .shelf-head, .hero) { position: relative; }
+html[data-style="rave-flyer"] :is(.page-header, .shelf-head) { padding-bottom: 16px; }
+html[data-style="rave-flyer"] :is(.page-header, .shelf-head, .hero, .queue-head)::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: var(--tape); pointer-events: none;
+}
+html[data-style="rave-flyer"] .queue-head { position: relative; padding-bottom: 14px; }
+
+/* ---------------------------------------------------------------- top bar + nav */
+
+html[data-style="rave-flyer"] .topbar,
+html[data-style="rave-flyer"][data-bg] .topbar { background: var(--bar); border-bottom: 3px solid var(--accent); box-shadow: none; }
+html[data-style="rave-flyer"][data-nav="sidebar"] .nav { background: var(--bar); border-right: 3px solid var(--accent); backdrop-filter: none; }
+html[data-style="rave-flyer"] .logo { transform: rotate(-6deg); }
+html[data-style="rave-flyer"] :is(.nav-link, .settings-nav-link, .tab) {
+  border-radius: 0; color: var(--text); font-weight: 900; text-transform: uppercase; letter-spacing: .06em;
+}
+html[data-style="rave-flyer"] :is(.nav-link, .settings-nav-link):hover { background: var(--hover-strong); color: var(--text); }
+html[data-style="rave-flyer"] :is(.nav-link, .settings-nav-link).active { background: var(--accent); color: var(--accent-text); clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
+html[data-style="rave-flyer"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="rave-flyer"] .tabs { border-bottom: 3px solid var(--text); }
+html[data-style="rave-flyer"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+html[data-style="rave-flyer"] :is(.search-input, .input) { border: 3px solid var(--text); border-radius: 0; background: var(--surface); color: var(--text); }
+html[data-style="rave-flyer"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
+html[data-style="rave-flyer"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+
+/* ---------------------------------------------------------------- buttons */
+
+html[data-style="rave-flyer"] :is(.btn, .hero .btn, .chip, .tag-pill) {
+  border: 3px solid var(--text); border-radius: 0; background: var(--surface); color: var(--text); font-weight: 900; text-transform: uppercase; letter-spacing: .05em;
+  box-shadow: 3px 3px 0 var(--text); transform: skew(-6deg);
+}
+html[data-style="rave-flyer"] :is(.btn, .hero .btn, .chip):hover { background: var(--text); color: var(--bg); filter: none; }
+html[data-style="rave-flyer"] :is(.btn, .chip):active { transform: skew(-6deg) translate(2px, 2px); box-shadow: 1px 1px 0 var(--text); }
+html[data-style="rave-flyer"] :is(.btn-outline, .btn-ghost) { box-shadow: none; }
+html[data-style="rave-flyer"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="rave-flyer"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent-text); box-shadow: 3px 3px 0 var(--accent); }
+html[data-style="rave-flyer"] .icon-btn { border-radius: 0; }
+html[data-style="rave-flyer"] .icon-btn:hover, html[data-style="rave-flyer"] .hero .icon-btn:hover { background: var(--hover-strong); color: var(--text); }
+html[data-style="rave-flyer"] :is(.icon-btn.active, .hero .icon-btn.active, .pb-queue-btn.active, .pb-mode.active) { color: var(--accent); }
+html[data-style="rave-flyer"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) { color: var(--text); border: 3px dashed var(--text); background: var(--surface); }
+html[data-style="rave-flyer"] :is(.play-btn, .card-play, .pb-play) {
+  background: var(--accent); color: var(--accent-text); border: 0; border-radius: 0; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); box-shadow: none;
+}
+
+/* ---------------------------------------------------------------- cards cut at odd angles + rows */
+
+html[data-style="rave-flyer"] :is(.card, .feed-card) { background: var(--surface); border: 3px solid var(--text); border-radius: 0; box-shadow: none; padding: 14px; }
+html[data-style="rave-flyer"] :is(.settings-card, .track-artist, .login-card, .hero, .track-list) { background: var(--surface); border: 3px solid var(--text); border-radius: 0; box-shadow: 5px 5px 0 var(--accent); }
+html[data-style="rave-flyer"] .hero { overflow: hidden; padding-bottom: 7px; }
+html[data-style="rave-flyer"] .card:nth-child(3n + 1) { clip-path: polygon(0 0, 100% 2%, 98% 100%, 3% 97%); transform: rotate(-.6deg); }
+html[data-style="rave-flyer"] .card:nth-child(3n + 2) { clip-path: polygon(2% 3%, 100% 0, 97% 98%, 0 100%); transform: rotate(.5deg); }
+html[data-style="rave-flyer"] .card:nth-child(3n) { clip-path: polygon(0 2%, 96% 0, 100% 97%, 4% 100%); transform: rotate(-.3deg); }
+html[data-style="rave-flyer"] .card:hover { background: var(--hover); border-color: var(--accent); }
+html[data-style="rave-flyer"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="rave-flyer"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) { border: 3px solid var(--text); border-radius: 0; box-shadow: none; }
+html[data-style="rave-flyer"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="rave-flyer"] .hero-bg { display: none; }
+html[data-style="rave-flyer"] :is(.hero-inner, .track-hero-wave, .hero .stat) { color: var(--text); }
+html[data-style="rave-flyer"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="rave-flyer"] :is(.track-row, .queue-row) { border-radius: 0; border-bottom: 2px dashed var(--border); }
+html[data-style="rave-flyer"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="rave-flyer"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 6px 0 0 var(--accent); }
+html[data-style="rave-flyer"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+
+/* artwork gets the photocopy treatment: grayscale, contrast, halftone dots (images only) */
+html[data-style="rave-flyer"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art) { position: relative; }
+html[data-style="rave-flyer"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art)::before,
+html[data-style="rave-flyer"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art)::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+html[data-style="rave-flyer"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art)::before { backdrop-filter: grayscale(1) contrast(1.5); }
+html[data-style="rave-flyer"] :is(.card-art, .track-art, .hero-art, .pb-art, .queue-art)::after {
+  background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, .45) 0 1.1px, transparent 1.5px) 0 0 / 4px 4px; mix-blend-mode: multiply;
+}
+html[data-style="rave-flyer"] .card-play { z-index: 3; }
+html[data-style="rave-flyer"] .card-art > :not(.card-play), html[data-style="rave-flyer"] .track-art-overlay { position: relative; z-index: 3; }
+html[data-style="rave-flyer"] .track-art-overlay { position: absolute; }
+
+/* ---------------------------------------------------------------- player bar: torn edge, marquee, badge */
+
+html[data-style="rave-flyer"] .playerbar,
+html[data-style="rave-flyer"][data-bg] .playerbar {
+  /* marquee: a 6px stripe strip on the bar's edge that slides one 24px tile per beat */
+  background: linear-gradient(90deg, var(--accent) 0 50%, transparent 0) calc(var(--b) * 24px) 0 / 24px 6px repeat-x, var(--bar);
+  color: var(--text); border-top: 0; box-shadow: none;
+}
+html[data-style="rave-flyer"][data-player="top"] .playerbar,
+html[data-style="rave-flyer"][data-player="top"][data-bg] .playerbar {
+  background: linear-gradient(90deg, var(--accent) 0 50%, transparent 0) calc(var(--b) * 24px) 100% / 24px 6px repeat-x, var(--bar);
+}
+html[data-style="rave-flyer"] .playerbar::after {
+  content: ""; position: absolute; left: 0; right: 0; top: -9px; height: 10px; pointer-events: none; background: var(--text);
+  -webkit-mask: var(--teeth-up) 0 0 / 14px 100%, var(--teeth-up) 5px 0 / 23px 100%; mask: var(--teeth-up) 0 0 / 14px 100%, var(--teeth-up) 5px 0 / 23px 100%;
+}
+html[data-style="rave-flyer"][data-player="top"] .playerbar::after {
+  top: auto; bottom: -9px; -webkit-mask: var(--teeth-down) 0 0 / 14px 100%, var(--teeth-down) 5px 0 / 23px 100%; mask: var(--teeth-down) 0 0 / 14px 100%, var(--teeth-down) 5px 0 / 23px 100%;
+}
+/* a plain 12-point starburst showing the tempo; a MIXING stamp during mixes */
+html[data-style="rave-flyer"] .playerbar::before {
+  content: "PLAY\A LOUD"; white-space: pre; text-align: center; counter-reset: bpm calc(var(--bpm, 0));
+  position: absolute; right: 22px; top: -50px; width: 54px; height: 54px; z-index: 5; pointer-events: none; display: flex; align-items: center; justify-content: center;
+  background: var(--accent); color: var(--accent-text); clip-path: var(--starburst); transform: rotate(12deg);
+  font: 900 9px/1.05 var(--font-display); letter-spacing: .02em;
+}
+html[data-style="rave-flyer"][data-beat] .playerbar::before { content: counter(bpm) "\A BPM"; font-size: 13px; }
+html[data-style="rave-flyer"][data-automix="mixing"] .playerbar::before {
+  content: "MIXING"; width: 82px; height: 30px; right: 14px; top: -42px; clip-path: none; background: var(--bg); color: var(--accent);
+  border: 3px double var(--accent); font-size: 14px; letter-spacing: .1em; transform: rotate(-8deg);
+}
+html[data-style="rave-flyer"][data-player="top"] .playerbar::before { top: auto; bottom: -50px; }
+html[data-style="rave-flyer"][data-player="top"][data-automix="mixing"] .playerbar::before { bottom: -42px; }
+/* on the bass swap: one inverted frame of the player bar only */
+html[data-style="rave-flyer"][data-swap="after"] .playerbar { animation: rave-invert .1s steps(1, end) 1; }
+@keyframes rave-invert { from { filter: invert(1); } to { filter: none; } }
+html[data-style="rave-flyer"] .pb-track { height: 9px; background: var(--wave); border: 2px solid var(--text); border-radius: 0; }
+html[data-style="rave-flyer"] .pb-fill,
+html[data-style="rave-flyer"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); border-radius: 0; }
+html[data-style="rave-flyer"] .pb-knob { background: var(--accent); border: 2px solid var(--bg); border-radius: 0; transform: rotate(45deg); }
+html[data-style="rave-flyer"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="rave-flyer"] .waveform canvas { -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 4px); mask-image: repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 4px); }
+
+/* ---------------------------------------------------------------- menus, modals, settings */
+
+html[data-style="rave-flyer"] :is(.menu, .modal, .queue-panel, .search-suggest, .pb-hovertime, .toast) {
+  background: var(--surface); color: var(--text); border: 3px solid var(--text); border-radius: 0; box-shadow: 5px 5px 0 var(--accent);
+}
+html[data-style="rave-flyer"] .queue-panel { border-color: var(--accent); box-shadow: none; }
+html[data-style="rave-flyer"] :is(.modal-head, .queue-head) { background: var(--bar); border-bottom: 3px solid var(--text); }
+html[data-style="rave-flyer"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--accent); color: var(--accent-text); }
+html[data-style="rave-flyer"] .menu-item .icon { color: inherit; }
+html[data-style="rave-flyer"] .queue-label { width: fit-content; margin: 8px 0 0 8px; padding: 2px 10px; background: var(--accent); color: var(--accent-text); transform: skew(-8deg); letter-spacing: .1em; }
+html[data-style="rave-flyer"] .atp-track { background: var(--bg); border: 3px solid var(--text); border-radius: 0; }
+html[data-style="rave-flyer"] .settings-switch-track, html[data-style="rave-flyer"] .settings-switch-knob { border-radius: 0; }
+html[data-style="rave-flyer"] .settings-switch-track { border: 2px solid var(--text); background: var(--wave); }
+html[data-style="rave-flyer"] .settings-preset { border: 3px solid var(--border); border-radius: 0; }
+html[data-style="rave-flyer"] .settings-preset.active { border-color: var(--accent); }
+html[data-style="rave-flyer"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="rave-flyer"] ::-webkit-scrollbar-thumb { background: var(--accent); border: 3px solid var(--bg); border-radius: 0; }
+html[data-style="rave-flyer"] ::-webkit-scrollbar-thumb:hover { background: var(--text); }
+html[data-style="rave-flyer"] .login { background: transparent; }
+
+/* ---------------------------------------------------------------- motion + performance */
+
+html[data-style="rave-flyer"][data-theme-motion="off"] { --b: 0; }
+html[data-style="rave-flyer"][data-theme-motion="off"] *,
+html[data-style="rave-flyer"][data-perf] *,
+html[data-style="rave-flyer"][data-perf] *::before,
+html[data-style="rave-flyer"][data-perf] *::after,
+html[data-style="rave-flyer"][data-hidden] * { animation: none !important; transition: none !important; }
+html[data-style="rave-flyer"][data-perf] { --b: 0; }
+html[data-style="rave-flyer"][data-perf] *, html[data-style="rave-flyer"][data-perf] *::before { backdrop-filter: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="rave-flyer"]:not([data-theme-motion="on"]) { --b: 0; }
+  html[data-style="rave-flyer"]:not([data-theme-motion="on"]) *,
+  html[data-style="rave-flyer"]:not([data-theme-motion="on"]) *::before,
+  html[data-style="rave-flyer"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  html[data-style="rave-flyer"] :is(.shelf-title, .section-title, .settings-card-title) { -webkit-text-stroke: 0; color: CanvasText; }
+}
