@@ -1,0 +1,144 @@
+/* Glitch: a datamoshed interface for breakcore / digicore. RGB-split on big titles, sliced artwork, jagged panels, scanlines on decor only.
+   Motion is tiny, capped, and follows --beat / --swap; it is off with theme motion off or reduced motion. */
+
+html[data-style="glitch"] {
+  --mono: ui-monospace, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  --font-display: var(--mono);
+  --gl-cyan: #00e5ff; --gl-red: #ff2e63;
+  --gl-p: calc(1 - var(--beat, 1)); /* 0..1, 1 right on the beat, decays until the next one; 0 when there is no tempo */
+  --gl-split: calc(1.5px + var(--gl-p) * 1.5px);
+  --gl-shift: calc(3px + var(--gl-p) * 3px);
+  --gl-scan: repeating-linear-gradient(0deg, color-mix(in srgb, var(--text) 9%, transparent) 0 1px, transparent 1px 3px);
+  --gl-jag: polygon(0 0, 31% 0, 31.5% 3px, 58% 3px, 58.5% 0, 100% 0, 100% 62%, calc(100% - 4px) 63%, calc(100% - 4px) 85%, 100% 86%, 100% 100%, 70% 100%, 69.5% calc(100% - 3px), 22% calc(100% - 3px), 21.5% 100%, 0 100%, 0 38%, 4px 37.5%, 4px 14%, 0 13%);
+  --border: color-mix(in srgb, var(--text) 24%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 88%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 78%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  --shadow: none;
+}
+html[data-style="glitch"][data-automix="mixing"] { --gl-split: calc(2px + var(--gl-p) * 2px); }
+html[data-style="glitch"] body { background: var(--bg); }
+html[data-style="glitch"] #view { background: transparent; }
+html[data-style="glitch"] :focus-visible { outline: 2px solid var(--gl-cyan); outline-offset: 2px; }
+html[data-style="glitch"] .page { animation: none; }
+
+/* big titles only get the split */
+html[data-style="glitch"] :is(.page-title, .hero-title, .login-card h1) {
+  font-family: var(--mono); font-weight: 800; letter-spacing: -.03em;
+  text-shadow: calc(var(--gl-split) * -1) 0 var(--gl-red), var(--gl-split) 0 var(--gl-cyan);
+}
+html[data-style="glitch"] :is(.shelf-title, .section-title, .settings-card-title, .queue-head h2, .modal-head h2) { font-family: var(--mono); font-weight: 700; letter-spacing: -.01em; }
+html[data-style="glitch"] :is(.page-header, .shelf-head) { border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+html[data-style="glitch"] :is(.stat, .tag-pill, .track-num, .track-duration, .pb-time, .queue-label, .hero-eyebrow, .card-sub, .track-sub, .settings-preset-name) { font-family: var(--mono); }
+html[data-style="glitch"] :is(.queue-label, .hero-eyebrow) { letter-spacing: .08em; }
+
+/* bars: solid, with a scanline layer behind the controls */
+html[data-style="glitch"] :is(.topbar, .playerbar), html[data-style="glitch"][data-bg] :is(.topbar, .playerbar),
+html[data-style="glitch"][data-nav="sidebar"] .nav, html[data-style="glitch"][data-bg][data-nav="sidebar"] .nav {
+  background: var(--bar); color: var(--text); backdrop-filter: none; box-shadow: none;
+}
+html[data-style="glitch"] .topbar { border-bottom: 1px solid var(--gl-cyan); }
+html[data-style="glitch"] .playerbar { border-top: 1px solid var(--gl-red); }
+html[data-style="glitch"][data-player="top"] .playerbar { border-top: 0; border-bottom: 1px solid var(--gl-red); }
+html[data-style="glitch"][data-nav="sidebar"] .nav { border-right: 1px solid var(--border); }
+html[data-style="glitch"] :is(.topbar, .playerbar)::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: var(--gl-scan); }
+html[data-style="glitch"] :is(.nav-link, .settings-nav-link, .tab) { border-radius: 0; color: var(--text); font-family: var(--mono); font-weight: 600; }
+html[data-style="glitch"] :is(.nav-link, .settings-nav-link).active { background: var(--accent); color: var(--accent-text); clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%); }
+html[data-style="glitch"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="glitch"] :is(.nav-link, .settings-nav-link):not(.active):hover { background: var(--hover); }
+html[data-style="glitch"] .me-btn .avatar { box-shadow: 0 0 0 2px var(--bar), 0 0 0 3px var(--gl-cyan); }
+html[data-style="glitch"] :is(.search-input, .input) { border: 1px solid var(--border); border-radius: 0; background: var(--surface); color: var(--text); font-family: var(--mono); }
+html[data-style="glitch"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--gl-cyan); box-shadow: 2px 0 0 var(--gl-red); }
+html[data-style="glitch"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+
+/* buttons */
+html[data-style="glitch"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
+  border: 1px solid var(--border); border-radius: 0; background: var(--surface); color: var(--text); font-family: var(--mono);
+}
+html[data-style="glitch"] .icon-btn { border-color: transparent; background: transparent; color: var(--muted); }
+html[data-style="glitch"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover { background: var(--hover); color: var(--text); border-color: var(--gl-cyan); filter: none; }
+html[data-style="glitch"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="glitch"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent); box-shadow: 2px 2px 0 var(--gl-red); }
+html[data-style="glitch"] :is(.icon-btn.active, .hero .icon-btn.active, .pb-mode.active) { color: var(--accent); }
+html[data-style="glitch"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) { background: var(--surface); color: var(--text); border: 1px dashed var(--gl-red); }
+html[data-style="glitch"] :is(.btn-outline, .btn-ghost) { background: transparent; }
+html[data-style="glitch"] :is(.play-btn, .card-play, .pb-play) { background: var(--accent); color: var(--accent-text); border: 0; box-shadow: 2px 0 0 var(--gl-red), -2px 0 0 var(--gl-cyan); }
+html[data-style="glitch"] .tabs { border-bottom: 1px solid var(--border); }
+html[data-style="glitch"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* panels with jagged edges (never on bars: they hold popovers) */
+html[data-style="glitch"] :is(.card, .feed-card, .settings-card, .hero, .login-card, .modal, .queue-panel, .menu, .atp-track) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 0; box-shadow: none; clip-path: var(--gl-jag);
+}
+html[data-style="glitch"] :is(.card:hover, .card:focus-within) { background: var(--surface); border-color: var(--gl-cyan); }
+html[data-style="glitch"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="glitch"] :is(.search-suggest, .toast, .update-banner, .pb-hovertime, .track-list, .track-artist) { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 0; box-shadow: none; }
+html[data-style="glitch"] :is(.queue-head, .modal-head) { background: var(--bar); border-bottom: 1px solid var(--border); }
+html[data-style="glitch"] :is(.menu-item, .suggest-item, .atp-row) { border-radius: 0; }
+html[data-style="glitch"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="glitch"] .menu-item .icon { color: inherit; }
+html[data-style="glitch"] .hero-bg { display: none; }
+html[data-style="glitch"] :is(.hero-inner, .track-hero-wave, .hero .stat, .hero .icon-btn) { color: var(--text); }
+html[data-style="glitch"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+
+/* artwork: two sliced strips (the same image, shifted) plus scanlines on top; the picture stays whole underneath */
+html[data-style="glitch"] :is(.card-art, .hero-art, .track-art, .pb-art, .queue-art) { position: relative; border-radius: 0; box-shadow: none; border: 1px solid var(--border); }
+html[data-style="glitch"] :is(.card-art, .hero-art, .track-art, .pb-art, .queue-art)::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; border-radius: 0;
+  background-image: inherit; background-size: cover; background-position: center; background-repeat: no-repeat;
+  clip-path: polygon(0 18%, 100% 18%, 100% 28%, 0 28%, 0 58%, 100% 58%, 100% 66%, 0 66%);
+  translate: 5px 0; filter: saturate(1.5) contrast(1.1);
+}
+html[data-style="glitch"] :is(.card-art, .hero-art, .pb-art)::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; background: var(--gl-scan); }
+html[data-style="glitch"] :is(.hero-art, .pb-art)::before { translate: var(--gl-shift) 0; }
+html[data-style="glitch"] :is(.card-art, .hero-art) :is(.card-play, .icon, .play-btn) { z-index: 3; }
+html[data-style="glitch"] .track-art-overlay { z-index: 3; }
+html[data-style="glitch"] :is(.card-art.round, .hero-art.round, .avatar) { border-radius: 0; }
+html[data-style="glitch"] :is(.card-art.round, .hero-art.round)::before { clip-path: polygon(0 40%, 100% 40%, 100% 48%, 0 48%, 0 62%, 100% 62%, 100% 68%, 0 68%); }
+
+/* rows and the player */
+html[data-style="glitch"] :is(.track-row, .queue-row) { border-radius: 0; border-bottom: 1px solid var(--border); }
+html[data-style="glitch"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="glitch"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--gl-red), inset 5px 0 0 var(--gl-cyan); }
+html[data-style="glitch"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="glitch"] .pb-time { color: var(--text); letter-spacing: .02em; }
+html[data-style="glitch"] .pb-track { height: 5px; border-radius: 0; background: var(--wave); }
+html[data-style="glitch"] .pb-fill, html[data-style="glitch"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); border-radius: 0; box-shadow: 0 1px 0 var(--gl-cyan); }
+html[data-style="glitch"] .pb-buffer { border-radius: 0; }
+html[data-style="glitch"] .pb-knob { border-radius: 0; background: var(--gl-cyan); width: 6px; height: 14px; margin: -7px 0 0 -3px; }
+html[data-style="glitch"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="glitch"] .queue-transition { font-family: var(--mono); }
+
+/* settings, scrollbars, login */
+html[data-style="glitch"] .settings-preset { border: 1px solid var(--border); border-radius: 0; }
+html[data-style="glitch"] :is(.settings-preset.active, .settings-flavor[aria-pressed="true"]) { border-color: var(--accent); }
+html[data-style="glitch"] .settings-flavor { border-radius: 0; }
+html[data-style="glitch"] :is(.settings-switch-track, .settings-switch-knob) { border-radius: 0; }
+html[data-style="glitch"] .settings-switch-track { border: 1px solid var(--border); background: var(--wave); }
+html[data-style="glitch"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="glitch"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: 0; }
+html[data-style="glitch"] ::-webkit-scrollbar-thumb:hover { background: var(--gl-cyan); }
+html[data-style="glitch"] .login { background: var(--bg); }
+html[data-style="glitch"] .login::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: var(--gl-scan); opacity: .6; }
+html[data-style="glitch"] .login-card { position: relative; }
+
+/* one-shot tear on the bass swap: once per mix, short and low contrast */
+@keyframes gl-tear { 0% { translate: 0 0; } 25% { translate: -9px 0; } 50% { translate: 11px 0; } 75% { translate: -4px 0; } 100% { translate: var(--gl-shift) 0; } }
+@keyframes gl-title-tear { 0%, 100% { text-shadow: calc(var(--gl-split) * -1) 0 var(--gl-red), var(--gl-split) 0 var(--gl-cyan); } 40% { text-shadow: -5px 0 var(--gl-red), 5px 0 var(--gl-cyan); } }
+html[data-style="glitch"][data-swap="after"] :is(.hero-art, .pb-art)::before { animation: gl-tear .45s steps(5, end) 1; }
+html[data-style="glitch"][data-swap="after"] :is(.page-title, .hero-title) { animation: gl-title-tear .45s steps(5, end) 1; }
+
+/* motion off: freeze the split and the strips, no animation */
+html[data-style="glitch"][data-theme-motion="off"], html[data-style="glitch"][data-perf] { --gl-p: 0; }
+html[data-style="glitch"][data-theme-motion="off"] *, html[data-style="glitch"][data-theme-motion="off"] *::before, html[data-style="glitch"][data-theme-motion="off"] *::after,
+html[data-style="glitch"][data-perf] *, html[data-style="glitch"][data-perf] *::before, html[data-style="glitch"][data-perf] *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="glitch"]:not([data-theme-motion="on"]) { --gl-p: 0; }
+  html[data-style="glitch"]:not([data-theme-motion="on"]) *, html[data-style="glitch"]:not([data-theme-motion="on"]) *::before, html[data-style="glitch"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; }
+}
+html[data-style="glitch"][data-perf] :is(.topbar, .playerbar)::before, html[data-style="glitch"][data-perf] .login::before { display: none; }
+@media (forced-colors: active) {
+  html[data-style="glitch"] :is(.page-title, .hero-title, .login-card h1) { text-shadow: none; }
+  html[data-style="glitch"] :is(.card-art, .hero-art, .track-art, .pb-art, .queue-art)::before { display: none; }
+}
