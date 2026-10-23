@@ -1,0 +1,130 @@
+/* Felt: a soft, tactile late-night look. Felt from fine repeating gradients on bars and tiles (never under reading text),
+   oatmeal text, broad rounded rectangles, inset trays, copper accents, a stitched waveform channel. Motion-free by design. */
+
+html[data-style="felt"] {
+  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+  --fl-r: 18px; --fl-r-sm: 12px;
+  --fl-weave: repeating-linear-gradient(45deg, rgba(255, 255, 255, .028) 0 1px, transparent 1px 3px), repeating-linear-gradient(-45deg, rgba(0, 0, 0, .09) 0 1px, transparent 1px 3px);
+  --fl-tray: color-mix(in srgb, var(--surface) 78%, #000);
+  --fl-inset: inset 0 3px 8px rgba(0, 0, 0, .42), inset 0 -1px 0 rgba(255, 255, 255, .05);
+  --fl-lift: 0 2px 0 rgba(0, 0, 0, .35), 0 8px 16px rgba(0, 0, 0, .22);
+  --fl-stitch: color-mix(in srgb, var(--text) 38%, transparent);
+  --border: color-mix(in srgb, var(--text) 16%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 90%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 80%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  --shadow: var(--fl-lift);
+}
+html[data-style="felt"] body { background: var(--fl-weave), var(--bg); }
+html[data-style="felt"] #view { background: transparent; }
+html[data-style="felt"] :focus-visible { outline: 2px dashed var(--accent); outline-offset: 3px; }
+html[data-style="felt"] .page { animation: none; }
+html[data-style="felt"] *, html[data-style="felt"] *::before, html[data-style="felt"] *::after { animation: none !important; transition: none !important; }
+
+/* Georgia headings over a clean sans list */
+html[data-style="felt"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title, .queue-head h2, .modal-head h2, .login-card h1, .pb-title) {
+  font-family: var(--font-display); font-weight: 700; letter-spacing: -.005em;
+}
+html[data-style="felt"] :is(.page-header, .shelf-head) { border-bottom: 2px dashed var(--fl-stitch); padding-bottom: 12px; }
+html[data-style="felt"] .queue-label { letter-spacing: .1em; }
+
+/* bars: felt, with a seam */
+html[data-style="felt"] :is(.topbar, .playerbar), html[data-style="felt"][data-bg] :is(.topbar, .playerbar),
+html[data-style="felt"][data-nav="sidebar"] .nav, html[data-style="felt"][data-bg][data-nav="sidebar"] .nav {
+  background: var(--fl-weave), var(--bar); color: var(--text); backdrop-filter: none; box-shadow: var(--fl-lift);
+}
+html[data-style="felt"] .topbar { border-bottom: 1px solid color-mix(in srgb, #000 40%, var(--bar)); }
+html[data-style="felt"] .topbar::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; border-bottom: 2px dashed var(--fl-stitch); pointer-events: none; opacity: .55; }
+html[data-style="felt"] .playerbar { border-top: 1px solid color-mix(in srgb, #000 40%, var(--bar)); }
+html[data-style="felt"][data-player="top"] .playerbar { border-top: 0; border-bottom: 1px solid color-mix(in srgb, #000 40%, var(--bar)); }
+html[data-style="felt"][data-nav="sidebar"] .nav { border-right: 1px solid color-mix(in srgb, #000 40%, var(--bar)); }
+html[data-style="felt"] :is(.nav-link, .settings-nav-link, .tab) { border-radius: var(--fl-r); color: var(--text); }
+html[data-style="felt"] :is(.nav-link, .settings-nav-link).active { background: var(--fl-tray); color: var(--accent); box-shadow: var(--fl-inset); }
+html[data-style="felt"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="felt"] .nav-link:hover:not(.active) { background: var(--hover); }
+html[data-style="felt"] .logo { color: var(--accent); }
+html[data-style="felt"] .me-btn .avatar { box-shadow: 0 0 0 2px var(--bar), 0 0 0 3px var(--accent); }
+html[data-style="felt"] :is(.search-input, .input) { border: 0; border-radius: var(--fl-r); background: var(--fl-tray); color: var(--text); box-shadow: var(--fl-inset); }
+html[data-style="felt"] .input { border-radius: var(--fl-r-sm); }
+html[data-style="felt"] :is(.search-input, .input):focus { background: var(--fl-tray); box-shadow: var(--fl-inset), 0 0 0 2px var(--accent); }
+html[data-style="felt"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+
+/* buttons: pressed-felt pads with a small copper accent */
+html[data-style="felt"] :is(.btn, .hero .btn, .chip, .tag-pill) { border: 0; border-radius: var(--fl-r); background: var(--hover-strong); color: var(--text); box-shadow: var(--fl-lift); }
+html[data-style="felt"] :is(.icon-btn, .hero .icon-btn) { border-radius: var(--fl-r-sm); color: var(--text); }
+html[data-style="felt"] :is(.btn, .hero .btn, .chip):hover { background: color-mix(in srgb, var(--hover-strong) 85%, var(--accent)); color: var(--text); filter: none; }
+html[data-style="felt"] :is(.btn, .chip, .icon-btn):active { box-shadow: var(--fl-inset); transform: none; }
+html[data-style="felt"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="felt"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--accent); color: var(--accent-text); }
+html[data-style="felt"] :is(.icon-btn.active, .hero .icon-btn.active, .pb-mode.active) { color: var(--accent); }
+html[data-style="felt"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) { background: var(--fl-tray); color: var(--text); border: 2px dashed var(--accent); box-shadow: none; }
+html[data-style="felt"] :is(.btn-outline, .btn-ghost) { background: transparent; box-shadow: none; border: 2px dashed var(--fl-stitch); }
+html[data-style="felt"] :is(.play-btn, .card-play, .pb-play) { background: var(--accent); color: var(--accent-text); border: 0; box-shadow: var(--fl-lift), inset 0 1px 0 rgba(255, 255, 255, .3); }
+html[data-style="felt"] :is(.play-btn, .pb-play):hover { transform: none; filter: none; }
+html[data-style="felt"][data-automix="mixing"] .pb-play { box-shadow: var(--fl-lift), 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 16px color-mix(in srgb, var(--accent) 60%, transparent); }
+html[data-style="felt"] .tabs { border-bottom: 2px dashed var(--fl-stitch); }
+html[data-style="felt"] .tab { border-radius: var(--fl-r) var(--fl-r) 0 0; }
+html[data-style="felt"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* panels: broad rounded rectangles. Text-heavy ones stay smooth; short-label tiles (cards) get the felt weave. */
+html[data-style="felt"] :is(.feed-card, .settings-card, .track-artist, .login-card, .modal, .atp-track, .update-banner, .toast, .offline-track) {
+  background: var(--surface); color: var(--text); border: 0; border-radius: var(--fl-r); box-shadow: var(--fl-lift);
+}
+html[data-style="felt"] .card, html[data-style="felt"] .hero {
+  background: var(--fl-weave), var(--surface); color: var(--text); border: 0; border-radius: var(--fl-r); box-shadow: var(--fl-lift);
+}
+html[data-style="felt"] .card { padding: 12px; }
+html[data-style="felt"] :is(.card:hover, .card:focus-within) { background: var(--fl-weave), color-mix(in srgb, var(--surface) 92%, var(--accent)); }
+html[data-style="felt"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="felt"] .track-list { background: var(--fl-tray); border: 0; border-radius: var(--fl-r); box-shadow: var(--fl-inset); padding: 4px; }
+html[data-style="felt"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) { border-radius: var(--fl-r-sm); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--fl-stitch); }
+html[data-style="felt"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="felt"] .hero-bg { display: none; }
+html[data-style="felt"] :is(.hero-inner, .track-hero-wave, .hero .stat, .hero .icon-btn) { color: var(--text); }
+html[data-style="felt"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="felt"] .hero { background: var(--surface); }
+
+/* trays: queue, menus, search results are inset into the felt */
+html[data-style="felt"] :is(.queue-panel, .menu, .search-suggest, .pb-hovertime) {
+  background: var(--fl-tray); color: var(--text); border: 0; border-radius: var(--fl-r); box-shadow: var(--fl-inset), 0 10px 24px rgba(0, 0, 0, .35);
+}
+html[data-style="felt"] .pb-hovertime { border-radius: var(--fl-r-sm); }
+html[data-style="felt"] .queue-head { background: transparent; border-bottom: 2px dashed var(--fl-stitch); margin: 0 10px; padding: 14px 6px 8px; }
+html[data-style="felt"] .modal-head { background: transparent; border-bottom: 2px dashed var(--fl-stitch); margin: 0 14px; padding: 16px 6px 8px; }
+html[data-style="felt"] :is(.menu-item, .suggest-item, .atp-row) { border-radius: var(--fl-r-sm); }
+html[data-style="felt"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="felt"] .menu-item .icon { color: var(--accent); }
+html[data-style="felt"] .menu-item.danger .icon { color: inherit; }
+html[data-style="felt"] .modal-overlay { backdrop-filter: none; background: rgba(0, 0, 0, .55); }
+
+/* rows: a firm inset edge on the selected one */
+html[data-style="felt"] :is(.track-row, .queue-row) { border-radius: var(--fl-r-sm); border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent); }
+html[data-style="felt"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="felt"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 65%, transparent), inset 0 3px 6px rgba(0, 0, 0, .3); }
+html[data-style="felt"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="felt"] .queue-transition { border-radius: var(--fl-r-sm); }
+
+/* the waveform sits in a shallow stitched channel (drawn outside the canvas so the layout never changes) */
+html[data-style="felt"] :is(.hero, .track-hero-wave) .waveform { isolation: isolate; margin-top: 14px; margin-bottom: 8px; }
+html[data-style="felt"] :is(.hero, .track-hero-wave) .waveform::before { content: ""; position: absolute; inset: -6px -8px; z-index: -1; border-radius: var(--fl-r-sm); background: var(--fl-tray); box-shadow: var(--fl-inset); pointer-events: none; }
+html[data-style="felt"] :is(.hero, .track-hero-wave) .waveform::after { content: ""; position: absolute; inset: -6px -8px; border: 2px dashed var(--fl-stitch); border-radius: var(--fl-r-sm); pointer-events: none; }
+
+/* player: stitched seek channel, soft thumb */
+html[data-style="felt"] .pb-track { height: 8px; border-radius: 8px; background: var(--fl-tray); box-shadow: var(--fl-inset); outline: 1px dashed var(--fl-stitch); outline-offset: 2px; }
+html[data-style="felt"] .pb-fill, html[data-style="felt"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); border-radius: 8px; }
+html[data-style="felt"] .pb-buffer { border-radius: 8px; }
+html[data-style="felt"] .pb-knob { background: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, .5); }
+html[data-style="felt"] .pb-time { font-variant-numeric: tabular-nums; }
+html[data-style="felt"] .pb-visualizer { opacity: 1; filter: none; }
+
+/* settings */
+html[data-style="felt"] .settings-preset { border: 2px dashed var(--fl-stitch); border-radius: var(--fl-r); }
+html[data-style="felt"] :is(.settings-preset.active, .settings-flavor[aria-pressed="true"]) { border-color: var(--accent); border-style: solid; }
+html[data-style="felt"] .settings-switch-track { background: var(--fl-tray); box-shadow: var(--fl-inset); border: 0; }
+html[data-style="felt"] .settings-switch input:checked + .settings-switch-track { background: color-mix(in srgb, var(--accent) 55%, var(--fl-tray)); }
+html[data-style="felt"] ::-webkit-scrollbar-track { background: transparent; }
+html[data-style="felt"] ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text) 24%, var(--bg)); border: 3px solid transparent; background-clip: padding-box; border-radius: 10px; }
+html[data-style="felt"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); background-clip: padding-box; }
+html[data-style="felt"] .login { background: var(--fl-weave), var(--bg); }
