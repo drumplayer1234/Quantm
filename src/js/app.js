@@ -9,6 +9,7 @@ import { offline } from './offline.js';
 import { applyTheme } from './theme.js';
 import { initAppearance } from './appearance.js';
 import { initThemeRuntime } from './theme-runtime.js';
+import { startAutoMixCss } from './automix-css.js';
 import { initPerformance } from './performance.js';
 import { initUpdates } from './updates.js';
 import { initStats } from './stats.js';
@@ -203,6 +204,7 @@ function mountShell() {
   initPerformance();
   player.restoreSession();
   initThemeRuntime();
+  startAutoMixCss(player); // Auto mix beat / mix progress for themes (data-automix, --beat, --mix)
   setupDiscord();
 
   document.addEventListener('routechange', (e) => {
