@@ -188,11 +188,12 @@ export const PRESET_FAMILIES = {
 export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
-// window.QUANTM_LOCAL_THEMES = { presets, styles, radius } before this module runs
+// window.QUANTM_LOCAL_THEMES = { presets, styles, radius, families } before this module runs
 const local = (typeof window !== 'undefined' && window.QUANTM_LOCAL_THEMES) || {};
 Object.assign(PRESETS, local.presets || {});
 Object.assign(PRESET_STYLES, local.styles || {});
 Object.assign(PRESET_RADIUS, local.radius || {});
+Object.assign(PRESET_FAMILIES, local.families || {});
 /** Presets that only exist on this computer (dev builds); the gallery lists them on their own */
 export const LOCAL_PRESETS = new Set(Object.keys(local.presets || {}));
 
