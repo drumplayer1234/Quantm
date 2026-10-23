@@ -1,0 +1,171 @@
+/* Tiling: a tiling window manager desktop. 2px borders (accent = focused, muted = unfocused), 6px gaps, square corners. */
+
+html[data-style="tiling"] {
+  --mono: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+  --font-display: var(--mono);
+  --tl-gap: 6px;
+  --tl-line: color-mix(in srgb, var(--muted) 45%, var(--bg));
+  --tl-desk: color-mix(in srgb, var(--bg) 82%, #000);
+  --border: color-mix(in srgb, var(--text) 22%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 90%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 80%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  --shadow: none;
+  --topbar-h: 40px;
+}
+html[data-style="tiling"] body { background: var(--tl-desk); }
+html[data-style="tiling"] #app { padding: var(--tl-gap); gap: var(--tl-gap); background: var(--tl-desk); }
+html[data-style="tiling"] :focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+html[data-style="tiling"] .page { animation: none; }
+
+/* the panels (tiles): square, 2px border, accent when focused (hover or keyboard focus inside) */
+html[data-style="tiling"] :is(.topbar, #view, .playerbar, .queue-panel, .login-card, .modal, .menu, .search-suggest, .toast, .update-banner),
+html[data-style="tiling"][data-nav="sidebar"] .nav {
+  border: 2px solid var(--tl-line); border-radius: 0; box-shadow: none; backdrop-filter: none;
+}
+html[data-style="tiling"] :is(.topbar, #view, .playerbar):is(:hover, :focus-within),
+html[data-style="tiling"][data-nav="sidebar"] .nav:is(:hover, :focus-within),
+html[data-style="tiling"] :is(.queue-panel.open, .modal, .menu, .search-suggest.show, .login-card, .toast, .update-banner) { border-color: var(--accent); }
+html[data-style="tiling"] #view { background: var(--bg); }
+html[data-style="tiling"] :is(.topbar, .playerbar),
+html[data-style="tiling"][data-bg] :is(.topbar, .playerbar),
+html[data-style="tiling"][data-nav="sidebar"] .nav,
+html[data-style="tiling"][data-bg][data-nav="sidebar"] .nav { background: var(--bar); color: var(--text); }
+html[data-style="tiling"] :is(.queue-panel, .modal, .menu, .search-suggest, .toast, .pb-hovertime) { background: var(--surface); color: var(--text); border-radius: 0; }
+html[data-style="tiling"] .modal-overlay { backdrop-filter: none; background: color-mix(in srgb, var(--tl-desk) 70%, transparent); }
+
+/* geometry: keep the fixed panels on the tile grid */
+html[data-style="tiling"] .queue-panel { right: var(--tl-gap); top: calc(var(--topbar-h) + var(--tl-gap) * 2); bottom: calc(var(--player-h) + var(--tl-gap) * 2); }
+html[data-style="tiling"][data-player="top"] .queue-panel { top: calc(var(--topbar-h) + var(--player-h) + var(--tl-gap) * 3); bottom: var(--tl-gap); }
+html[data-style="tiling"][data-nav="sidebar"] .nav {
+  left: var(--tl-gap); top: calc(var(--topbar-h) + var(--tl-gap) * 2); bottom: calc(var(--player-h) + var(--tl-gap) * 2); padding: 8px 6px;
+}
+html[data-style="tiling"][data-nav="sidebar"][data-player="top"] .nav { top: calc(var(--topbar-h) + var(--player-h) + var(--tl-gap) * 3); bottom: var(--tl-gap); }
+html[data-style="tiling"][data-nav="sidebar"] #view { margin-left: calc(var(--nav-w) + var(--tl-gap)); }
+html[data-style="tiling"][data-player="top"] .playerbar { border-bottom: 2px solid var(--tl-line); }
+
+/* top bar as a status bar; nav links become numbered workspace pills */
+html[data-style="tiling"] .topbar { gap: 10px; font-family: var(--mono); font-size: 12px; }
+html[data-style="tiling"] .topbar::after {
+  display: none; flex: none; align-items: center; height: 24px; padding: 0 8px; margin-left: 6px; white-space: nowrap;
+  border: 1px solid var(--tl-line); color: var(--muted); font: 11px/22px var(--mono); letter-spacing: .04em;
+  content: "MIX idle"; background-repeat: no-repeat; background-position: 0 100%;
+  background-image: linear-gradient(var(--accent), var(--accent)); background-size: calc(var(--mix, 0) * 100%) 3px;
+}
+html[data-style="tiling"][data-automix="on"] .topbar::after,
+html[data-style="tiling"][data-automix="mixing"] .topbar::after { display: inline-flex; }
+html[data-style="tiling"][data-automix="mixing"] .topbar::after {
+  content: "MIX " counter(tlmix) "%"; counter-reset: tlmix calc(var(--mix, 0) * 100); color: var(--text); border-color: var(--accent);
+}
+html[data-style="tiling"] .nav { counter-reset: tlws; gap: 4px; }
+html[data-style="tiling"] .nav-link {
+  counter-increment: tlws; display: inline-flex; align-items: center; gap: 7px; padding: 2px 9px 2px 3px; border-radius: 0;
+  border: 1px solid transparent; color: var(--text); font: 600 11px/18px var(--mono); text-transform: lowercase; letter-spacing: .02em;
+}
+html[data-style="tiling"] .nav-link::before {
+  content: counter(tlws); min-width: 18px; height: 18px; display: inline-grid; place-items: center; flex: none;
+  background: var(--hover-strong); color: var(--text); font-size: 10px; line-height: 1;
+}
+html[data-style="tiling"] .nav-link:hover { background: var(--hover); border-color: var(--tl-line); }
+html[data-style="tiling"] .nav-link.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+html[data-style="tiling"] .nav-link.active::before { background: var(--accent-text); color: var(--accent); }
+html[data-style="tiling"][data-nav="sidebar"] .nav-link { padding: 5px 8px 5px 5px; font-size: 12px; gap: 9px; border-radius: 0; }
+html[data-style="tiling"] .logo { padding-right: 4px; }
+html[data-style="tiling"] .me-btn, html[data-style="tiling"] .me-btn .avatar { border-radius: 0; box-shadow: none; }
+html[data-style="tiling"] .nav-arrow, html[data-style="tiling"] .win-btn { border-radius: 0; }
+html[data-style="tiling"] .search-input { height: 28px; font: 12px var(--mono); }
+html[data-style="tiling"] :is(.search-input, .input) { border: 1px solid var(--tl-line); border-radius: 0; background: var(--surface); color: var(--text); }
+html[data-style="tiling"] :is(.search-input, .input):focus { border-color: var(--accent); background: var(--surface); }
+html[data-style="tiling"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="tiling"] .search-suggest { top: 32px; padding: 2px; }
+
+/* titles, labels */
+html[data-style="tiling"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title, .queue-head h2, .modal-head h2) { font-family: var(--mono); font-weight: 600; letter-spacing: 0; }
+html[data-style="tiling"] .page-title { font-size: 22px; }
+html[data-style="tiling"] .page-title::before, html[data-style="tiling"] .shelf-title::before { content: "~/ "; color: var(--accent); }
+html[data-style="tiling"] :is(.page-header, .shelf-head) { border-bottom: 1px solid var(--tl-line); padding-bottom: 8px; }
+html[data-style="tiling"] :is(.queue-label, .hero-eyebrow, .stat, .tag-pill, .track-num, .track-duration, .pb-time, .settings-preset-name, .card-sub, .track-sub) { font-family: var(--mono); }
+html[data-style="tiling"] .queue-label { text-transform: lowercase; letter-spacing: 0; }
+html[data-style="tiling"] .queue-label::before { content: "# "; color: var(--accent); }
+html[data-style="tiling"] .tag-pill { border: 1px solid var(--tl-line); border-radius: 0; background: transparent; color: var(--muted); }
+
+/* buttons */
+html[data-style="tiling"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip) {
+  border-radius: 0; border: 1px solid var(--tl-line); background: var(--surface); color: var(--text); font-family: var(--mono);
+}
+html[data-style="tiling"] .icon-btn { border-color: transparent; background: transparent; color: var(--muted); }
+html[data-style="tiling"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip):hover { background: var(--hover); border-color: var(--accent); color: var(--text); filter: none; }
+html[data-style="tiling"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="tiling"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+html[data-style="tiling"] :is(.icon-btn.active, .hero .icon-btn.active, .pb-mode.active) { color: var(--accent); }
+html[data-style="tiling"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) { background: var(--surface); color: var(--text); border: 1px dashed var(--text); }
+html[data-style="tiling"] :is(.btn-outline, .btn-ghost) { background: transparent; }
+html[data-style="tiling"] :is(.play-btn, .card-play, .pb-play) { border-radius: 0; background: var(--accent); color: var(--accent-text); border: 0; box-shadow: none; }
+html[data-style="tiling"] .pb-play:hover { transform: none; }
+html[data-style="tiling"] .tabs { border-bottom: 2px solid var(--tl-line); }
+html[data-style="tiling"] .tab { border-radius: 0; color: var(--text); font: 600 12px var(--mono); text-transform: lowercase; }
+html[data-style="tiling"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* cards, rows, hero */
+html[data-style="tiling"] :is(.card, .feed-card, .settings-card, .track-artist, .hero, .track-list, .offline-track) {
+  background: var(--surface); border: 2px solid var(--tl-line); border-radius: 0; box-shadow: none;
+}
+html[data-style="tiling"] :is(.card:hover, .card:focus-within, .settings-card:focus-within) { border-color: var(--accent); background: var(--surface); }
+html[data-style="tiling"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="tiling"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art, .atp-art) { border-radius: 0; box-shadow: none; border: 1px solid var(--tl-line); }
+html[data-style="tiling"] :is(.card-art.round, .hero-art.round, .avatar) { border-radius: 0; }
+html[data-style="tiling"] :is(.track-row, .queue-row) { border-radius: 0; border-bottom: 1px solid var(--border); }
+html[data-style="tiling"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="tiling"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+html[data-style="tiling"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="tiling"] .hero-bg { display: none; }
+html[data-style="tiling"] :is(.hero-inner, .track-hero-wave, .hero .stat, .hero .icon-btn) { color: var(--text); }
+html[data-style="tiling"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+
+/* player bar: compact mono readouts, square seek bar */
+html[data-style="tiling"] .pb-time { min-width: 52px; color: var(--text); }
+html[data-style="tiling"] .pb-time::before { content: "["; color: var(--muted); }
+html[data-style="tiling"] .pb-time::after { content: "]"; color: var(--muted); }
+html[data-style="tiling"] .pb-title { font-weight: 600; }
+html[data-style="tiling"] .pb-track { height: 6px; border-radius: 0; background: var(--wave); }
+html[data-style="tiling"] .pb-fill, html[data-style="tiling"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); border-radius: 0; }
+html[data-style="tiling"] .pb-buffer { border-radius: 0; }
+html[data-style="tiling"] .pb-knob { border-radius: 0; width: 8px; height: 14px; margin: -7px 0 0 -4px; background: var(--accent); }
+html[data-style="tiling"] .pb-hovertime { border: 1px solid var(--tl-line); border-radius: 0; font-family: var(--mono); }
+html[data-style="tiling"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="tiling"][data-automix="mixing"] .playerbar { border-color: var(--accent); }
+
+/* queue, menus, modals */
+html[data-style="tiling"] :is(.queue-head, .modal-head) { background: var(--bar); border-bottom: 1px solid var(--tl-line); padding: 8px 12px; }
+html[data-style="tiling"] .queue-head h2 { font-size: 13px; text-transform: lowercase; }
+html[data-style="tiling"] .queue-head h2::before { content: "[ "; color: var(--accent); }
+html[data-style="tiling"] .queue-head h2::after { content: " ]"; color: var(--accent); }
+html[data-style="tiling"] .queue-transition { font-family: var(--mono); }
+html[data-style="tiling"] :is(.menu-item, .suggest-item, .atp-row, .atp-state) { border-radius: 0; }
+html[data-style="tiling"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="tiling"] .menu-item .icon { color: inherit; }
+html[data-style="tiling"] .atp-track { background: var(--bg); border: 1px solid var(--tl-line); border-radius: 0; }
+
+/* settings, scrollbars, login */
+html[data-style="tiling"] .settings-nav-link { border-radius: 0; font-family: var(--mono); color: var(--text); }
+html[data-style="tiling"] .settings-nav-link.active { background: var(--accent); color: var(--accent-text); }
+html[data-style="tiling"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="tiling"] .settings-preset { border: 2px solid var(--tl-line); border-radius: 0; }
+html[data-style="tiling"] :is(.settings-preset.active, .settings-flavor[aria-pressed="true"]) { border-color: var(--accent); }
+html[data-style="tiling"] .settings-flavor { border-radius: 0; }
+html[data-style="tiling"] :is(.settings-switch-track, .settings-switch-knob) { border-radius: 0; }
+html[data-style="tiling"] .settings-switch-track { border: 1px solid var(--tl-line); background: var(--wave); }
+html[data-style="tiling"] ::-webkit-scrollbar { width: 10px; height: 10px; }
+html[data-style="tiling"] ::-webkit-scrollbar-track { background: transparent; }
+html[data-style="tiling"] ::-webkit-scrollbar-thumb { background: var(--tl-line); border: 0; border-radius: 0; }
+html[data-style="tiling"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+html[data-style="tiling"] .login { background: var(--tl-desk); }
+html[data-style="tiling"] .login-card { background: var(--surface); }
+
+@media (max-width: 1000px) { html[data-style="tiling"] .topbar::after { display: none !important; } }
+html[data-style="tiling"][data-theme-motion="off"] *, html[data-style="tiling"][data-perf] * { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="tiling"]:not([data-theme-motion="on"]) *, html[data-style="tiling"]:not([data-theme-motion="on"]) *::before, html[data-style="tiling"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; }
+}
+@media (forced-colors: active) { html[data-style="tiling"] :is(.nav-link.active, .btn-primary) { forced-color-adjust: auto; } }

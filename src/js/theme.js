@@ -178,6 +178,14 @@ export const PRESETS = {
     accent: '#f4aec8', accentText: '#241b28', bg: '#241b28', surface: '#2e2335', bar: '#291e2e',
     text: '#f3ece6', muted: '#b3a5b4', wave: '#443549', wavePlayed: '#a8d8c8'
   },
+  'Tiling': {
+    accent: '#7ec8a4', accentText: '#0b1410', bg: '#11141a', surface: '#1a1f27', bar: '#161a21',
+    text: '#d5dbe3', muted: '#8d97a5', wave: '#3b4452', wavePlayed: '#7ec8a4'
+  },
+  'Tiling Light': {
+    accent: '#1a6e51', accentText: '#ffffff', bg: '#e9e6df', surface: '#f4f1ea', bar: '#dedad1',
+    text: '#22252b', muted: '#5d636d', wave: '#b3b0a6', wavePlayed: '#1a6e51'
+  },
   // colors are replaced live from the playing song's artwork (appearance.js)
   'Album Match': {
     accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
@@ -217,6 +225,8 @@ export const PRESET_STYLES = {
   'Listening Room': 'listening-room',
   'Pocket Quantm': 'pocket',
   'Terminal Multiplexer': 'tmux',
+  'Tiling': 'tiling',
+  'Tiling Light': 'tiling',
   'Album Match': 'album'
 };
 
@@ -229,11 +239,12 @@ export const PRESET_FAMILIES = {
   'Tokyo Night': { 'Night': 'Tokyo Night', 'Storm': 'Tokyo Night Storm', 'Day': 'Tokyo Night Day' },
   'Rosé Pine': { 'Main': 'Rosé Pine', 'Moon': 'Rosé Pine Moon', 'Dawn': 'Rosé Pine Dawn' },
   'Gruvbox': { 'Dark': 'Gruvbox Dark', 'Light': 'Gruvbox Light' },
-  'Sodium': { 'Underpass': 'Sodium Underpass', 'Blue Hour': 'Sodium Blue Hour', 'Last Tram': 'Sodium Last Tram' }
+  'Sodium': { 'Underpass': 'Sodium Underpass', 'Blue Hour': 'Sodium Blue Hour', 'Last Tram': 'Sodium Last Tram' },
+  'Tiling': { 'Dark': 'Tiling', 'Light': 'Tiling Light' }
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8, 'Rosé Pine': 10, 'Rosé Pine Moon': 10, 'Rosé Pine Dawn': 10, 'Gruvbox Dark': 4, 'Gruvbox Light': 4, 'Sodium Underpass': 8, 'Sodium Blue Hour': 8, 'Sodium Last Tram': 8 };
+export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8, 'Rosé Pine': 10, 'Rosé Pine Moon': 10, 'Rosé Pine Dawn': 10, 'Gruvbox Dark': 4, 'Gruvbox Light': 4, 'Sodium Underpass': 8, 'Sodium Blue Hour': 8, 'Sodium Last Tram': 8, 'Tiling': 0, 'Tiling Light': 0 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
 // window.QUANTM_LOCAL_THEMES = { presets, styles, radius, families } before this module runs
