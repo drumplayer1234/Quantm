@@ -1,5 +1,24 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.2.0
+
+- **Auto mix.** Quantm can now blend your songs like a DJ. It's off by default: turn it on in Settings → Auto mix, or in Settings → Playback → Crossfade.
+- **Beat-matched transitions.** Quantm listens to each song's kick and snare to find its tempo and beat, quietly pre-plays the next song for a few seconds to learn it, then starts it on the beat. It matches tempos up to 8% apart (half and double time too, like 87 into 174 BPM) and keeps the beats locked through the mix.
+- **The blend.** The next song comes up with its bass cut, the bass swaps over one bar in the middle, then the old song fades out. Mixes last 16, 32 or 64 beats, up to 24 seconds. Songs without a clear beat get a normal blend.
+- **It learns your songs.** Every song it plays is remembered: tempo, beat, where the drums come in and where the outro starts. Later mixes go over the real outro and land the next song's drums on the bass swap. Until a song has been heard, Quantm guesses its tempo from SoundCloud's BPM field, the title, tags or description, or failing those, its waveform.
+- **It learns your taste.** Each mix tries a small variation of length, blend style and tempo stretch, separately for slow, mid, fast and very fast music. Keep the song and it nudges toward that. Skip during or right after the mix and it nudges away. It's slow by design, and Settings → Auto mix has a reset.
+- **Watch it work.** Settings → Auto mix shows it live: what it hears, the planned mix and a countdown, the beat lock in milliseconds, what it has learned per tempo range, and an activity feed.
+- **Mix order.** With Auto mix on, the shuffle button (or S) cycles off, shuffle and Mix order. Mix order sorts your queue like a DJ set, so each song blends into the next. "Mix from here" in a track's right-click menu starts a set from that song, Autoplay picks the related songs that blend best, and the queue shows each blend ("122 → 124 BPM").
+- **Smoother volume between songs.** Each song keeps its own loudness during a crossfade, so the old song no longer gets louder or quieter as it fades. Songs Quantm hasn't heard before start at your usual level instead of full volume, and small corrections glide instead of jumping.
+- **New color themes.** Tokyo Night (Night, Storm, Day), Rosé Pine (Main, Moon, Dawn), Gruvbox (Dark, Light), Sodium (Underpass, Blue Hour, Last Tram), Nord (Dark, Light) and Catppuccin (Latte, Frappé, Macchiato, Mocha). Each family is one card, and you pick the flavor with swatches.
+- **New makeovers.** Risograph (two-color zine print), Chrome (hyperpop liquid chrome), Rave Flyer (photocopied 90s flyer), Blueprint (engineering drawing), Ink Wash (Paper and Night), LED Board (dot-matrix display in Amber, Green or Red), Tiling (tiling-window desktop), Glitch (datamosh), Vapor Mall (vaporwave) and Felt (soft and tactile, in Moss or Burgundy).
+- **New theme packs.** They go beyond colors and react to the music, and most reshape Home: Twin Deck (two turntables that show Auto mix at work), Cassette, Holo Card, Sunrise, Signal Route (your queue as a transit map), Sampler (a 4x4 pad grid of your queue), Patchbay, Contour (a terrain map unique to each song), Spectral Ledger (a scrolling spectrogram) and Warehouse (a rave spectrum wall).
+- **Themes react to Auto mix.** Themes can follow the beat, the mix progress and the bass swap. The theme gallery is also tidier, with sections for Colors, Makeovers and Theme packs.
+- **Discord status while idle.** "Playing Quantm" stays up while the app is open, showing Browsing, or Paused and the song, plus a Get Quantm button. Turn it off in Settings → Playback → Discord status while not playing.
+- **Crash logs.** If Quantm crashes, Settings → About → Open crash logs shows what happened. Logs stay on your computer, and you can attach crash.log to a GitHub issue.
+- **The player bar fits narrow and zoomed-in windows.**
+- **Tip:** if animated themes stand still, Windows animations are probably off. Settings → Appearance → Theme effects → On turns them on for Quantm.
+
 ## What's new in 1.1.7
 
 - **Easier manual sign-in.** If the normal sign-in doesn't work for you, "Enter a token manually" now only needs your oauth_token. Leave the client_id empty and Quantm finds one itself.

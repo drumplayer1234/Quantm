@@ -11,6 +11,8 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 📱 **On Android?** Get [**Quantm for Android**](https://github.com/quantm-app/Quantm-Android/releases/latest), a native phone app with background playback, the same themes and Quantm playlists you can move between phone and desktop.
 
+🎚️ **New: Auto mix.** Quantm can blend your songs like a DJ, beat-matched and bass-swapped, and it learns your songs and your taste as it goes. Off by default, find it in Settings → Auto mix.
+
 ![Quantm SoundCloud desktop client showing the glass theme, music library, and playback controls](docs/images/quantm-home.png)
 
 ![Quantm switching between themes, a track page and Album Match](docs/images/quantm-demo.gif)
@@ -19,6 +21,10 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 **Listening**
 
+- **Auto mix.** DJ-style transitions, off by default (Settings → Auto mix). Quantm finds each song's tempo and beat, starts the next song on the beat, matches tempos (half and double time too), cuts the bass in and swaps it over one bar, then fades the old song out. Mixes last 16, 32 or 64 beats. Songs without a clear beat get a normal blend.
+- **Auto mix learns.** It remembers every song it plays (tempo, beat, where the drums come in, where the outro starts) so later mixes go over the real outro. It also learns your taste: keeping a song nudges future mixes toward that style, and skipping nudges away, separately for slow, mid, fast and very fast music. Reset it any time in Settings → Auto mix.
+- **Live Auto mix page.** Settings → Auto mix shows what it hears, the planned mix and a countdown, the beat lock in milliseconds, what it has learned per tempo range, and an activity feed.
+- **Mix order.** With Auto mix on, the shuffle button (or S) cycles off, shuffle and Mix order, which sorts your queue like a DJ set so each song blends into the next. Right-click a track and choose "Mix from here" to start a set from it. Autoplay picks the related songs that blend best, and the queue shows each blend ("122 → 124 BPM").
 - **Offline downloads.** Tracks whose artist allows downloads can be saved in the artist's original format and played without internet from Library → Offline. Other tracks can't be downloaded.
 - **Listening stats.** See your hours, plays, streaks, top tracks, artists and genres by week, month or year, earn badges, and save a shareable stats card as an image. Everything is counted on your computer and never uploaded.
 - **No ads, ever.** No audio ads, banners or promoted posts. Just your music.
@@ -46,7 +52,7 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 - **Crossfade.** Blend from one song into the next, from 0 to 12 seconds.
 - **Cue points and custom transitions.** Press C to bookmark a moment and 1–9 to jump to a cue. Set mix-in and mix-out with I and O, or right-click a waveform. Edit and rename markers from the track menu, or choose exact leave/start times and a fade for each pair in the queue. Custom transitions work even with crossfade off.
 - **Playback speed.** Nightcore and Slowed modes, or a custom speed with optional pitch keeping. Change it with the speed button in the player bar.
-- **Volume normalization.** Loud and quiet tracks play at a similar level.
+- **Volume normalization.** Loud and quiet tracks play at a similar level. Each song keeps its own level during a crossfade, songs Quantm hasn't heard yet start at your usual level, and small corrections glide instead of jumping.
 - **Equalizer.** Five bands plus preamp, with presets like Bass boost, Vocal, Electronic and Late night (Settings → Playback, or the EQ button in the player bar).
 - **Sleep timer.** Stop after 15 to 90 minutes or at the end of the song, with a gentle fade out (moon button in the player bar).
 - **Resume where you left off.** Reopen the app to your last song, queue and position, paused.
@@ -56,8 +62,8 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 **Make it yours**
 
-- **Theme presets.** Color-only themes: SoundCloud Dark, SoundCloud Light, Midnight, Synthwave, Forest, Nord, Nord Light, Catppuccin (Latte, Frappé, Macchiato and Mocha) and Mono. Full style makeovers that also change shapes, fonts and textures: Y2K (Windows XP and early iTunes), Glass, Neon, Pixel, Minimal, Liquid Glass, Liquid Glass Dark, Hextech, OLED (pure black), E-ink, Industrial, Frutiger Aero, Terminal, Windows 98, Vinyl, Brutalist and Album Match (the whole palette follows the playing song's artwork).
-- **Overhaul themes.** Themes that change the whole experience, not just the look: **Listening Room** turns Home into a stage with giant artwork and soft light from the cover that breathes with the music; **Pocket Quantm** is a retro handheld player with a working click wheel; **Terminal Multiplexer** is a workstation of resizable panes, an ASCII spectrum, an event log and a `:` command prompt. Motion and music-reactive lighting follow Settings → Appearance → Theme effects (Auto, On or Off) and stay off in Performance mode.
+- **Theme presets.** Color-only themes: SoundCloud Dark, SoundCloud Light, Midnight, Synthwave, Forest and Mono, plus color families with several flavors on one card: Tokyo Night (Night, Storm, Day), Rosé Pine (Main, Moon, Dawn), Gruvbox (Dark, Light), Sodium (Underpass, Blue Hour, Last Tram), Nord (Dark, Light) and Catppuccin (Latte, Frappé, Macchiato and Mocha). Full style makeovers that also change shapes, fonts and textures: Y2K (Windows XP and early iTunes), Glass, Neon, Pixel, Minimal, Liquid Glass, Liquid Glass Dark, Hextech, OLED (pure black), E-ink, Industrial, Frutiger Aero, Terminal, Windows 98, Vinyl, Brutalist, Risograph, Chrome, Rave Flyer, Blueprint, Ink Wash, LED Board, Tiling, Glitch, Vapor Mall, Felt and Album Match (the whole palette follows the playing song's artwork). The theme gallery groups them into Colors, Makeovers and Theme packs.
+- **Overhaul themes.** Themes that change the whole experience, not just the look: **Listening Room** turns Home into a stage with giant artwork and soft light from the cover that breathes with the music; **Pocket Quantm** is a retro handheld player with a working click wheel; **Terminal Multiplexer** is a workstation of resizable panes, an ASCII spectrum, an event log and a `:` command prompt. Newer theme packs react to the music, and most reshape Home: **Twin Deck** (two turntables that show Auto mix at work), **Cassette**, **Holo Card**, **Sunrise**, **Signal Route** (your queue as a transit map), **Sampler** (a pad grid of your queue), **Patchbay**, **Contour** (a terrain map unique to each song), **Spectral Ledger** (a scrolling spectrogram) and **Warehouse** (a rave spectrum wall). Themes can follow Auto mix too: the beat, the mix progress and the bass swap. Motion and music-reactive lighting follow Settings → Appearance → Theme effects (Auto, On or Off) and stay off in Performance mode.
 - **Custom themes.** Edit every color and the corner roundness, copy a theme to share it or import one, or try the random theme generator.
 - **Day and night schedule.** Switch between a day theme and a night theme automatically.
 - **See-through window.** With Liquid Glass, your desktop shows through the app, blurred, on Windows and macOS. On Windows 11 you can also try the native Acrylic or Mica styles (Settings → Appearance → Window). Drag the see-through window to a screen edge to snap it: top to maximize, sides for half the screen, corners for a quarter.
@@ -71,7 +77,8 @@ A sleek, themeable SoundCloud desktop client for Windows, macOS and Linux.
 
 **Extras**
 
-- **Discord status.** Show "Listening to Quantm" with the song, artist, artwork and a progress bar, plus a "Listen on SoundCloud" button. Needs the Discord desktop app, and you can turn it off.
+- **Discord status.** Show "Listening to Quantm" with the song, artist, artwork and a progress bar, plus a "Listen on SoundCloud" button. While nothing is playing, your status stays up as "Playing Quantm" (Browsing, or Paused and the song) with a Get Quantm button; turn that off with Settings → Playback → Discord status while not playing. Needs the Discord desktop app, and you can turn it off.
+- **Crash logs.** If Quantm crashes, Settings → About → Open crash logs shows what happened. Logs stay on your computer, and you can attach crash.log to a GitHub issue.
 - **Performance page.** Live CPU and memory readouts, Performance mode (no blur or animations), visuals paused while minimized, and a hardware acceleration switch. Light enough to leave running while you game.
 - **Remembers your setup.** Your themes and settings carry over every time you restart, and survive updates: Quantm keeps a backup and restores anything that went missing.
 - **Installers for every platform.** Windows Setup (recommended) and a portable version, plus macOS `.dmg` for Apple Silicon and Intel, and Linux AppImage and `.deb` packages.
