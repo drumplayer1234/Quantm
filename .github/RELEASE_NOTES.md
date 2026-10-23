@@ -1,5 +1,9 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.2.1
+
+- **Smoother on high refresh rate screens.** With Auto mix on, Quantm could drop frames and stutter, especially with the queue open on Liquid Glass and other glass themes. Fixed: it now does far less work per frame, and the visualizer draws at up to 60 frames a second.
+
 ## What's new in 1.2.0
 
 - **Auto mix.** Quantm can now blend your songs like a DJ. It's off by default: turn it on in Settings → Auto mix, or in Settings → Playback → Crossfade.
