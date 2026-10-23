@@ -262,6 +262,14 @@ export const PRESETS = {
     accent: '#a9d4ef', accentText: '#101820', bg: '#111418', surface: '#20262d', bar: '#171b20',
     text: '#edf1f5', muted: '#b0bcc8', wave: '#596979', wavePlayed: '#a9d4ef'
   },
+  'Cassette': {
+    accent: '#f3a15e', accentText: '#2c1b0d', bg: '#303638', surface: '#3c4446', bar: '#252c2e',
+    text: '#fff1d9', muted: '#d0c6b5', wave: '#89938f', wavePlayed: '#f3a15e'
+  },
+  'Cassette Night': {
+    accent: '#ffae73', accentText: '#28190e', bg: '#11171b', surface: '#1d282e', bar: '#151e23',
+    text: '#f7eddb', muted: '#b9c5c8', wave: '#677d86', wavePlayed: '#ffae73'
+  },
   // colors are replaced live from the playing song's artwork (appearance.js)
   'Album Match': {
     accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
@@ -322,6 +330,8 @@ export const PRESET_STYLES = {
   'Contour': 'contour',
   'Spectral Ledger': 'spectral-ledger',
   'Twin Deck': 'twin-deck',
+  'Cassette': 'cassette',
+  'Cassette Night': 'cassette',
   'Album Match': 'album'
 };
 
@@ -340,11 +350,12 @@ export const PRESET_FAMILIES = {
   'Ink Wash': { 'Paper': 'Ink Wash', 'Night': 'Ink Wash Night' },
   'LED Board': { 'Amber': 'LED Board', 'Green': 'LED Board Green', 'Red': 'LED Board Red' },
   'Risograph': { 'Light': 'Risograph', 'Night': 'Risograph Night' },
-  'Sunrise': { 'Dusk': 'Sunrise', 'Night': 'Sunrise Night' }
+  'Sunrise': { 'Dusk': 'Sunrise', 'Night': 'Sunrise Night' },
+  'Cassette': { 'Original': 'Cassette', 'Night': 'Cassette Night' }
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8, 'Rosé Pine': 10, 'Rosé Pine Moon': 10, 'Rosé Pine Dawn': 10, 'Gruvbox Dark': 4, 'Gruvbox Light': 4, 'Sodium Underpass': 8, 'Sodium Blue Hour': 8, 'Sodium Last Tram': 8, 'Tiling': 0, 'Tiling Light': 0, 'Glitch': 0, 'Vapor Mall': 12, 'Felt': 18, 'Felt Burgundy': 18, 'Blueprint': 0, 'Ink Wash': 2, 'Ink Wash Night': 2, 'LED Board': 2, 'LED Board Green': 2, 'LED Board Red': 2, 'Risograph': 2, 'Risograph Night': 2, 'Chrome': 14, 'Rave Flyer': 0, 'Sunrise': 14, 'Sunrise Night': 14, 'Contour': 8, 'Spectral Ledger': 6, 'Twin Deck': 6 };
+export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8, 'Rosé Pine': 10, 'Rosé Pine Moon': 10, 'Rosé Pine Dawn': 10, 'Gruvbox Dark': 4, 'Gruvbox Light': 4, 'Sodium Underpass': 8, 'Sodium Blue Hour': 8, 'Sodium Last Tram': 8, 'Tiling': 0, 'Tiling Light': 0, 'Glitch': 0, 'Vapor Mall': 12, 'Felt': 18, 'Felt Burgundy': 18, 'Blueprint': 0, 'Ink Wash': 2, 'Ink Wash Night': 2, 'LED Board': 2, 'LED Board Green': 2, 'LED Board Red': 2, 'Risograph': 2, 'Risograph Night': 2, 'Chrome': 14, 'Rave Flyer': 0, 'Sunrise': 14, 'Sunrise Night': 14, 'Contour': 8, 'Spectral Ledger': 6, 'Twin Deck': 6, 'Cassette': 6, 'Cassette Night': 6 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
 // window.QUANTM_LOCAL_THEMES = { presets, styles, radius, families } before this module runs
