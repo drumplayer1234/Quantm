@@ -1,0 +1,136 @@
+/* spectral-ledger: scoped surfaces keep all reading and controls on opaque colors. */
+html[data-style="spectral-ledger"] {
+  --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-display: "Segoe UI", Arial, sans-serif;
+  --border: color-mix(in srgb, var(--text) 24%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 92%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 85%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: var(--hover);
+}
+html[data-style="spectral-ledger"] body,
+html[data-style="spectral-ledger"] #app { background: var(--bg); color: var(--text); }
+html[data-style="spectral-ledger"] #view { background: transparent; }
+html[data-style="spectral-ledger"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html[data-style="spectral-ledger"] :is(.topbar, .playerbar),
+html[data-style="spectral-ledger"][data-bg] :is(.topbar, .playerbar),
+html[data-style="spectral-ledger"][data-nav="sidebar"] .nav {
+  background: var(--bar); color: var(--text); backdrop-filter: none;
+}
+html[data-style="spectral-ledger"] .logo { color: var(--accent); filter: none; }
+html[data-style="spectral-ledger"] :is(.nav-link, .settings-nav-link, .tab) { color: var(--muted); border-radius: var(--radius); }
+html[data-style="spectral-ledger"] :is(.nav-link, .settings-nav-link).active { background: var(--surface); color: var(--text); }
+html[data-style="spectral-ledger"] :is(.nav-link, .settings-nav-link, .tab):hover { background: var(--hover); color: var(--text); }
+html[data-style="spectral-ledger"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+html[data-style="spectral-ledger"] :is(.search-input, .input, textarea.input, select.input) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="spectral-ledger"] :is(.search-input, .input):focus { background: var(--surface); border-color: var(--accent); }
+html[data-style="spectral-ledger"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="spectral-ledger"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill) {
+  background: var(--surface); color: var(--text); border-radius: var(--radius);
+}
+html[data-style="spectral-ledger"] :is(.btn, .hero .btn, .icon-btn, .hero .icon-btn, .chip, .tag-pill):hover {
+  background: var(--hover); color: var(--text); filter: none;
+}
+html[data-style="spectral-ledger"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="spectral-ledger"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover {
+  background: var(--accent); color: var(--accent-text);
+}
+html[data-style="spectral-ledger"] :is(.icon-btn.active, .hero .icon-btn.active) { color: var(--accent); }
+html[data-style="spectral-ledger"] :is(.play-btn, .pb-play, .card-play) { background: var(--accent); color: var(--accent-text); box-shadow: none; }
+html[data-style="spectral-ledger"] :is(.card, .feed-card, .track-list, .track-artist, .settings-card, .hero, .login-card) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+  backdrop-filter: none;
+}
+html[data-style="spectral-ledger"] .card:hover { background: var(--surface); border-color: var(--accent); }
+html[data-style="spectral-ledger"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="spectral-ledger"] :is(.track-row, .queue-row) { background: var(--surface); border-radius: var(--radius); }
+html[data-style="spectral-ledger"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="spectral-ledger"] :is(.track-row, .queue-row).current {
+  background: var(--hover); box-shadow: inset 3px 0 0 var(--accent);
+}
+html[data-style="spectral-ledger"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="spectral-ledger"] :is(.hero-bg, .hero-bg::after) { display: none; }
+html[data-style="spectral-ledger"] :is(.hero-inner, .hero .stat, .track-hero-wave) { color: var(--text); }
+html[data-style="spectral-ledger"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="spectral-ledger"] :is(.hero-subtitle, .hero-meta, .hero-eyebrow) { color: var(--muted); }
+html[data-style="spectral-ledger"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art) { border-radius: var(--radius); }
+html[data-style="spectral-ledger"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="spectral-ledger"] .pb-track { background: var(--wave); }
+html[data-style="spectral-ledger"] .pb-fill,
+html[data-style="spectral-ledger"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); }
+html[data-style="spectral-ledger"] .pb-knob { background: var(--accent); }
+html[data-style="spectral-ledger"] .pb-visualizer { opacity: 1; filter: none; }
+html[data-style="spectral-ledger"] :is(.queue-panel, .menu, .modal, .search-suggest, .pb-hovertime, .toast) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); backdrop-filter: none; box-shadow: 0 8px 24px color-mix(in srgb, var(--bg) 45%, transparent);
+}
+html[data-style="spectral-ledger"] :is(.queue-head, .modal-head) { background: var(--bar); color: var(--text); border-bottom: 1px solid var(--border); }
+html[data-style="spectral-ledger"] :is(.queue-transition, .atp-track) { background: var(--bar); color: var(--muted); }
+html[data-style="spectral-ledger"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="spectral-ledger"] .menu-item .icon { color: inherit; }
+html[data-style="spectral-ledger"] :is(.menu-item.danger, .login-error, .toast-error) { color: var(--text); background: var(--surface); text-decoration: underline; }
+html[data-style="spectral-ledger"] .btn-danger { background: var(--text); color: var(--surface); }
+html[data-style="spectral-ledger"] .settings-switch-track { background: var(--wave); border: 1px solid var(--border); }
+html[data-style="spectral-ledger"] :is(.settings-preset, .settings-flavor) { border-radius: var(--radius); }
+html[data-style="spectral-ledger"] .settings-preset.active { border-color: var(--accent); }
+html[data-style="spectral-ledger"] .settings-flavor.active { background: var(--accent); color: var(--accent-text); }
+html[data-style="spectral-ledger"] .login { background: var(--bg); }
+html[data-style="spectral-ledger"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="spectral-ledger"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+html[data-style="spectral-ledger"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+/* Disable inherited app motion too, while still allowing an explicit "on" choice. */
+html[data-style="spectral-ledger"][data-theme-motion="off"] *,
+html[data-style="spectral-ledger"][data-theme-motion="off"] *::before,
+html[data-style="spectral-ledger"][data-theme-motion="off"] *::after,
+html[data-style="spectral-ledger"][data-perf] *,
+html[data-style="spectral-ledger"][data-hidden] * {
+  animation: none !important; transition: none !important; scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="spectral-ledger"]:not([data-theme-motion="on"]) *,
+  html[data-style="spectral-ledger"]:not([data-theme-motion="on"]) *::before,
+  html[data-style="spectral-ledger"]:not([data-theme-motion="on"]) *::after {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+}
+@media (forced-colors: active) {
+  html[data-style="spectral-ledger"] canvas { visibility: hidden; }
+}
+
+html[data-style="spectral-ledger"] { --ledger-amber: #e4af64; --ledger-ivory: #fff1d6; }
+html[data-style="spectral-ledger"] :is(.page-title, .home-greeting, .hero-title) { font-weight: 600; letter-spacing: -.03em; }
+html[data-style="spectral-ledger"] :is(.pb-time, .track-duration, .queue-duration, .queue-transition) {
+  font-family: Consolas, "Courier New", monospace; font-variant-numeric: tabular-nums;
+}
+html[data-style="spectral-ledger"] .ledger-panel {
+  background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 28px;
+}
+html[data-style="spectral-ledger"] .ledger-heading {
+  background: var(--surface); padding: 18px 22px; display: flex; flex-wrap: wrap;
+  align-items: center; justify-content: space-between; gap: 8px 20px; border-bottom: 1px solid var(--border);
+}
+html[data-style="spectral-ledger"] .ledger-heading > div { min-width: 0; flex: 1 1 220px; }
+html[data-style="spectral-ledger"] .ledger-heading h2 { font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 500; }
+html[data-style="spectral-ledger"] .ledger-current { color: var(--muted); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-style="spectral-ledger"] .ledger-status { font: 11px Consolas, "Courier New", monospace; color: var(--muted); }
+html[data-style="spectral-ledger"] .ledger-figure { margin: 0; }
+html[data-style="spectral-ledger"] .ledger-canvas { display: block; width: 100%; height: auto; pointer-events: none; }
+html[data-style="spectral-ledger"] .ledger-figure figcaption {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px;
+  padding: 12px 22px; background: var(--surface); color: var(--muted); border-block: 1px solid var(--border);
+  font: 11px/1.6 Consolas, "Courier New", monospace;
+}
+html[data-style="spectral-ledger"] .ledger-overlap { flex: 1 1 220px; overflow-wrap: anywhere; }
+html[data-style="spectral-ledger"] .ledger-log { list-style: none; margin: 0; padding: 8px 22px; background: var(--surface); }
+html[data-style="spectral-ledger"] .ledger-log li { display: flex; gap: 16px; padding: 5px 0; color: var(--text); font-size: 12px; }
+html[data-style="spectral-ledger"] .ledger-log li > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-style="spectral-ledger"] .ledger-log-time {
+  flex: none; color: var(--muted); font-family: Consolas, "Courier New", monospace; font-variant-numeric: tabular-nums;
+}
+html[data-style="spectral-ledger"] :is(.card, .feed-card, .settings-card) { box-shadow: none; }
+html[data-style="spectral-ledger"] .card { overflow: hidden; }
+html[data-style="spectral-ledger"] :is(.card-title, .card-sub) { padding-inline: 10px; }
+html[data-style="spectral-ledger"] .card-sub { padding-bottom: 10px; }
