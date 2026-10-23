@@ -21,6 +21,9 @@ export function startAutoMixCss(player) {
   let beatAt = -Infinity;
   const off = [];
   const mark = (key, value) => { if (html.dataset[key] !== value) html.dataset[key] = value; };
+  // even an unchanged value restyles the whole page when written, so only write changes
+  const written = {};
+  const setVar = (key, value) => { if (written[key] !== value) { written[key] = value; html.style.setProperty(key, value); } };
   const motion = () => html.dataset.themeMotion !== 'off' &&
     !(html.dataset.themeMotion !== 'on' && reduced?.matches);
 
@@ -30,7 +33,7 @@ export function startAutoMixCss(player) {
     mark('tempo', 'unknown');
     delete html.dataset.swap;
     if (motion() || !html.dataset.beat) mark('beat', 'a');
-    for (const key of ['--mix', '--beat', '--bpm']) html.style.setProperty(key, '0');
+    for (const key of ['--mix', '--beat', '--bpm']) setVar(key, '0');
   }
 
   function paint(now) {
@@ -56,7 +59,7 @@ export function startAutoMixCss(player) {
     }
     progress = mixing ? clamp(progress) : 0;
     mark('automix', mixing ? 'mixing' : 'on');
-    html.style.setProperty('--mix', String(progress));
+    setVar('--mix', String(Math.round(progress * 1000) / 1000));
     if (mixing) mark('swap', progress < 0.5 ? 'before' : 'after');
     else delete html.dataset.swap;
     // Match Settings' green threshold; an active controller alone does not mean in phase.
@@ -64,13 +67,13 @@ export function startAutoMixCss(player) {
       Math.abs(status.lock.errorMs) < 12 ? 'locked' : 'none');
     const rate = player.audio?.playbackRate || 1;
     const bpm = grid ? (Number.isFinite(grid.bpm) && grid.bpm > 0 ? grid.bpm : 60 / grid.period) * rate : 0;
-    html.style.setProperty('--bpm', String(bpm));
+    setVar('--bpm', String(Math.round(bpm * 10) / 10));
     mark('tempo', bpm > 0 ? 'known' : 'unknown'); // lets CSS hide a tempo readout when there's none
     const beats = grid && Number.isFinite(player.audio?.currentTime) ?
       (player.audio.currentTime - grid.offset) / grid.period : 0;
     if (BEAT_STYLES.has(html.dataset.style) || BEAT_STYLES.has(html.dataset.baseStyle)) {
-      if (beatAt === -1 || now < beatAt || now - beatAt >= BEAT_MS) { beatAt = now; html.style.setProperty('--beat', String(((beats % 1) + 1) % 1)); }
-    } else if (beatAt !== -1) { beatAt = -1; html.style.setProperty('--beat', '0'); }
+      if (beatAt === -1 || now < beatAt || now - beatAt >= BEAT_MS) { beatAt = now; setVar('--beat', String(Math.round((((beats % 1) + 1) % 1) * 1000) / 1000)); }
+    } else if (beatAt !== -1) { beatAt = -1; setVar('--beat', '0'); }
     if (motion()) mark('beat', Math.abs(Math.floor(beats) % 2) === 0 ? 'a' : 'b');
     else if (!html.dataset.beat) mark('beat', 'a');
   }

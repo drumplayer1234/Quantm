@@ -36,6 +36,7 @@ export const VISUALIZER_LIMITS = {
 };
 
 const HEX = /^#[0-9a-f]{6}$/i;
+const MIN_FRAME_MS = 1000 / 61; // draw at most ~60 times a second
 const clamp = (value, [min, max], fallback) => {
   const n = Number(value);
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
@@ -75,6 +76,7 @@ export function createVisualizer() {
   let freq = null;
   let wave = null;
   let idle = 0; // fades the bars down after pausing
+  let lastDraw = -Infinity;
   let vals = new Float32Array(64);
   let peaks = new Float32Array(64);
   let holds = new Uint8Array(64);
@@ -125,9 +127,12 @@ export function createVisualizer() {
     return root.hasAttribute('data-perf') || root.hasAttribute('data-hidden');
   };
 
-  function draw() {
+  function draw(now = performance.now()) {
     frame = null;
     if (quiet()) return; // minimized or performance mode: no drawing at all
+    // 60 fps is plenty for bars; on 120-165 Hz screens every redraw also re-blurs glass themes behind it
+    if (now - lastDraw < MIN_FRAME_MS) { frame = requestAnimationFrame(draw); return; }
+    lastDraw = now;
     const analyser = player.normalizer && player.normalizer.visual;
     if (!settings.visualizer || !analyser || !canvas.isConnected) return;
 
