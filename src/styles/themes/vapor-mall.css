@@ -1,0 +1,147 @@
+/* Vapor Mall: pastel vaporwave mall. Sunset gradient behind the top bar, a perspective grid floor under the player and queue,
+   marble-tile panels. All text sits on solid pastel panels. Auto mix: the sun pulses with --beat, the floor scrolls with --bpm. */
+
+html[data-style="vapor-mall"] {
+  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --vm-pink: #ff9fd0; --vm-peach: #ffc9a8; --vm-aqua: #8fe9e1; --vm-lav: #cdb8f5; --vm-grout: rgba(120, 90, 170, .16);
+  --vm-line: color-mix(in srgb, var(--accent) 55%, transparent);
+  --vm-p: calc(1 - var(--beat, 1)); /* 1 on the beat, decays to 0; 0 when there is no tempo */
+  --vm-dur: calc(120 / min(max(var(--bpm, 0), 60), 200) * 1s); /* one floor row per two beats */
+  --vm-marble: linear-gradient(135deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 38%, rgba(190, 160, 235, .16) 72%, rgba(255, 255, 255, .3)),
+    linear-gradient(var(--vm-grout) 1px, transparent 1px) 0 0 / 64px 64px, linear-gradient(90deg, var(--vm-grout) 1px, transparent 1px) 0 0 / 64px 64px;
+  --border: color-mix(in srgb, var(--text) 18%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 90%, var(--accent));
+  --hover-strong: color-mix(in srgb, var(--surface) 80%, var(--vm-lav));
+  --surface-2: var(--hover);
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  --shadow: 0 6px 18px rgba(120, 80, 170, .22);
+}
+html[data-style="vapor-mall"] body { background: var(--bg); }
+html[data-style="vapor-mall"] #view { background: var(--bg); }
+html[data-style="vapor-mall"] :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+html[data-style="vapor-mall"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title, .queue-head h2, .modal-head h2, .login-card h1) {
+  font-family: var(--font-display); font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+}
+html[data-style="vapor-mall"] .page-title { font-size: 26px; }
+html[data-style="vapor-mall"] :is(.shelf-title, .section-title) { font-size: 17px; }
+html[data-style="vapor-mall"] :is(.hero-title) { letter-spacing: .08em; }
+/* headings sit on a solid pastel plate, never straight on the page */
+html[data-style="vapor-mall"] :is(.page-header, .shelf-head) { background: var(--surface); border: 1px solid var(--border); border-left: 6px solid var(--accent); padding: 8px 14px; border-radius: 4px; }
+html[data-style="vapor-mall"] .section-title { background: var(--surface); padding: 6px 12px; border-radius: 4px; }
+
+/* top area: pink-to-teal sunset with a sun */
+html[data-style="vapor-mall"] .topbar, html[data-style="vapor-mall"][data-bg] .topbar {
+  background: linear-gradient(100deg, var(--vm-pink), var(--vm-peach) 38%, var(--vm-lav) 62%, var(--vm-aqua)); color: var(--text);
+  border-bottom: 2px solid #fff; box-shadow: var(--shadow); backdrop-filter: none;
+}
+html[data-style="vapor-mall"] .topbar::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none; width: 38px; height: 38px; top: 9px; right: 31%; border-radius: 50%;
+  background: repeating-linear-gradient(180deg, transparent 0 26px, rgba(205, 184, 245, .9) 26px 28px, transparent 28px 32px, rgba(205, 184, 245, .9) 32px 34px), linear-gradient(180deg, #fff3b8, #ff8fb8);
+  transform: scale(calc(1 + var(--vm-p) * .08)); opacity: .85;
+}
+html[data-style="vapor-mall"] :is(.nav-link, .settings-nav-link, .tab) { color: var(--text); font-weight: 600; letter-spacing: .04em; border-radius: 4px; }
+html[data-style="vapor-mall"] .nav-link { background: rgba(255, 255, 255, .72); }
+html[data-style="vapor-mall"] .nav-link:hover { background: #fff; }
+html[data-style="vapor-mall"] :is(.nav-link, .settings-nav-link).active { background: var(--accent); color: var(--accent-text); }
+html[data-style="vapor-mall"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="vapor-mall"] :is(.topbar .icon-btn, .logo) { background: rgba(255, 255, 255, .72); color: var(--text); border-radius: 50%; }
+html[data-style="vapor-mall"] .logo { padding: 4px; }
+html[data-style="vapor-mall"] .logo .icon { color: var(--accent); }
+html[data-style="vapor-mall"][data-nav="sidebar"] .nav, html[data-style="vapor-mall"][data-bg][data-nav="sidebar"] .nav {
+  background: var(--vm-marble), var(--bar); border-right: 2px solid #fff; backdrop-filter: none;
+}
+html[data-style="vapor-mall"][data-nav="sidebar"] .nav-link { background: transparent; }
+html[data-style="vapor-mall"][data-nav="sidebar"] .nav-link:hover { background: rgba(255, 255, 255, .8); }
+html[data-style="vapor-mall"] :is(.search-input, .input) { border: 2px solid #fff; border-radius: 999px; background: #fff; color: var(--text); box-shadow: inset 0 1px 3px rgba(120, 80, 170, .2); }
+html[data-style="vapor-mall"] .input { border-radius: 8px; border-color: var(--border); }
+html[data-style="vapor-mall"] :is(.search-input, .input):focus { background: #fff; border-color: var(--accent); }
+html[data-style="vapor-mall"] :is(.search-input, .input)::placeholder { color: var(--muted); opacity: 1; }
+
+/* marble-tile panels */
+html[data-style="vapor-mall"] :is(.card, .feed-card, .settings-card, .hero, .track-list, .track-artist, .login-card, .modal, .menu, .queue-panel, .search-suggest, .toast, .update-banner, .atp-track) {
+  background: var(--vm-marble), var(--surface); color: var(--text); border: 2px solid #fff; border-radius: 12px; box-shadow: var(--shadow);
+}
+html[data-style="vapor-mall"] .card { padding: 12px; border-color: rgba(255, 255, 255, .9); }
+html[data-style="vapor-mall"] :is(.card:hover, .card:focus-within) { background: var(--vm-marble), var(--surface); border-color: var(--accent); }
+html[data-style="vapor-mall"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="vapor-mall"] :is(.queue-head, .modal-head) { background: linear-gradient(90deg, var(--vm-pink), var(--vm-lav), var(--vm-aqua)); border-radius: 10px 10px 0 0; border-bottom: 2px solid #fff; color: var(--text); }
+html[data-style="vapor-mall"] :is(.card-art, .feed-art, .track-art, .hero-art, .atp-art) { border-radius: 8px; border: 2px solid #fff; box-shadow: 0 3px 10px rgba(120, 80, 170, .25); }
+html[data-style="vapor-mall"] :is(.card-art.round, .hero-art.round) { border-radius: 50%; }
+html[data-style="vapor-mall"] :is(.track-row, .queue-row) { border-radius: 6px; border-bottom: 1px solid var(--border); }
+html[data-style="vapor-mall"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="vapor-mall"] :is(.track-row, .queue-row).current { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--accent); }
+html[data-style="vapor-mall"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="vapor-mall"] .hero-bg { display: none; }
+html[data-style="vapor-mall"] :is(.hero-inner, .track-hero-wave, .hero .stat, .hero .icon-btn) { color: var(--text); }
+html[data-style="vapor-mall"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta) { opacity: 1; }
+html[data-style="vapor-mall"] .hero-eyebrow { letter-spacing: .22em; }
+html[data-style="vapor-mall"] .track-hero-wave { background: var(--surface); }
+
+/* buttons */
+html[data-style="vapor-mall"] :is(.btn, .hero .btn, .chip, .tag-pill) { border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--text); letter-spacing: .03em; }
+html[data-style="vapor-mall"] :is(.icon-btn, .hero .icon-btn) { color: var(--text); border-radius: 50%; }
+html[data-style="vapor-mall"] :is(.btn, .hero .btn, .chip):hover { background: var(--hover); border-color: var(--accent); color: var(--text); filter: none; }
+html[data-style="vapor-mall"] :is(.btn-primary, .hero .btn-primary, .chip.active),
+html[data-style="vapor-mall"] :is(.btn-primary, .hero .btn-primary, .chip.active):hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+html[data-style="vapor-mall"] :is(.icon-btn.active, .hero .icon-btn.active, .pb-mode.active) { color: var(--accent); }
+html[data-style="vapor-mall"] :is(.btn-danger, .menu-item.danger, .login-error, .toast-error) { background: #fff; color: #a3123a; border: 1px dashed #a3123a; }
+html[data-style="vapor-mall"] :is(.btn-outline, .btn-ghost) { background: transparent; }
+html[data-style="vapor-mall"] :is(.play-btn, .card-play, .pb-play) { background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, var(--vm-aqua))); color: var(--accent-text); border: 2px solid #fff; box-shadow: var(--shadow); }
+html[data-style="vapor-mall"] .tabs { border-bottom: 2px solid var(--vm-lav); }
+html[data-style="vapor-mall"] .tab { background: var(--surface); border-radius: 8px 8px 0 0; }
+html[data-style="vapor-mall"] .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* player bar: the grid floor is the bar's own backdrop, controls ride on solid pastel plates */
+html[data-style="vapor-mall"] .playerbar, html[data-style="vapor-mall"][data-bg] .playerbar {
+  background: linear-gradient(180deg, var(--vm-lav), var(--bar) 55%, color-mix(in srgb, var(--vm-pink) 55%, var(--bar))); color: var(--text);
+  border-top: 2px solid #fff; box-shadow: var(--shadow); backdrop-filter: none;
+}
+html[data-style="vapor-mall"][data-player="top"] .playerbar { border-top: 0; border-bottom: 2px solid #fff; }
+html[data-style="vapor-mall"] .playerbar::before, html[data-style="vapor-mall"] .queue-panel::after {
+  content: ""; position: absolute; left: -100%; right: -100%; top: 0; bottom: 0; z-index: -1; pointer-events: none;
+  transform-origin: 50% 100%; transform: perspective(70px) rotateX(52deg);
+  background: repeating-linear-gradient(90deg, var(--vm-line) 0 2px, transparent 2px 36px), repeating-linear-gradient(0deg, var(--vm-line) 0 2px, transparent 2px 24px);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 55%); mask-image: linear-gradient(180deg, transparent, #000 55%);
+}
+html[data-style="vapor-mall"] .queue-panel { overflow: hidden; }
+html[data-style="vapor-mall"] .queue-panel::after { top: auto; left: -60%; right: -60%; height: 56px; bottom: 0; z-index: 0; }
+html[data-style="vapor-mall"] .queue-list { padding-bottom: 62px; }
+html[data-style="vapor-mall"] .pb-text { background: rgba(255, 255, 255, .88); border-radius: 8px; padding: 3px 10px; }
+html[data-style="vapor-mall"] .pb-title { font-family: var(--font-display); letter-spacing: .04em; }
+html[data-style="vapor-mall"] :is(.pb-time, .pb-hovertime) { background: rgba(255, 255, 255, .88); color: var(--text); border-radius: 6px; padding: 1px 6px; min-width: 46px; }
+html[data-style="vapor-mall"] .pb-hovertime { border: 1px solid var(--border); }
+html[data-style="vapor-mall"] :is(.pb-controls, .pb-right) .icon-btn { background: rgba(255, 255, 255, .72); }
+html[data-style="vapor-mall"] .pb-track { height: 6px; border-radius: 6px; background: color-mix(in srgb, var(--wave) 80%, #fff); box-shadow: 0 0 0 2px rgba(255, 255, 255, .85); }
+html[data-style="vapor-mall"] .pb-fill, html[data-style="vapor-mall"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); border-radius: 6px; }
+html[data-style="vapor-mall"] .pb-knob { background: #fff; border: 2px solid var(--accent); }
+html[data-style="vapor-mall"] .pb-art { border-radius: 8px; border: 2px solid #fff; }
+html[data-style="vapor-mall"] .pb-visualizer { opacity: 1; filter: none; }
+
+/* menus and settings */
+html[data-style="vapor-mall"] :is(.menu-item, .suggest-item, .atp-row) { border-radius: 8px; }
+html[data-style="vapor-mall"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="vapor-mall"] .menu-item .icon { color: inherit; }
+html[data-style="vapor-mall"] .settings-preset { border: 2px solid var(--border); border-radius: 12px; }
+html[data-style="vapor-mall"] :is(.settings-preset.active, .settings-flavor[aria-pressed="true"]) { border-color: var(--accent); }
+html[data-style="vapor-mall"] .settings-switch-track { border: 1px solid var(--border); background: var(--wave); }
+html[data-style="vapor-mall"] ::-webkit-scrollbar-track { background: color-mix(in srgb, var(--bg) 85%, var(--vm-lav)); }
+html[data-style="vapor-mall"] ::-webkit-scrollbar-thumb { background: var(--vm-pink); border: 3px solid transparent; background-clip: padding-box; border-radius: 8px; }
+html[data-style="vapor-mall"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); background-clip: padding-box; }
+html[data-style="vapor-mall"] .login { background: linear-gradient(180deg, var(--vm-pink), var(--vm-lav) 55%, var(--vm-aqua)); }
+
+/* the floor scrolls only while Auto mix is running; speed follows the song's tempo */
+@keyframes vm-floor { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 24px; } }
+html[data-style="vapor-mall"]:is([data-automix="on"], [data-automix="mixing"]) .playerbar::before,
+html[data-style="vapor-mall"]:is([data-automix="on"], [data-automix="mixing"]) .queue-panel::after { animation: vm-floor var(--vm-dur) linear infinite; }
+html[data-style="vapor-mall"][data-automix="mixing"] .topbar::before { opacity: 1; }
+
+html[data-style="vapor-mall"][data-theme-motion="off"], html[data-style="vapor-mall"][data-perf] { --vm-p: 0; }
+html[data-style="vapor-mall"][data-theme-motion="off"] *, html[data-style="vapor-mall"][data-theme-motion="off"] *::before, html[data-style="vapor-mall"][data-theme-motion="off"] *::after,
+html[data-style="vapor-mall"][data-perf] *, html[data-style="vapor-mall"][data-perf] *::before, html[data-style="vapor-mall"][data-perf] *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="vapor-mall"]:not([data-theme-motion="on"]) { --vm-p: 0; }
+  html[data-style="vapor-mall"]:not([data-theme-motion="on"]) *, html[data-style="vapor-mall"]:not([data-theme-motion="on"]) *::before, html[data-style="vapor-mall"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; }
+}
+html[data-style="vapor-mall"][data-perf] .playerbar::before, html[data-style="vapor-mall"][data-perf] .queue-panel::after { display: none; }
+@media (max-width: 1100px) { html[data-style="vapor-mall"] .topbar::before { display: none; } }
