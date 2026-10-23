@@ -1,0 +1,140 @@
+/* Signal Route: numbered stations, generous cream labels and rounded routes. */
+html[data-style="signal-route"] { --sr-in: #e5b879; --sr-ink: var(--bg); --sr-paper: var(--text); }
+html[data-style="signal-route"] :is(.sr-home, .sr-browse) { min-width: 0; }
+html[data-style="signal-route"] .sr-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
+html[data-style="signal-route"] .sr-kicker { color: var(--accent); font-weight: 750; letter-spacing: .14em; font-size: 12px; margin-bottom: 8px; }
+html[data-style="signal-route"] .sr-header p + p { color: var(--muted); }
+html[data-style="signal-route"] .sr-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 24px; align-items: start; }
+html[data-style="signal-route"] :is(.sr-now, .sr-queue) { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+html[data-style="signal-route"] .sr-now { padding: clamp(20px, 3vw, 42px); }
+html[data-style="signal-route"] .sr-position { display: inline-block; padding: 7px 12px; margin-bottom: 24px; border-radius: 5px; background: var(--sr-paper); color: var(--sr-ink); font: 700 12px/1.5 Consolas, monospace; letter-spacing: .08em; }
+html[data-style="signal-route"] .sr-title { font-size: clamp(30px, 3.7vw, 54px); line-height: 1.1; overflow-wrap: anywhere; letter-spacing: -.045em; }
+html[data-style="signal-route"] .sr-artist { color: var(--muted); margin-top: 16px; font-size: 17px; }
+html[data-style="signal-route"] .sr-transport { display: flex; align-items: center; gap: 12px; margin: 30px 0 22px; }
+html[data-style="signal-route"] .sr-play { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 56px; min-width: 126px; padding: 12px 20px; border-radius: 28px; background: var(--accent); color: var(--accent-text); font-weight: 750; }
+html[data-style="signal-route"] .sr-play:hover { outline: 2px solid var(--text); outline-offset: 3px; }
+html[data-style="signal-route"] .sr-seek { width: 100%; accent-color: var(--accent); min-height: 24px; margin: 0; cursor: pointer; }
+html[data-style="signal-route"] .sr-time { display: block; color: var(--muted); font: 12px Consolas, monospace; }
+html[data-style="signal-route"] .sr-interchange { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--border); }
+html[data-style="signal-route"] .sr-interchange h2 { font-size: 16px; margin-bottom: 14px; }
+html[data-style="signal-route"] .sr-route-labels { display: grid; gap: 7px; color: var(--muted); font-size: 12px; }
+html[data-style="signal-route"] .sr-route-labels span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-style="signal-route"] .sr-route-labels span:first-child::before { content: ''; display: inline-block; width: 18px; height: 4px; margin-right: 7px; border-radius: 2px; background: var(--accent); vertical-align: middle; }
+html[data-style="signal-route"] .sr-route-labels span:last-child::before { content: ''; display: inline-block; width: 18px; height: 4px; margin-right: 7px; border-radius: 2px; background: var(--sr-in); vertical-align: middle; }
+html[data-style="signal-route"] .sr-junction { width: 100%; height: auto; display: block; max-height: 220px; }
+html[data-style="signal-route"] .sr-route { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+html[data-style="signal-route"] .sr-route.sr-in { stroke: var(--sr-in); opacity: .25; }
+html[data-style="signal-route"] [data-mixing="true"] .sr-route.sr-in { opacity: 1; }
+html[data-style="signal-route"] .sr-bass { fill: none; stroke: var(--accent); stroke-width: 9; stroke-linecap: round; opacity: .65; }
+html[data-style="signal-route"] .sr-bass-in { stroke: var(--sr-in); opacity: .12; }
+html[data-style="signal-route"] [data-swap="after"] .sr-bass-out { opacity: .12; }
+html[data-style="signal-route"] [data-swap="after"] .sr-bass-in { opacity: .65; }
+html[data-style="signal-route"][data-swap="after"] [data-mixing="true"] .sr-bass-out { opacity: .12; }
+html[data-style="signal-route"][data-swap="after"] [data-mixing="true"] .sr-bass-in { opacity: .65; }
+html[data-style="signal-route"] .sr-joint { fill: var(--surface); stroke: var(--text); stroke-width: 3; }
+html[data-style="signal-route"] .sr-marker { fill: var(--text); stroke: var(--surface); stroke-width: 3; }
+html[data-style="signal-route"] .sr-mix-label { color: var(--muted); font-size: 12px; min-height: 36px; }
+html[data-style="signal-route"] .sr-queue h2 { padding: 20px 24px; border-bottom: 1px solid var(--border); font-size: 19px; }
+html[data-style="signal-route"] .sr-count { color: var(--muted); font: 13px Consolas, monospace; float: right; margin-top: 5px; }
+html[data-style="signal-route"] .sr-map { max-height: 720px; overflow: auto; }
+html[data-style="signal-route"] .sr-stop { width: 100%; height: 80px; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; padding-right: 18px; gap: 8px; text-align: left; position: relative; color: var(--text); }
+html[data-style="signal-route"] .sr-stop:hover { background: var(--hover); }
+html[data-style="signal-route"] .sr-stop:focus-visible { outline-offset: -4px; }
+html[data-style="signal-route"] .sr-stop-line { position: absolute; left: 0; top: 0; width: 64px; height: 80px; pointer-events: none; }
+html[data-style="signal-route"] .sr-stop-line path { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+html[data-style="signal-route"] .sr-stop:first-child .sr-stop-line { clip-path: inset(50% 0 0); }
+html[data-style="signal-route"] .sr-stop:last-child .sr-stop-line { clip-path: inset(0 0 50%); }
+html[data-style="signal-route"] .sr-stop-number { position: relative; z-index: 1; width: 32px; height: 32px; margin-left: 16px; display: grid; place-items: center; border: 3px solid var(--accent); border-radius: 50%; background: var(--surface); color: var(--text); font: 700 11px Consolas, monospace; }
+html[data-style="signal-route"] .sr-stop.current .sr-stop-number { background: var(--accent); color: var(--accent-text); }
+html[data-style="signal-route"] .sr-stop.current { box-shadow: inset -3px 0 var(--accent); }
+html[data-style="signal-route"] .sr-stop-meta { display: grid; gap: 5px; min-width: 0; }
+html[data-style="signal-route"] .sr-stop-meta strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; font-size: 13px; }
+html[data-style="signal-route"] .sr-stop-meta span { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html[data-style="signal-route"] .sr-stop-duration { font: 11px Consolas, monospace; color: var(--muted); }
+html[data-style="signal-route"] .sr-empty { padding: 24px; color: var(--muted); }
+html[data-style="signal-route"] .sr-mini-route { position: absolute; top: 0; left: 0; width: 100%; height: 8px; pointer-events: none; }
+html[data-style="signal-route"] .sr-mini-route path { stroke: var(--accent); stroke-width: 2; fill: none; }
+html[data-style="signal-route"] .sr-mini-route circle { fill: var(--bar); stroke: var(--accent); stroke-width: 2; }
+html[data-style="signal-route"] .sr-mini-route circle:last-child { fill: var(--text); stroke: var(--bar); }
+html[data-style="signal-route"] .sr-browse:not([hidden]) { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--border); }
+@media (max-width: 880px) {
+  html[data-style="signal-route"] .sr-layout { grid-template-columns: minmax(0, 1fr); }
+  html[data-style="signal-route"] .sr-map { max-height: 480px; }
+}
+@media (max-width: 520px) {
+  html[data-style="signal-route"] .sr-header { align-items: start; flex-direction: column; }
+}
+/* Standalone pack makeover; all shell controls retain their base geometry. */
+html[data-style="signal-route"] {
+  --font: "Segoe UI", Arial, sans-serif;
+  --font-display: var(--font);
+  --border: color-mix(in srgb, var(--text) 26%, var(--surface));
+  --hover: color-mix(in srgb, var(--surface) 91%, var(--text));
+  --hover-strong: color-mix(in srgb, var(--surface) 80%, var(--text));
+  --surface-2: var(--hover);
+  --accent-soft: var(--hover);
+}
+html[data-style="signal-route"] body { background: var(--bg); color: var(--text); }
+html[data-style="signal-route"] #view { background: var(--bg); }
+html[data-style="signal-route"] :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html[data-style="signal-route"] :is(.topbar, .playerbar),
+html[data-style="signal-route"][data-bg] :is(.topbar, .playerbar),
+html[data-style="signal-route"][data-nav="sidebar"] .nav {
+  background: var(--bar); color: var(--text); border-color: var(--border); backdrop-filter: none;
+}
+html[data-style="signal-route"] :is(.page-title, .shelf-title, .section-title, .hero-title, .settings-card-title) { font-family: var(--font-display); }
+html[data-style="signal-route"] .logo { color: var(--accent); }
+html[data-style="signal-route"] :is(.nav-link, .settings-nav-link, .tab) { color: var(--muted); border-radius: var(--radius); }
+html[data-style="signal-route"] :is(.nav-link, .settings-nav-link).active { background: var(--accent); color: var(--accent-text); }
+html[data-style="signal-route"] .settings-nav-link.active .icon { color: inherit; }
+html[data-style="signal-route"] :is(.tab.active, .icon-btn.active) { color: var(--accent); }
+html[data-style="signal-route"] :is(.search-input, .input, select, textarea) {
+  background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="signal-route"] :is(input, textarea)::placeholder { color: var(--muted); opacity: 1; }
+html[data-style="signal-route"] :is(.btn, .icon-btn, .chip, .tag-pill) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="signal-route"] :is(.btn, .icon-btn, .chip):hover { background: var(--hover); filter: none; }
+html[data-style="signal-route"] :is(.btn-primary, .btn-primary:hover, .chip.active, .play-btn, .card-play, .pb-play) {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+}
+html[data-style="signal-route"] button:disabled { cursor: default; opacity: .6; }
+html[data-style="signal-route"] :is(.card, .feed-card, .settings-card, .login-card, .track-artist, .hero, .track-list) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="signal-route"] .card:hover { border-color: var(--accent); }
+html[data-style="signal-route"] .card:focus-within .card-play { opacity: 1; transform: none; }
+html[data-style="signal-route"] :is(.card-art, .feed-art, .track-art, .hero-art, .pb-art, .queue-art) { border-radius: var(--radius); }
+html[data-style="signal-route"] .hero-bg { display: none; }
+html[data-style="signal-route"] :is(.hero-inner, .hero .stat) { color: var(--text); }
+html[data-style="signal-route"] :is(.hero-eyebrow, .hero-subtitle, .hero-meta, .queue-transition) { opacity: 1; }
+html[data-style="signal-route"] :is(.track-row, .queue-row) { border-radius: var(--radius); border-bottom: 1px solid var(--border); }
+html[data-style="signal-route"] :is(.track-row, .queue-row):hover { background: var(--hover); }
+html[data-style="signal-route"] :is(.track-row, .queue-row).current { background: var(--surface); box-shadow: inset 3px 0 var(--accent); }
+html[data-style="signal-route"] .queue-row.past { opacity: 1; }
+html[data-style="signal-route"] :is(.track-row.current .track-title, .queue-row.current .queue-title) { color: var(--accent); }
+html[data-style="signal-route"] .pb-track { background: var(--wave); }
+html[data-style="signal-route"] .pb-fill,
+html[data-style="signal-route"] :is(.pb-progress:hover, .pb-progress.dragging, .pb-volume:hover) .pb-fill { background: var(--wave-played); }
+html[data-style="signal-route"] .pb-knob { background: var(--accent); }
+html[data-style="signal-route"] :is(.queue-panel, .menu, .modal, .search-suggest, .pb-hovertime, .toast) {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
+}
+html[data-style="signal-route"] :is(.menu-item, .suggest-item, .atp-row):hover { background: var(--hover); color: var(--text); }
+html[data-style="signal-route"] :is(.queue-head, .modal-head) { border-bottom: 1px solid var(--border); background: var(--bar); }
+html[data-style="signal-route"] .settings-preset { border-color: var(--border); border-radius: var(--radius); }
+html[data-style="signal-route"] :is(.settings-preset.active, .settings-flavor.active) { border-color: var(--accent); }
+html[data-style="signal-route"] .settings-switch-track { background: var(--wave); border: 1px solid var(--border); }
+html[data-style="signal-route"] .login { background: var(--bg); }
+html[data-style="signal-route"] ::-webkit-scrollbar-track { background: var(--bg); }
+html[data-style="signal-route"] ::-webkit-scrollbar-thumb { background: var(--muted); border: 3px solid var(--bg); border-radius: var(--radius); }
+html[data-style="signal-route"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+html[data-style="signal-route"][data-theme-motion="off"] *,
+html[data-style="signal-route"][data-theme-motion="off"] *::before,
+html[data-style="signal-route"][data-theme-motion="off"] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-style="signal-route"]:not([data-theme-motion="on"]) *,
+  html[data-style="signal-route"]:not([data-theme-motion="on"]) *::before,
+  html[data-style="signal-route"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

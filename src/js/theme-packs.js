@@ -4,6 +4,7 @@ export const PACKS = {
   'pocket': { layout: 'device', load: () => import('./packs/pocket.js') },
   'tmux': { layout: 'panes', base: 'terminal', load: () => import('./packs/tmux.js') },
   'listening-room': { layout: 'stage', load: () => import('./packs/listening-room.js') },
+  'signal-route': { layout: 'signal-route', load: () => import('./packs/signal-route.js') },
   'holo-card': { load: () => import('./packs/holo-card.js') },
   'cassette': { load: () => import('./packs/cassette.js') },
   'twin-deck': { layout: 'twin-deck', load: () => import('./packs/twin-deck.js') },
