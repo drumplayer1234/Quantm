@@ -69,6 +69,10 @@ html[data-style="tmux"] .tmux-command { flex: 1; min-width: 0; background: var(-
 html[data-style="tmux"] .tmux-command::placeholder { color: var(--muted); opacity: 1; }
 html[data-style="tmux"] .tmux-prompt .btn { padding: 6px 10px; font-size: 11px; }
 html[data-style="tmux"] .tmux-shell [hidden] { display: none; }
+/* Keep the workspace, command prompt and status line in the desktop column. */
+html[data-style="tmux"][data-side-player] { --player-h: 0px; }
+html[data-style="tmux"][data-side-player] #view { margin-right: var(--side-w); }
+html[data-style="tmux"][data-side-player] .tmux-shell { right: var(--side-w); }
 @media (max-width: 1100px) {
   html[data-style="tmux"] .tmux-windows { gap: 6px; }
   html[data-style="tmux"] .tmux-status { gap: 8px; }

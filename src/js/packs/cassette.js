@@ -57,7 +57,8 @@ function renderHome(container, ctx, motion) {
         h('div.cassette-console', h('div.cassette-meters', left.node, right.node),
           h('div.cassette-keys', { 'aria-hidden': 'true' },
             ...['●', '◀◀', '▶', '▶▶', '■', 'Ⅱ'].map((key, i) => h(`span.cassette-key${i === 0 ? '.cassette-key-record' : ''}`, key)))),
-        h('p.cassette-control-note', 'Transport controls are in the player bar.')),
+        h('p.cassette-control-note', h('span.cassette-transport-bar', 'Transport controls are in the player bar.'),
+          h('span.cassette-transport-side', 'Transport controls are in the Now playing panel on the right.'))),
       h('div.cassette-caption', title, artist, h('div.cassette-time', elapsed, h('span', '/'), total), actions), mixLabel),
     h('aside.cassette-queue', { 'aria-label': 'Play queue' },
       h('div.cassette-queue-heading', h('h2', 'The next side'), h('span.cassette-eyebrow', 'J-CARD INDEX')), queue)), browse);

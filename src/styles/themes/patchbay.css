@@ -136,3 +136,7 @@ html[data-style="patchbay"][data-theme-motion="off"] *::after { animation: none 
   html[data-style="patchbay"]:not([data-theme-motion="on"]) *::before,
   html[data-style="patchbay"]:not([data-theme-motion="on"]) *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+/* CSS swaps the transport hint live as the side panel docks and undocks. */
+html[data-style="patchbay"] .px-transport-side { display: none; }
+html[data-style="patchbay"][data-side-player] .px-transport-bar { display: none; }
+html[data-style="patchbay"][data-side-player] .px-transport-side { display: inline; }

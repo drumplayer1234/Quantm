@@ -69,7 +69,9 @@ function home(container, ctx) {
       h('div.px-source-labels', h('div', h('h2', 'A / Current route'), from), h('div', h('h2', 'B / Incoming route'), incoming)), mixText),
     h('section.px-transport-panel', { 'aria-label': 'Current track' },
       h('p.px-kicker', 'TRANSPORT'), current, by, h('div.px-controls', prev, play, next),
-      h('p.px-note', 'Sockets show the live routing. Playback controls are below.'))),
+      h('p.px-note', 'Sockets show the live routing. ',
+        h('span.px-transport-bar', 'Playback controls are below.'),
+        h('span.px-transport-side', 'Playback controls are in the Now playing panel on the right.')))),
     h('section.px-queue', { 'aria-label': 'Queue' }, h('h2', 'Queued signals'), queueList), browse);
   container.append(node);
   let lastPlay = '';

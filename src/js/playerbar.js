@@ -105,8 +105,8 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   // --- side layout ------------------------------------------------------------
   // The "Side" player position moves these very same control elements (same listeners, same
   // state) into a docked panel, so every theme's .pb-* styling still applies. Under
-  // SIDE_MIN_WIDTH, or in theme layouts that rebuild the screen (html[data-layout]), the normal
-  // bar stays. CSS keys off html[data-side-player], which is only set while the panel is shown.
+  // SIDE_MIN_WIDTH the normal bar stays (in every theme, including ones with their own layout).
+  // CSS keys off html[data-side-player], which is only set while the panel is shown.
   const SIDE_MIN_WIDTH = 980;
   const repostSlot = h('div.side-repost');
   const slots = {
@@ -131,7 +131,7 @@ export function mountPlayerBar(root, { offline = false } = {}) {
   let docked = false; // are the controls living in the side panel right now?
   const sideWanted = () => {
     const html = document.documentElement;
-    return html.dataset.player === 'side' && !html.dataset.layout && window.innerWidth >= SIDE_MIN_WIDTH;
+    return html.dataset.player === 'side' && window.innerWidth >= SIDE_MIN_WIDTH;
   };
   const dockSide = () => {
     slots.art.append(art);

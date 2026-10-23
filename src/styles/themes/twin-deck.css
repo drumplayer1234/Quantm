@@ -230,3 +230,7 @@ html[data-style="twin-deck"][data-hidden] * {
   html[data-style="twin-deck"] :is(.td-phase-ring, .td-bpm, .td-knob, .td-crossfader-rail, .td-crate-track) { border-color: CanvasText; }
   html[data-style="twin-deck"] .td-crate-track[aria-current="true"] { outline: 2px solid Highlight; }
 }
+/* CSS swaps the transport hint live as the side panel docks and undocks. */
+html[data-style="twin-deck"] .td-transport-side { display: none; }
+html[data-style="twin-deck"][data-side-player] .td-transport-bar { display: none; }
+html[data-style="twin-deck"][data-side-player] .td-transport-side { display: inline; }

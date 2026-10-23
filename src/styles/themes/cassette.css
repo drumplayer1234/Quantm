@@ -164,3 +164,7 @@ html[data-style="cassette"][data-perf] .cassette-machine { box-shadow: none; }
   html[data-style="cassette"] .cassette-shell { border-color: CanvasText; }
   html[data-style="cassette"] .cassette-jcard { border: 1px solid ButtonText; box-shadow: none; }
 }
+/* CSS swaps the transport hint live as the side panel docks and undocks. */
+html[data-style="cassette"] .cassette-transport-side { display: none; }
+html[data-style="cassette"][data-side-player] .cassette-transport-bar { display: none; }
+html[data-style="cassette"][data-side-player] .cassette-transport-side { display: inline; }

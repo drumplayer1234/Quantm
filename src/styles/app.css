@@ -632,8 +632,8 @@ a.stat:hover { color: var(--text); }
 /* --- player on the side ---------------------------------------------------------
    playerbar.js builds an <aside class="playerbar side"> and moves the player's controls into it.
    It sets html[data-side-player] only while that panel is really shown: the setting is "Side",
-   the window is at least 980px wide and no theme layout (html[data-layout]) has taken over the
-   screen. Otherwise the normal bar stays, so nothing here applies. --player-h drops to 0 so the
+   and the window is at least 980px wide (in every theme, layouts included; a theme with its own
+   layout adapts to html[data-side-player] in its stylesheet). Otherwise the normal bar stays, so nothing here applies. --player-h drops to 0 so the
    sidebar nav, toasts and queue panel use the full height. */
 .playerbar.side { display: none; }
 .playerbar.side[hidden] { display: none !important; }
@@ -695,6 +695,13 @@ html[data-side-player] #app > aside.playerbar.side {
 .playerbar.side .side-description.clamped { -webkit-line-clamp: 4; }
 .playerbar.side .side-more { margin-top: 4px; color: var(--muted); font-weight: 600; font-size: 12px; }
 .playerbar.side .side-more:hover { color: var(--text); }
+/* themes decorate the bar's edges with ::before / ::after (tempo stickers, floor grids, status lamps,
+   notches, torn edges) placed for a short horizontal bar: they have no place on the tall panel.
+   The full-panel Glitch scanlines and Ink Wash sweep still work, so those two stay. */
+html[data-side-player]:not([data-style="glitch"], [data-style="ink-wash"]) #app > aside.playerbar.side::before,
+html[data-side-player]:not([data-style="glitch"], [data-style="ink-wash"]) #app > aside.playerbar.side::after { display: none !important; }
+/* a few themes add their own "#" to tag pills; the panel's chips already include it */
+html[data-side-player] .playerbar.side .side-tags .tag-pill::before { content: none; }
 .playerbar.side .side-label { margin-bottom: 6px; font: 700 11px/1.2 var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .playerbar.side .side-next-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px; border-radius: var(--radius); text-align: left; }
 .playerbar.side .side-next-row:hover, .playerbar.side .side-next-row:focus-visible { background: var(--hover); }

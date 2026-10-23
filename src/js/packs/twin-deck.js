@@ -94,7 +94,9 @@ function renderConsole(container, ctx) {
   const consoleNode = h('section.td-console', { 'aria-label': 'Twin Deck mixing console' },
     h('header.td-console-head', h('span.td-caption', 'TWO CHANNEL / BEAT MATCHED'), status),
     h('div.td-decks', deckA.node, mixer, deckB.node),
-    h('footer.td-console-foot', h('span', 'A / RED'), h('span', 'TRANSPORT IN THE PLAYER BAR'), h('span', 'B / BLUE')));
+    h('footer.td-console-foot', h('span', 'A / RED'),
+      h('span', h('span.td-transport-bar', 'TRANSPORT IN THE PLAYER BAR'),
+        h('span.td-transport-side', 'CONTROLS IN NOW PLAYING ON THE RIGHT')), h('span', 'B / BLUE')));
   container.classList.add('td-home');
   const workstation = h('div.td-workstation',
     h('header.td-page-head', h('div', h('p.td-eyebrow', 'THE HOME SESSION'), h('h1.td-heading', 'Twin Deck'),
