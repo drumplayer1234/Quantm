@@ -134,6 +134,18 @@ export const PRESETS = {
     accent: '#85efa1', accentText: '#061009', bg: '#060c08', surface: '#101e14', bar: '#0b150e',
     text: '#d4f7dc', muted: '#a1bda7', wave: '#497855', wavePlayed: '#efc478'
   },
+  'Tokyo Night': {
+    accent: '#7aa2f7', accentText: '#1a1b26', bg: '#1a1b26', surface: '#1f2233', bar: '#1c1e2d',
+    text: '#c0caf5', muted: '#9aa5ce', wave: '#3b4261', wavePlayed: '#bb9af7'
+  },
+  'Tokyo Night Storm': {
+    accent: '#7aa2f7', accentText: '#1f2335', bg: '#24283b', surface: '#2a2f45', bar: '#272b3e',
+    text: '#c0caf5', muted: '#9aa5ce', wave: '#414868', wavePlayed: '#bb9af7'
+  },
+  'Tokyo Night Day': {
+    accent: '#2a70d6', accentText: '#ffffff', bg: '#e1e2e7', surface: '#eff0f5', bar: '#e8e9ee',
+    text: '#2a3a6b', muted: '#4c5a8a', wave: '#a8aecb', wavePlayed: '#9854f1'
+  },
   // colors are replaced live from the playing song's artwork (appearance.js)
   'Album Match': {
     accent: '#ff5500', accentText: '#ffffff', bg: '#121212', surface: '#1e1e1e', bar: '#181818',
@@ -181,11 +193,12 @@ export const PRESET_FAMILIES = {
   'SoundCloud': { 'Dark': 'SoundCloud Dark', 'Light': 'SoundCloud Light' },
   'Nord': { 'Dark': 'Nord', 'Light': 'Nord Light' },
   'Catppuccin': { 'Latte': 'Catppuccin Latte', 'Frappé': 'Catppuccin Frappé', 'Macchiato': 'Catppuccin Macchiato', 'Mocha': 'Catppuccin Mocha' },
-  'Liquid Glass': { 'Light': 'Liquid Glass', 'Dark': 'Liquid Glass Dark' }
+  'Liquid Glass': { 'Light': 'Liquid Glass', 'Dark': 'Liquid Glass Dark' },
+  'Tokyo Night': { 'Night': 'Tokyo Night', 'Storm': 'Tokyo Night Storm', 'Day': 'Tokyo Night Day' }
 };
 
 /** Corner roundness each style preset looks best with (others keep the user's value) */
-export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0 };
+export const PRESET_RADIUS = { 'Terminal Multiplexer': 0, 'Pocket Quantm': 14, 'Listening Room': 18, 'Y2K': 3, 'Glass': 16, 'Neon': 4, 'Pixel': 0, 'Minimal': 6, 'Liquid Glass': 22, 'Liquid Glass Dark': 22, 'Hextech': 2, 'OLED': 8, 'E-ink': 0, 'Industrial': 2, 'Album Match': 14, 'Frutiger Aero': 20, 'Terminal': 0, 'Windows 98': 0, 'Vinyl': 3, 'Brutalist': 0, 'Tokyo Night': 8, 'Tokyo Night Storm': 8, 'Tokyo Night Day': 8 };
 
 // Personal themes kept out of the repository: js/local-themes.js (git-ignored) may define
 // window.QUANTM_LOCAL_THEMES = { presets, styles, radius, families } before this module runs
