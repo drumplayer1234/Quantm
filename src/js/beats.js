@@ -1,6 +1,110 @@
 /** Frames per second of the resampled energy envelope. */
 export const FRAME_RATE = 100;
 
+/** Metadata chooses a tempo octave, never a tempo without audio evidence. */
+export function tempoOptions(track, bpm = null) {
+  const text = [track?.genre, track?.title, track?.tag_list, ...(track?.tags || [])].join(' ');
+  const preferred = /\bd\s*'?n'?\s*b\b|drum\s*(?:and|&|n|\/)?\s*bass|jungle/i.test(text) ? [160, 190] :
+    /hardstyle|hardcore/i.test(text) ? [140, 200] :
+      /dubstep|ridd?im|riddm/i.test(text) ? [130, 160] :
+        /house|techno|trance|disco|\bedm\b/i.test(text) ? [110, 160] : null;
+  const explicit = track?.bpm || Number(text.match(/\b(\d{2,3}(?:\.\d+)?)\s*bpm\b/i)?.[1]);
+  // Audio memory resolves the octave even when service metadata says half-time.
+  const reference = bpm > 0 ? bpm : explicit >= 40 && explicit <= 250 ? explicit : null;
+  const options = preferred ? { preferred, maxBpm: 200 } : {};
+  if (reference > 0) options.bpm = orientGrid({ period: 60 / reference, offset: 0 }, options).bpm;
+  return options;
+}
+
+/** Keep a phrase/downbeat anchor when interpreting a half/double-time reading. */
+export function orientGrid(grid, opts = {}) {
+  if (!grid || !(grid.period > 0)) return grid;
+  const bpm = 60 / grid.period, choices = [bpm, bpm * 2, bpm / 2].filter(b => b >= 40 && b <= 250);
+  let chosen = bpm;
+  if (opts.bpm > 0) chosen = choices.reduce((a, b) => Math.abs(Math.log(b / opts.bpm)) < Math.abs(Math.log(a / opts.bpm)) ? b : a, bpm);
+  else if (opts.preferred && (bpm < opts.preferred[0] - 0.5 || bpm > opts.preferred[1] + 0.5)) {
+    chosen = choices.find(b => b >= opts.preferred[0] - 0.5 && b <= opts.preferred[1] + 0.5) ?? bpm;
+  }
+  if (chosen === bpm) return { ...grid, bpm: grid.bpm || bpm };
+  return { ...grid, bpm: chosen, period: 60 / chosen, offset: grid.downbeat ?? grid.offset };
+}
+
+/** Confirm a waveform hint using real kick energy and a local beat grid. */
+export function confirmDrop(samples, candidate, hint = null) {
+  const result = inspectDrop(samples, candidate, hint);
+  return result.drop ? { drop: result.drop, grid: result.grid } : null;
+}
+
+/** Diagnostics are also shown in the live mix log, including failed confirmations. */
+export function inspectDrop(samples, candidate, hint = null) {
+  const reject = (reason, confidence = 0, grid = null) => ({ drop: null, confidence, reason, grid });
+  if (!Number.isFinite(candidate?.time) || !Array.isArray(samples)) return reject('invalid candidate');
+  const tolerance = Math.min(3, Math.max(0.5, candidate.uncertainty || 0.5));
+  const after = samples.filter(s => s.t >= candidate.time + tolerance && s.t <= candidate.time + 12);
+  const grid = analyze(after, hint || {});
+  if (!(grid?.confidence >= 0.35)) return reject('no steady beat after the return', grid?.confidence || 0, grid);
+  // Only a verified phrase origin constrains the edge. A waveform hint establishes
+  // a local phrase; its coarse timestamp must still snap to an audible beat.
+  const anchored = Number.isFinite(hint?.downbeat);
+  const origin = anchored ? grid.offset + Math.round((hint.downbeat - grid.offset) / grid.period) * grid.period : grid.offset;
+  const stride = grid.period * (anchored ? 32 : 1);
+  let best = null;
+  for (let time = origin + Math.ceil((candidate.time - tolerance - origin) / stride) * stride;
+    time <= candidate.time + tolerance; time += stride) {
+    const drop = detectDrop(samples, { ...grid, downbeat: time }, 0.1);
+    if (!drop || Math.abs(drop.time - time) >= 0.01) continue;
+    if (!best || drop.confidence > best.drop.confidence) best = { drop, grid: { ...grid, downbeat: time } };
+  }
+  return best ? { ...best, confidence: best.drop.confidence, reason: 'sustained bass return on the beat' } :
+    reject('no sustained bass contrast at the candidate (or incomplete audio coverage)', grid.confidence * 0.5, grid);
+}
+
+/** A sustained bass return after a thin build, snapped to an eight-bar phrase. Missing coverage never counts as quiet. */
+export function detectDrop(samples, grid, step = 0.1) {
+  if (!Array.isArray(samples) || samples.length > 1000000 || !(grid?.confidence >= 0.35) ||
+      !(grid.period >= 0.1 && grid.period <= 3) || !Number.isFinite(grid.offset) || !(step >= 0.01 && step <= 1)) return null;
+  const bins = new Map();
+  for (const s of samples) {
+    if (!Number.isFinite(s?.t) || s.t < 0 || s.t > 86400 || !Number.isFinite(s.v) || s.v < 0) continue;
+    const key = Math.round(s.t / step);
+    const bin = bins.get(key) || { sum: 0, n: 0 };
+    bin.sum += s.v; bin.n++;
+    bins.set(key, bin);
+  }
+  if (!bins.size) return null;
+  const keys = [...bins.keys()];
+  const first = keys.reduce((a, b) => Math.min(a, b), Infinity), last = keys.reduce((a, b) => Math.max(a, b), -Infinity);
+  const mean = (from, to) => {
+    let total = 0, count = 0;
+    const a = Math.ceil(from / step), b = Math.ceil(to / step);
+    for (let i = a; i < b; i++) {
+      const bin = bins.get(i);
+      if (bin) { total += bin.sum / bin.n; count++; }
+    }
+    return count >= (b - a) * 0.95 ? total / count : null;
+  };
+  const beat = grid.period, origin = grid.downbeat ?? grid.offset, phrase = beat * 32;
+  let best = null;
+  for (let time = origin + Math.ceil((first * step + Math.min(4, 16 * beat) - origin) / phrase) * phrase;
+    time + Math.max(8, 8 * beat) <= (last + 1) * step; time += phrase) {
+    const before = mean(time - Math.min(4, 16 * beat), time - step);
+    const after = mean(time, time + Math.max(8, 8 * beat));
+    if (before === null || after === null || after < 1e-7 || after < before * 1.5) continue;
+    // Every part of the full return must carry bass, including the later seconds.
+    const span = Math.max(8, 8 * beat);
+    const bars = [0, 1, 2, 3].map(i => mean(time + i * span / 4, time + (i + 1) * span / 4));
+    if (bars.some(value => value === null || value < after * 0.65 || value < before * 1.35)) continue;
+    // Check the actual edge too, so a slowly growing section isn't mislabeled as a drop.
+    const edgeBefore = mean(time - 2 * beat, time - step), edgeAfter = mean(time, time + 2 * beat);
+    if (edgeBefore === null || edgeAfter === null || edgeAfter < edgeBefore * 1.45) continue;
+    const hit = mean(time, time + beat / 2);
+    if (hit === null || hit < after * 0.5 || hit < before * 1.35) continue;
+    const confidence = Math.min(1, 0.5 * Math.min(1, grid.confidence / 0.6) + 0.5 * Math.min(1, (1 - before / after) / 0.5));
+    if (!best || confidence > best.confidence) best = { time, confidence };
+  }
+  return best;
+}
+
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const wrap = value => ((value % 1) + 1) % 1;
 const series = values => Array.isArray(values) || (ArrayBuffer.isView(values) && typeof values.length === 'number');
@@ -70,7 +174,7 @@ export function estimateTempo(onsets, frameRate = FRAME_RATE, opts = {}) {
   const minBpm = opts.minBpm ?? 70, maxBpm = opts.maxBpm ?? 180;
   if (!positive(minBpm) || !positive(maxBpm) || minBpm > maxBpm) return null;
   const preferred = Array.isArray(opts.preferred) && positive(opts.preferred[0]) &&
-    positive(opts.preferred[1]) && opts.preferred[0] <= opts.preferred[1] ? opts.preferred : [85, 175];
+    positive(opts.preferred[1]) && opts.preferred[0] <= opts.preferred[1] ? opts.preferred : [85, 180];
   const length = onsets.length;
   const low = Math.max(2, Math.floor(60 * frameRate / maxBpm));
   const high = Math.min(Math.ceil(60 * frameRate / minBpm), Math.floor(length / 2) - 1);
@@ -167,8 +271,8 @@ export function estimateTempo(onsets, frameRate = FRAME_RATE, opts = {}) {
   let bpm = fit.bpm;
   // A sparse half-time kick can still define a double-time grid.
   for (const alternative of [bpm * 2, bpm / 2]) {
-    if ((bpm < preferred[0] || bpm > preferred[1]) && alternative >= preferred[0] &&
-        alternative <= preferred[1] && alternative >= minBpm && alternative <= maxBpm) bpm = alternative;
+    if ((bpm < preferred[0] - 0.5 || bpm > preferred[1] + 0.5) && alternative >= preferred[0] - 0.5 &&
+        alternative <= preferred[1] + 0.5 && alternative >= minBpm && alternative <= maxBpm) bpm = alternative;
   }
   bpm = clamp(bpm, minBpm, maxBpm);
   return { bpm, confidence: clamp((strength / count - 0.15) / 0.75, 0, 1) };

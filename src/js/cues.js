@@ -115,12 +115,13 @@ export function setPair(fromId, toId, value) {
   const key = pairKey(fromId, toId);
   if (!value) delete data.pairs[key];
   else {
-    const fade = Number(value.fade);
+    const fade = value.fade == null ? NaN : Number(value.fade);
     data.pairs[key] = {
       out: value.out == null ? null : time(value.out),
       in: value.in == null ? null : time(value.in),
       fade: Number.isFinite(fade) ? Math.min(20, Math.max(0, fade)) : null
     };
+    if (['auto', 'blend', 'dropcut'].includes(value.style)) data.pairs[key].style = value.style;
   }
   persist(fromId);
 }
@@ -138,10 +139,11 @@ export function transitionFor(fromId, toId, crossfadeSeconds = 0, defaultFade = 
   const pair = toId == null ? null : getPair(fromId, toId);
   const out = pair && pair.out != null ? pair.out : a.mixOut;
   const into = pair && pair.in != null ? pair.in : b.mixIn;
-  const custom = out != null || into != null || !!pair;
+  const custom = out != null || into != null || pair?.fade != null;
   let fade = pair && pair.fade != null ? pair.fade : crossfadeSeconds;
   if (custom && !(pair && pair.fade != null) && !crossfadeSeconds) fade = defaultFade;
-  return { out: out == null ? null : out, in: into == null ? 0 : into, fade, custom };
+  return { out: out == null ? null : out, in: into == null ? 0 : into, fade, custom,
+    ...(pair?.style ? { style: pair.style } : {}) };
 }
 
 /** For tests: forget everything held in memory and storage */

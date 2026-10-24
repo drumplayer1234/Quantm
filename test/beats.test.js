@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { FRAME_RATE, resample, onsetStrength, estimateTempo, analyze, beatPhase, nextBeat,
-  phaseError, tempoRatio } from '../src/js/beats.js';
+  phaseError, tempoRatio, tempoOptions, orientGrid } from '../src/js/beats.js';
 
 function random(seed = 12345) {
   return () => {
@@ -232,4 +232,32 @@ test('a known tempo (opts.bpm) fixes a misread and still finds the beat', () => 
   const beats = (grid.offset - 30) / grid.period;
   assert.ok(Math.abs(beats - Math.round(beats)) * grid.period < 0.012, `offset ${grid.offset}`);
   assert.equal(analyze(Array.from({ length: 900 }, (_, i) => ({ t: i / 100, v: 0, h: 0 })), { bpm: 120 }), null);
+});
+
+test('readings at the 175 BPM preference boundary keep the same octave', () => {
+  for (const bpm of [174.9, 175, 175.1, 175.4]) checkGrid(analyze(track(bpm).samples), track(bpm), bpm);
+});
+
+test('DnB metadata selects the fast octave of syncopated or half-time audio', () => {
+  for (const genre of ['DnB', 'Drum & Bass', 'Drum and Bass', 'Jungle']) {
+    const opts = tempoOptions({ genre });
+    const grid = analyze(breakbeat(174), opts);
+    close(grid.bpm, 174, 0.3);
+    const half = { bpm: 87.5, period: 60 / 87.5, offset: 0.1, downbeat: 52, confidence: 0.8 };
+    const full = orientGrid(half, opts);
+    assert.equal(full.bpm, 175);
+    assert.equal(full.offset, 52);
+    assert.equal(tempoOptions({ genre }, 87.5).bpm, 175);
+  }
+  assert.equal(orientGrid({ bpm: 87.5, period: 60 / 87.5, offset: 0.1 }, { bpm: 175 }).bpm, 175,
+    'confirmed beat spacing resolves the octave even without genre metadata');
+});
+
+test('audio memory takes octave precedence over half-time service BPM metadata', () => {
+  const opts = tempoOptions({ title: 'Ray Keith - Renegade', bpm: 87.3 }, 174.7);
+  assert.equal(opts.bpm, 174.7);
+  const grid = orientGrid({ bpm: 87.35, period: 60 / 87.35, offset: 0.2, downbeat: 32, confidence: 0.8 }, opts);
+  close(grid.bpm, 174.7, 1e-9);
+  assert.equal(grid.offset, 32);
+  assert.equal(tempoOptions({ bpm: 87.3 }).bpm, 87.3, 'metadata remains useful without audio memory');
 });

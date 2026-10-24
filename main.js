@@ -45,6 +45,8 @@ app.setAppUserModelId(APP_ID);
 // app id. Without this entry it shows the raw id ("app.quantm.desktop").
 function registerNotificationIdentity() {
   if (process.platform !== 'win32') return;
+  // a QUANTM_PROFILE test copy must not repoint the real app's notification icon at its own folder
+  if (process.env.QUANTM_PROFILE && !app.isPackaged) return;
   try {
     const iconPath = path.join(app.getPath('userData'), 'notification-icon.png');
     fs.mkdirSync(path.dirname(iconPath), { recursive: true });

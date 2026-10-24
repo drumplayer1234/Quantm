@@ -1,10 +1,48 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyze } from '../src/js/beats.js';
-import { createListener, fromWaveform, get, learn, count, reset } from '../src/js/mixmemory.js';
+import { analyze, tempoOptions } from '../src/js/beats.js';
+import { createListener, fromWaveform, get, learn, rememberDrop, count, reset } from '../src/js/mixmemory.js';
 import { installBrowser } from './helpers/browser.js';
 
 installBrowser();
+
+test('confirmed drop spacing keeps memory and later half-time analysis in the same octave', () => {
+  reset();
+  const grid = { bpm: 175, period: 60 / 175, offset: 0.1, downbeat: 52, confidence: 0.8 };
+  rememberDrop('acid', { grid, drop: { time: 52, confidence: 1 } });
+  learn('acid', { grid: { ...grid, bpm: 87.5, period: 120 / 175 }, heardFrom: 0, heardTo: 220 });
+  close(get('acid').bpm, 175, 0.02);
+  assert.equal(get('acid').drop.time, 52);
+  const opts = tempoOptions({ genre: 'Drum & Bass' });
+  learn('ray', { grid: { ...grid, bpm: 87.4, period: 60 / 87.4 } });
+  close(get('ray', opts).bpm, 174.8, 0.02, 'existing half-time memory is corrected at read time');
+  learn('ray', { grid: { ...grid, bpm: 87.4, period: 60 / 87.4 } }, opts);
+  close(get('ray').bpm, 174.8, 0.02, 'next play persists the corrected octave');
+  const summary = feed(createListener(opts), song({ bpm: 87.4, intro: 0, outro: 60, duration: 60 }).samples).summary(60);
+  close(summary.grid.bpm, 174.8, 0.1);
+});
+
+test('playback envelopes learn a phrase drop and persistent memory retains it across partial plays', () => {
+  reset();
+  const samples = Array.from({ length: 6000 }, (_, i) => {
+    const t = i / 100, thin = t >= 24 && t < 32;
+    const pulse = Math.exp(-(((t - 0.1) % 0.5 + 0.5) % 0.5) / 0.04);
+    return { t, v: (thin ? 0.02 : 1) * pulse + 0.0001, h: pulse * 0.3, f: pulse + 0.1 };
+  });
+  const summary = feed(createListener(), samples).summary(60);
+  assert.ok(summary.drop, 'whole-play profile should find the bass return');
+  close(summary.drop.time, 32.1, 0.15);
+  assert.ok(summary.drop.confidence >= 0.7);
+  learn('drop', summary);
+  const remembered = get('drop');
+  close(remembered.drop.time, summary.drop.time, 0.001);
+  assert.ok(remembered.downbeat >= 0);
+  learn('drop', { grid: null, heardFrom: 0, heardTo: 4 });
+  assert.deepEqual(get('drop').drop, remembered.drop);
+  const copy = get('drop');
+  copy.drop.time = 1000;
+  assert.deepEqual(get('drop').drop, remembered.drop);
+});
 
 function random(seed = 12345) {
   return () => {
@@ -253,7 +291,7 @@ test('invalid inputs, malformed storage, and storage access errors never throw',
     const listener = createListener();
     assert.doesNotThrow(() => listener.add(input));
     assert.equal(listener.summary(input), null);
-    assert.deepEqual(fromWaveform(input, 88), { drumsIn: null, outroStart: null });
+    assert.deepEqual(fromWaveform(input, 88), { drumsIn: null, outroStart: null, dropCandidates: [] });
     assert.doesNotThrow(() => learn('bad', input));
   }
   const listener = createListener();
@@ -263,7 +301,7 @@ test('invalid inputs, malformed storage, and storage access errors never throw',
   assert.equal(listener.summary(), null);
   for (const waveform of [{ width: 1, height: 1, samples: [NaN, 1] },
     { width: 1, height: 1, samples: [0, 0] }, { width: 1, height: 1, samples: [-1, 1] }]) {
-    assert.deepEqual(fromWaveform(waveform, 88), { drumsIn: null, outroStart: null });
+    assert.deepEqual(fromWaveform(waveform, 88), { drumsIn: null, outroStart: null, dropCandidates: [] });
   }
   for (const id of [null, undefined, {}, [], NaN, Infinity, -1, '']) {
     assert.equal(get(id), null);

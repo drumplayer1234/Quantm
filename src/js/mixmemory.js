@@ -1,4 +1,4 @@
-import { analyze } from './beats.js';
+import { analyze, detectDrop, orientGrid } from './beats.js';
 
 const KEY = 'quantm.mixmemory';
 const LIMIT = 3000;
@@ -77,24 +77,25 @@ function fuseWindows(windows) {
   };
 }
 
-function analyzeWindow(points) {
+function analyzeWindow(points, opts) {
   const peak = points.reduce((value, point) => Math.max(value, point.v), 0);
   const active = new Set();
   for (const point of points) if (peak > 1e-8 && point.v >= peak * 0.2) active.add(Math.floor(point.t));
   // Two seconds of drums followed by silence can have deceptively high correlation.
-  return active.size >= 4 ? analyze(points) : null;
+  return active.size >= 4 ? analyze(points, opts) : null;
 }
 
 /** Collect one play in bounded raw windows and a per-second energy profile. */
-export function createListener() {
+export function createListener(opts = {}) {
   let raw = [], windows = [], segmentStart = null, nextEnd = null, last = null, analyzedTo = -Infinity;
   let heardFrom = Infinity, heardTo = -Infinity, first = null, revision = 0, cached = null;
   const profile = new Map();
+  const dropProfile = new Map();
 
   function windowResult(points) {
     if (points.length < 2 || points.at(-1).t - points[0].t < 4) return;
     const start = points[0].t, end = points.at(-1).t;
-    windows.push({ start, end, center: (start + end) / 2, grid: analyzeWindow(points) });
+    windows.push({ start, end, center: (start + end) / 2, grid: analyzeWindow(points, opts) });
     if (windows.length > 10000) windows.shift();
   }
 
@@ -125,6 +126,10 @@ export function createListener() {
           h: Number.isFinite(sample.h) ? Math.max(0, Math.min(1e6, sample.h)) : 0,
           f: Number.isFinite(sample.f) ? Math.max(0, Math.min(1e6, sample.f)) : 0 };
         raw.push(point);
+        const tenth = Math.round(t * 10);
+        const energy = dropProfile.get(tenth) || { n: 0, v: 0 };
+        energy.v += (point.v - energy.v) / ++energy.n;
+        if (dropProfile.size < 864000 || dropProfile.has(tenth)) dropProfile.set(tenth, energy);
         if (t >= nextEnd) {
           windowResult(raw);
           analyzedTo = t;
@@ -159,7 +164,7 @@ export function createListener() {
         if (raw.length > 1 && raw.at(-1).t - raw[0].t >= 4 &&
             analyzedTo < raw.at(-1).t - 0.05) {
           all.push({ start: raw[0].t, end: raw.at(-1).t,
-            center: (raw[0].t + raw.at(-1).t) / 2, grid: analyzeWindow(raw) });
+            center: (raw[0].t + raw.at(-1).t) / 2, grid: analyzeWindow(raw, opts) });
         }
         cached = { revision, windows: all, grid: fuseWindows(all) };
       }
@@ -209,14 +214,21 @@ export function createListener() {
               [1, 2, 3].every(i => present(start - i))) outroStart = start;
         }
       }
-      return { grid: grid && { ...grid }, drumsIn, outroStart, beatToEnd, heardFrom, heardTo };
+      // The first sustained drums anchor phrases. A partial play cannot establish that anchor.
+      const downbeat = grid && drumsIn !== null ? grid.offset + Math.round((drumsIn - grid.offset) / grid.period) * grid.period : null;
+      if (cached.dropAnchor !== downbeat || !('drop' in cached)) {
+        cached.dropAnchor = downbeat;
+        cached.drop = downbeat !== null ? detectDrop([...dropProfile].map(([key, bin]) => ({ t: key / 10, v: bin.v })), { ...grid, downbeat }) : null;
+      }
+      const drop = cached.drop;
+      return { grid: grid && { ...grid, downbeat }, drop, drumsIn, outroStart, beatToEnd, heardFrom, heardTo };
     }
   };
 }
 
-/** Guess intro and outro boundaries from a whole-track amplitude envelope. */
+/** Whole-track amplitude hints. Drop candidates are never confirmed audio drops. */
 export function fromWaveform(waveform, duration) {
-  const result = { drumsIn: null, outroStart: null };
+  const result = { drumsIn: null, outroStart: null, dropCandidates: [] };
   const values = waveform?.samples;
   if (!positive(duration) || !positive(waveform?.width) || !positive(waveform?.height) ||
       !Array.isArray(values) || values.length < 2 || values.length > 1000000 ||
@@ -235,6 +247,78 @@ export function fromWaveform(waveform, duration) {
   while (tail > 0 && values[tail - 1] < threshold) tail--;
   const length = (values.length - tail) * step;
   if (tail > 0 && length >= 4 && length <= 60) result.outroStart = tail * step;
+  // A limited master rarely doubles in amplitude. Compare a smoothed breakdown with
+  // this track's loud plateau and inter-percentile range, rather than absolute peaks.
+  if (step <= 2) {
+    // Standardize the peak envelope before measuring section noise. Raw bins have
+    // very different densities across uploads; 450 bins retains multi-second breaks
+    // without treating every kick's peak variation as the section's dynamics.
+    const source = waveform.samples;
+    const size = Math.min(450, source.length);
+    const values = Array.from({ length: size }, (_, i) => {
+      const a = Math.floor(i * source.length / size), b = Math.floor((i + 1) * source.length / size);
+      let total = 0;
+      for (let j = a; j < b; j++) total += source[j];
+      return total / (b - a);
+    });
+    const step = duration / size;
+    if (step > 2) return result;
+    const sum = [0], squares = [0];
+    for (const value of values) {
+      sum.push(sum.at(-1) + value);
+      squares.push(squares.at(-1) + value * value);
+    }
+    const mean = (a, b) => (sum[b] - sum[a]) / (b - a);
+    const radius = Math.max(1, Math.round(0.3 / step));
+    const smooth = values.map((_, i) => mean(Math.max(0, i - radius), Math.min(values.length, i + radius + 1)));
+    const sorted = smooth.slice().sort((a, b) => a - b);
+    const percentile = p => sorted[Math.floor((sorted.length - 1) * p)];
+    const plateau = percentile(0.8), floor = percentile(0.2);
+    const contrast = Math.max(plateau * 0.04, (plateau - floor) * 0.2);
+    const sums = [0];
+    for (const value of smooth) sums.push(sums.at(-1) + value);
+    const avg = (a, b) => (sums[b] - sums[a]) / (b - a);
+    const bins = seconds => Math.max(1, Math.ceil(seconds / step));
+    const quiet = bins(4), sustain = bins(8), edge = bins(1);
+    for (let i = quiet; i + sustain <= values.length; i++) {
+      const before = avg(i - quiet, i), after = avg(i, i + sustain);
+      const jump = avg(i, i + edge) - avg(i - edge, i);
+      if (after < plateau * 0.88 || after - before < contrast ||
+          jump < contrast * 0.65 || jump < (after - before) * 0.45 ||
+          before > plateau - contrast ||
+          [0, 1, 2, 3].some(n => avg(i + Math.floor(n * sustain / 4), i + Math.floor((n + 1) * sustain / 4)) < plateau * 0.8)) continue;
+      // Undo the smoothing's half-window timing bias using the raw local edge.
+      let edgeIndex = i, edgeScore = -Infinity;
+      for (let j = Math.max(edge, i - radius); j <= Math.min(values.length - edge, i + radius); j++) {
+        const strength = mean(j, j + edge) - mean(j - edge, j);
+        if (strength > edgeScore) { edgeScore = strength; edgeIndex = j; }
+      }
+      if (edgeIndex < quiet || edgeIndex + sustain > values.length) continue;
+      const rawBefore = mean(edgeIndex - quiet, edgeIndex), rawAfter = mean(edgeIndex, edgeIndex + sustain);
+      const variance = (a, b, avg) => Math.max(0, (squares[b] - squares[a]) / (b - a) - avg * avg);
+      const afterVariance = variance(edgeIndex, edgeIndex + sustain, rawAfter);
+      const noise = Math.sqrt(variance(edgeIndex - quiet, edgeIndex, rawBefore) + afterVariance);
+      // A real section change exceeds the ordinary peak-to-peak variation of each
+      // section. This rejects dynamic guitar/vocal peaks that resemble tiny drops.
+      if (rawAfter < plateau * 0.93 || rawAfter - rawBefore < noise * 1.5 ||
+          Math.sqrt(afterVariance) > plateau * 0.045) continue;
+      const time = edgeIndex * step;
+      const score = clamp((after - before) / Math.max(contrast * 3, 1e-9)) * 0.6 +
+        clamp(jump / Math.max(contrast * 2, 1e-9)) * 0.4;
+      const candidate = { time, uncertainty: Math.max(step * 2, 1), score: round(score, 1000) };
+      const previous = result.dropCandidates.at(-1);
+      if (previous && time - previous.time < 8) {
+        if (score > previous.score) result.dropCandidates[result.dropCandidates.length - 1] = candidate;
+      } else result.dropCandidates.push(candidate);
+    }
+    // Prefer the first substantial return in the usual first-drop region. Later drops
+    // remain available if real audio rejects the first hint; titles never create drops.
+    result.dropCandidates.sort((a, b) => {
+      const region = c => c.time >= 20 && c.time <= 120 ? 0 : 1;
+      return region(a) - region(b) || a.time - b.time || b.score - a.score;
+    });
+    result.dropCandidates = result.dropCandidates.slice(0, 8);
+  }
   return result;
 }
 
@@ -244,7 +328,7 @@ function idFor(trackId) {
 }
 
 function entryFor(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value) || !positive(value.plays)) return null;
+  if (!value || typeof value !== 'object' || Array.isArray(value) || !(Number.isFinite(value.plays) && value.plays >= 0)) return null;
   const grid = validGrid(value) ? value : null;
   const period = grid ? round(grid.period, 1e5) : null;
   const offset = grid ? round(mod(grid.offset, period), 1000) : null;
@@ -252,6 +336,9 @@ function entryFor(value) {
     bpm: grid ? round(60 / period, 1000) : null, period,
     offset: grid ? (offset >= period ? 0 : offset) : null,
     confidence: grid ? round(clamp(grid.confidence), 100) : 0,
+    downbeat: grid && time(value.downbeat) ? value.downbeat : null,
+    drop: time(value.drop?.time) && positive(value.drop?.confidence) ?
+      { time: round(value.drop.time, 1000), confidence: round(clamp(value.drop.confidence), 100) } : null,
     drumsIn: time(value.drumsIn) ? round(value.drumsIn, 10) : null,
     outroStart: time(value.outroStart) ? round(value.outroStart, 10) : null,
     beatToEnd: value.beatToEnd === true,
@@ -283,17 +370,34 @@ function save(entries) {
 }
 
 /** Return a compact remembered entry, or null. */
-export function get(trackId) {
+export function get(trackId, opts = {}) {
   const id = idFor(trackId);
-  return id === null ? null : entryFor(read()[id]);
+  const entry = id === null ? null : entryFor(read()[id]);
+  return entry && validGrid(entry) ? orientGrid(entry, opts) : entry;
+}
+
+/** Cache silent analysis without counting it as a play or inventing intro/outro cues. */
+export function rememberDrop(trackId, confirmation) {
+  const id = idFor(trackId);
+  if (id === null || !validGrid(confirmation?.grid) || !time(confirmation?.drop?.time) ||
+      !(confirmation.drop.confidence >= 0.65)) return null;
+  const entries = read(), old = entryFor(entries[id]);
+  const entry = entryFor({ ...old, ...confirmation.grid, drop: confirmation.drop,
+    plays: old?.plays || 0, updated: Date.now() });
+  entries[id] = { ...entries[id], ...entry };
+  const ids = Object.keys(entries).sort((a, b) => entries[b].updated - entries[a].updated);
+  for (const key of ids.slice(LIMIT)) delete entries[key];
+  save(entries);
+  return entry;
 }
 
 /** Merge one play into persistent memory, tolerating unavailable storage. */
-export function learn(trackId, summary) {
+export function learn(trackId, summary, opts = {}) {
   const id = idFor(trackId);
   if (id === null || !summary || typeof summary !== 'object' || Array.isArray(summary)) return null;
-  const entries = read(), old = entryFor(entries[id]);
-  const incoming = validGrid(summary.grid) ? summary.grid : null;
+  const entries = read(), previous = entryFor(entries[id]);
+  const old = previous && validGrid(previous) ? orientGrid(previous, opts) : previous;
+  const incoming = validGrid(summary.grid) ? orientGrid(summary.grid, opts) : null;
   let grid = old && validGrid(old) ? old : null;
   if (!grid) grid = incoming;
   else if (incoming) {
@@ -326,7 +430,10 @@ export function learn(trackId, summary) {
   if (summary.beatToEnd === true && heard >= previousHeard) beatToEnd = true;
   if (time(summary.outroStart) && (!time(old?.outroStart) ||
       Math.abs(summary.outroStart - old.outroStart) <= 2 || heard > previousHeard)) beatToEnd = false;
-  const entry = entryFor({ ...grid, drumsIn: boundary('drumsIn'), outroStart, beatToEnd,
+  const drop = time(summary.drop?.time) && positive(summary.drop?.confidence) &&
+    (!old?.drop || summary.drop.confidence >= old.drop.confidence) ? summary.drop : old?.drop;
+  const entry = entryFor({ ...grid, downbeat: old?.downbeat ?? summary.grid?.downbeat, drop,
+    drumsIn: boundary('drumsIn'), outroStart, beatToEnd,
     plays: (old?.plays || 0) + 1, updated: Date.now() });
   entries[id] = { ...entry, heard: round(Math.max(heard, previousHeard), 10) };
   const ids = Object.keys(entries).sort((a, b) => entries[b].updated - entries[a].updated);

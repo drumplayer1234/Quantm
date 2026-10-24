@@ -25,6 +25,7 @@ export class BeatWatcher {
   constructor(normalizer) {
     this.norm = normalizer;
     this.watched = new Map(); // <audio> → [{ t, v }]
+    this.grids = new WeakMap();
     this.timer = null;
   }
 
@@ -35,6 +36,7 @@ export class BeatWatcher {
 
   unwatch(audio) {
     this.watched.delete(audio);
+    this.grids.delete(audio);
     if (!this.watched.size && this.timer) { clearInterval(this.timer); this.timer = null; }
   }
 
@@ -46,8 +48,11 @@ export class BeatWatcher {
       const energy = this.norm.beatEnergy(audio);
       if (!energy) continue;
       const t = audio.currentTime;
-      // a seek backwards (or a new song on the deck) starts the recording over
-      if (samples.length && t < samples[samples.length - 1].t - 0.5) samples.length = 0;
+      // Never analyze across a seek or a stalled stream as if the gap were silence.
+      if (samples.length && (t < samples.at(-1).t - 0.5 || t - samples.at(-1).t > 0.5)) {
+        samples.length = 0;
+        this.grids.delete(audio);
+      }
       samples.push({ t, v: energy.low, h: energy.high, f: energy.full });
       if (samples[0].t < t - KEEP_SECONDS - 5) {
         const keep = samples.findIndex(s => s.t >= t - KEEP_SECONDS);
@@ -85,7 +90,7 @@ export class BeatWatcher {
   }
 
   /**
-   * Beat grid from the last `seconds` the deck played, in media time; null if there's no clear beat.
+   * Beat grid from a recent contiguous drum region, in media time; null if there's no clear beat.
    * bpm: the song's tempo when its memory knows it, so only the beat's position is worked out.
    * skipLast: leave out the most recent seconds (an outro that lost its kick).
    */
@@ -93,8 +98,31 @@ export class BeatWatcher {
     const samples = this.watched.get(audio);
     if (!samples || samples.length < 2) return null;
     const end = samples[samples.length - 1].t - skipLast;
-    const grid = beats.analyze(samples.filter(s => s.t >= end - seconds && s.t <= end), bpm ? { bpm } : {});
-    return grid && grid.confidence >= MIN_CONFIDENCE ? grid : null;
+    const key = `${seconds}/${bpm}/${skipLast}`;
+    const cache = this.grids.get(audio);
+    if (cache?.samples === samples && cache.key === key && end >= cache.end && end - cache.end < 0.75) return cache.grid;
+    let best = null, bestScore = -Infinity;
+    // A 20 s window may straddle a breakdown or a drumless tail. Find actual
+    // contiguous beat regions rather than making the entire window pass or fail.
+    for (const age of [0, 8, 16]) {
+      for (const span of [...new Set([seconds, 12, 8])]) {
+        const points = samples.filter(s => s.t >= end - age - span && s.t <= end - age);
+        if (points.length < 2 || points.at(-1).t - points[0].t < Math.min(span - 0.1, 4)) continue;
+        let start = 0;
+        for (let i = 1; i < points.length; i++) if (points[i].t - points[i - 1].t > 0.25) start = i;
+        const region = points.slice(start);
+        const grid = beats.analyze(region, bpm ? { bpm } : {});
+        const score = grid?.confidence - age * 0.004;
+        if (grid?.confidence >= MIN_CONFIDENCE && score > bestScore) {
+          best = { ...grid, from: region[0].t, to: region.at(-1).t };
+          bestScore = score;
+        }
+        if (age === 0 && span === seconds && grid?.confidence >= 0.6) break;
+      }
+      if (best?.confidence >= 0.6 && age === 0) break;
+    }
+    this.grids.set(audio, { key, end, samples, grid: best });
+    return best;
   }
 }
 
@@ -106,7 +134,8 @@ export function matchTempo(gridOut, gridIn, maxStretch = 0.08) {
   if (!gridOut || !gridIn) return null;
   const match = beats.tempoRatio(gridOut.bpm, gridIn.bpm, maxStretch);
   if (!match) return null;
-  const gridIn2 = Object.assign({}, gridIn, { bpm: match.bpmIn, period: 60 / match.bpmIn });
+  const gridIn2 = Object.assign({}, gridIn, { bpm: match.bpmIn, period: 60 / match.bpmIn,
+    offset: gridIn.downbeat ?? gridIn.offset });
   return { ratio: match.ratio, gridOut, gridIn: gridIn2 };
 }
 
@@ -135,12 +164,13 @@ export function mixSeconds(grid, rate = 1, factor = 1) {
 /** A memory entry's beat grid in the shape beats.js uses, or null when it isn't trusted */
 export function memoryGrid(entry) {
   if (!entry || !(entry.period > 0) || !Number.isFinite(entry.offset) || !(entry.confidence >= 0.25)) return null;
-  return { bpm: entry.bpm || 60 / entry.period, period: entry.period, offset: entry.offset, confidence: entry.confidence };
+  return { bpm: entry.bpm || 60 / entry.period, period: entry.period, offset: entry.offset, confidence: entry.confidence,
+    downbeat: entry.downbeat ?? entry.offset };
 }
 
 /** Keeps the incoming song's beats on the outgoing song's by nudging its speed, like a DJ riding the pitch fader */
 export class BeatLock {
-  constructor(outgoing, incoming, match, baseRate) {
+  constructor(outgoing, incoming, match, baseRate, lock = true) {
     this.outgoing = outgoing;
     this.incoming = incoming;
     this.match = match;
@@ -148,8 +178,8 @@ export class BeatLock {
     this.target = baseRate * match.ratio;
     this.startedAt = null;
     this.error = null;
-    this.timer = setInterval(() => this.tick(), LOCK_MS);
-    incoming.playbackRate = this.target;
+    this.timer = lock ? setInterval(() => this.tick(), LOCK_MS) : null;
+    if (lock) incoming.playbackRate = this.target;
   }
 
   tick() {
@@ -176,22 +206,34 @@ export class BeatLock {
     this.target = rate * this.match.ratio;
     if (this.timer) return;
     clearInterval(this.glide);
+    this.glide = null;
     this.incoming.playbackRate = rate;
+    const done = this.onReleased;
+    this.onReleased = null;
+    done?.();
   }
 
   /** The mix is over: ease the song back to its own tempo */
-  release() {
+  release(onDone = () => {}) {
     clearInterval(this.timer);
+    clearInterval(this.glide);
+    this.glide = null;
     this.timer = null;
+    this.onReleased = onDone;
+    const done = () => {
+      const callback = this.onReleased;
+      this.onReleased = null;
+      callback?.();
+    };
     const audio = this.incoming;
     const from = audio.playbackRate;
     const to = this.baseRate;
-    if (Math.abs(from - to) < 0.001) { audio.playbackRate = to; return; }
+    if (Math.abs(from - to) < 0.001) { audio.playbackRate = to; done(); return; }
     const started = performance.now();
     const glide = setInterval(() => {
       const t = Math.min(1, (performance.now() - started) / (RELEASE_SECONDS * 1000));
       audio.playbackRate = from + (to - from) * t;
-      if (t >= 1) clearInterval(glide);
+      if (t >= 1) { clearInterval(glide); this.glide = null; done(); }
     }, 100);
     this.glide = glide;
   }
@@ -200,6 +242,8 @@ export class BeatLock {
   stop(rate = this.baseRate) {
     clearInterval(this.timer);
     clearInterval(this.glide);
+    this.glide = null;
+    this.onReleased = null;
     this.timer = null;
     this.incoming.playbackRate = rate;
   }

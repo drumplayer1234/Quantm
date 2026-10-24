@@ -139,6 +139,7 @@ const defaults = {
   keepPitch: true,          // custom speed keeps the original pitch
   crossfade: 0,             // seconds (0-12), 0 = off
   autoMix: false,           // DJ-style transitions: beat-matched, bass swap (automix.js)
+  transitionStyle: 'auto',  // Auto mix: auto / blend / dropcut; pair overrides win
   mixOrder: false,          // shuffle orders songs so each blends into the next (needs autoMix; mixorder.js)
   ...VISUALIZER_DEFAULTS
 };
@@ -146,8 +147,10 @@ const defaults = {
 export const settings = Object.assign({}, defaults, safeParse(localStorage.getItem(SETTINGS_KEY)));
 
 settings.eq = normalizeEqualizer(settings.eq);
+settings.transitionStyle = ['auto', 'blend', 'dropcut'].includes(settings.transitionStyle) ? settings.transitionStyle : defaults.transitionStyle;
 
 export function saveSettings(patch) {
+  if ('transitionStyle' in patch && !['auto', 'blend', 'dropcut'].includes(patch.transitionStyle)) patch = { ...patch, transitionStyle: defaults.transitionStyle };
   if (patch.eq) patch = { ...patch, eq: normalizeEqualizer(patch.eq) };
   Object.assign(settings, patch);
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));

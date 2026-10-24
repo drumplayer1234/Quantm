@@ -994,6 +994,9 @@ export function transitionDialog(from, to) {
   const into = cueTimeField(`Start ${to.title} at`, pair?.in, formatCueTime(getCues(to.id).mixIn || 0));
   const range = h('input', { type: 'range', min: 0, max: 20, step: 0.5, value: fade, 'aria-label': 'Fade' });
   const number = h('input.input.cue-fade-number', { type: 'number', min: 0, max: 20, step: 0.5, value: fade, 'aria-label': 'Fade seconds' });
+  const style = h('select.input', { 'aria-label': 'Transition style' },
+    [['', 'Use setting'], ['auto', 'Auto'], ['blend', 'Smooth blend'], ['dropcut', 'Drop cut']].map(([value, label]) =>
+      h('option', { value, selected: (pair?.style || '') === value }, label)));
   range.addEventListener('input', () => { number.value = range.value; });
   number.addEventListener('input', () => { if (number.value !== '' && number.validity.valid) range.value = number.value; });
   const save = (songs) => {
@@ -1006,13 +1009,15 @@ export function transitionDialog(from, to) {
       setMixOut(from.id, leave == null ? getCues(from.id).mixOut : leave);
       setMixIn(to.id, start == null ? getCues(to.id).mixIn : start);
       setPair(from.id, to.id, null);
-    } else setPair(from.id, to.id, { out: leave, in: start, fade: Number(number.value) });
+    } else setPair(from.id, to.id, { out: leave, in: start, fade: Number(number.value), style: style.value });
     dialog.close();
   };
   const dialog = modal(`Transition: ${from.title} → ${to.title}`, h('div.cue-editor',
     out.row, into.row,
+    h('label.cue-field', h('span.field-label', 'Transition style'), style),
     h('label.cue-field', h('span.field-label', 'Fade'), h('span.cue-fade', range, number, 's')),
     h('p.muted.small', 'Blank times use the songs’ mix points. Saving as song mix points uses the default fade; the fade above is saved for this pair only.'),
+    h('p.muted.small', 'Drop cut uses a confirmed drop at or after the start marker. Leave time starts its build; fade length applies to smooth blends.'),
     h('div.modal-actions',
       button('Cancel', () => dialog.close(), 'btn-ghost'),
       button('Reset', () => { setPair(from.id, to.id, null); dialog.close(); }, 'btn-ghost'),

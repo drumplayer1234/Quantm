@@ -57,3 +57,26 @@ test('changes are announced so the UI can redraw markers', () => {
   off();
   assert.deepEqual(seen, [7, 7]);
 });
+
+test('pair transition styles persist and take precedence without losing mix markers', () => {
+  cues._reset();
+  cues.setMixOut(1, 180);
+  cues.setMixIn(2, 32);
+  for (const style of ['auto', 'blend', 'dropcut']) {
+    cues.setPair(1, 2, { style, fade: null });
+    assert.equal(cues.transitionFor(1, 2).style, style);
+    assert.equal(cues.transitionFor(1, 2).out, 180);
+    assert.equal(cues.transitionFor(1, 2).in, 32);
+    assert.equal(JSON.parse(localStorage.getItem('quantm.cues')).pairs['1>2'].style, style);
+  }
+  cues.setPair(1, 2, { style: 'invalid' });
+  assert.equal(cues.transitionFor(1, 2).style, undefined);
+});
+
+test('style-only pair overrides preserve normal Auto mix timing, while explicit zero cues and fades still override it', () => {
+  cues._reset();
+  cues.setPair(1, 2, { style: 'blend' });
+  assert.deepEqual(cues.transitionFor(1, 2), { out: null, in: 0, fade: 0, custom: false, style: 'blend' });
+  cues.setPair(1, 2, { style: 'auto', out: 0, in: 0, fade: 0 });
+  assert.deepEqual(cues.transitionFor(1, 2, 6), { out: 0, in: 0, fade: 0, custom: true, style: 'auto' });
+});

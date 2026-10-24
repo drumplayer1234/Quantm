@@ -10,7 +10,8 @@ import { BeatWatcher, BeatLock, ANALYZE_SECONDS, ANALYZE_MAX_SECONDS, MAX_MIX_SE
 import * as mixmemory from './mixmemory.js';
 import * as mixlearn from './mixlearn.js';
 import * as mixorder from './mixorder.js';
-import { phaseError } from './beats.js';
+import { phaseError, inspectDrop, tempoOptions, orientGrid } from './beats.js';
+import { planStyle, futureWindow, rollSchedule, dropPhase } from './dropcut.js';
 
 const mmss = (t) => { const s = Math.max(0, Math.round(t || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 const quote = (track) => '"' + ((track && track.title) || 'this song').slice(0, 60) + '"';
@@ -28,7 +29,6 @@ function randomOrder(list) {
 
 const SESSION_KEY = 'quantm.session';
 const PREPARE_LEAD = 8; // seconds before a crossfade starts that the next stream is looked up
-// Auto mix looks it up earlier: the next song is pre-played silently to find its beat
 const AUTO_LEAD = ANALYZE_SECONDS + 6;
 const AUTO_LISTEN = 60;  // seconds before the end that Auto mix starts listening for the beat
 
@@ -56,6 +56,7 @@ class Player extends Emitter {
     this.normalizer.setVolume(this.volume, this.muted);
     this.beats = new BeatWatcher(this.normalizer);
     this.lock = null;       // Auto mix: keeps the incoming song on the beat (automix.js)
+    this.tempoRelease = null; // independent return to normal speed after phase locking ends
     this.mixPlan = null;    // Auto mix: { loadId, grid, span, choice } for the current song's ending
     this.listening = new Map(); // Auto mix song memory: <audio> → { trackId, listener, after, duration }
     this.waves = new Map();     // track id → structure guessed from SoundCloud's waveform (first plays)
@@ -80,7 +81,23 @@ class Player extends Emitter {
     this.decks.forEach(deck => this.bindDeck(deck));
     this.speedKey = '';
     this.syncSpeed();
-    store.on('settings', () => { this.syncSpeed(); this.normalizer.setEqualizer(settings.eq); });
+    this.mixSettingsKey = `${settings.autoMix}|${settings.transitionStyle}`;
+    store.on('settings', () => {
+      const key = `${settings.autoMix}|${settings.transitionStyle}`;
+      if (key !== this.mixSettingsKey && this.fading?.style === 'dropcut') {
+        this.cutFade(); this.stopLock();
+      }
+      if (key !== this.mixSettingsKey && this.prepared) {
+        this.dropPreroll(this.prepared);
+        this.prepared = null;
+      }
+      this.mixSettingsKey = key;
+      this.syncSpeed(); this.normalizer.setEqualizer(settings.eq);
+    });
+    cues.cueEvents.on('change', id => {
+      const f = this.fading;
+      if (f?.style === 'dropcut' && [f.from.id, f.to.id].some(trackId => String(trackId) === String(id))) this.cutFade();
+    });
 
     this.setupMediaSession();
 
@@ -118,10 +135,20 @@ class Player extends Emitter {
     a.addEventListener('durationchange', live(() => { this.emit('time', a.currentTime, this.duration); this.emit('timeline'); }));
     a.addEventListener('play', live(() => { this.emit('state'); this.updateMediaSession(); }));
     a.addEventListener('pause', live(() => { this.emit('state'); this.updateMediaSession(); this.saveSession(); }));
+    a.addEventListener('pause', () => {
+      if (this.fading?.style === 'dropcut' && !this.fading.aborting && (this.fading.incoming === deck || this.fading.outgoing === deck)) this.holdFade();
+    });
     a.addEventListener('waiting', live(() => this.emit('buffering', true)));
     a.addEventListener('playing', live(() => this.emit('buffering', false)));
     a.addEventListener('ended', live(() => this.onEnded()));
     a.addEventListener('seeked', live(() => { this.saveSession(); this.emit('timeline'); }));
+    a.addEventListener('seeking', () => {
+      if (this.deck === deck && this.mixOutcome?.mixEnd != null) this.clearMixOutcome();
+      if (this.fading?.dropScheduled && (this.fading.incoming === deck || this.fading.outgoing === deck)) {
+        this.cutFade();
+        this.stopLock();
+      }
+    });
     // a new source can reset the rate, so put it back once the media is known
     a.addEventListener('loadedmetadata', () => this.applySpeed(a));
   }
@@ -159,9 +186,11 @@ class Player extends Emitter {
     const { rate, keepPitch } = this.speedInfo;
     const key = `${settings.speedMode}|${rate}|${keepPitch}`;
     if (key === this.speedKey) return;
+    if (this.fading?.style === 'dropcut') this.cutFade();
     this.speedKey = key;
     this.decks.forEach(deck => this.applySpeed(deck.audio));
     if (this.lock) this.lock.setBaseRate(rate); // a beat-matched song follows the new speed too
+    if (this.tempoRelease) this.tempoRelease.setBaseRate(rate);
     this.emit('speed', rate);
   }
 
@@ -342,6 +371,9 @@ class Player extends Emitter {
   }
 
   attach(stream, autoplay = true, startAt = 0, deck = this.deck, track = this.current) {
+    const sourceId = deck.sourceId = (deck.sourceId || 0) + 1;
+    if (deck.metadataSeek) deck.audio.removeEventListener('loadedmetadata', deck.metadataSeek);
+    deck.metadataSeek = null;
     if (deck.hls) {
       deck.hls.destroy();
       deck.hls = null;
@@ -351,23 +383,29 @@ class Player extends Emitter {
     deck.snipped = !!stream.snipped;
     this.applySpeed(audio);
     if (startAt > 0) {
-      audio.addEventListener('loadedmetadata', () => { audio.currentTime = Math.min(startAt, Math.max(0, audio.duration - 1)); }, { once: true });
+      deck.metadataSeek = () => {
+        if (deck.sourceId !== sourceId || deck.track !== track) return;
+        deck.metadataSeek = null;
+        audio.currentTime = Math.min(startAt, Math.max(0, audio.duration - 1));
+      };
+      audio.addEventListener('loadedmetadata', deck.metadataSeek, { once: true });
     }
 
     if (stream.protocol === 'hls' && window.Hls && window.Hls.isSupported()) {
       const hls = new window.Hls({ maxBufferLength: 30, enableWorker: true });
       deck.hls = hls;
-      hls.on(window.Hls.Events.MANIFEST_PARSED, () => { if (autoplay) audio.play().catch(() => {}); });
+      hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
+        if (deck.sourceId === sourceId && autoplay) audio.play().catch(() => {});
+      });
       hls.on(window.Hls.Events.ERROR, (event, data) => {
+        if (deck.sourceId !== sourceId) return;
         if (!data.fatal) return;
         if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
         else if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
           // signed urls expire: re-resolve and resume where we were
-          const position = audio.currentTime;
           api.streamFor(track).then((fresh) => {
-            if (deck.track !== track) return; // the deck moved on to another song meanwhile
-            this.attach(fresh, this.deckInUse(deck), 0, deck, track);
-            audio.addEventListener('loadedmetadata', () => { audio.currentTime = position; }, { once: true });
+            if (deck.sourceId !== sourceId || deck.track !== track) return;
+            this.attach(fresh, this.deckInUse(deck) && !audio.paused, audio.currentTime, deck, track);
           }).catch(() => toast('Playback stopped: network error', 'error'));
         }
       });
@@ -381,6 +419,10 @@ class Player extends Emitter {
 
   /** Stop a deck and let go of its stream */
   releaseDeck(deck) {
+    deck.sourceId = (deck.sourceId || 0) + 1;
+    if (deck.metadataSeek) deck.audio.removeEventListener('loadedmetadata', deck.metadataSeek);
+    deck.metadataSeek = null;
+    this.normalizer.clearDropCut(deck.audio);
     if (deck.hls) {
       deck.hls.destroy();
       deck.hls = null;
@@ -414,6 +456,14 @@ class Player extends Emitter {
     if (!isFinite(dur) || dur <= 0) return;
     const t = this.upcomingTransition();
     const auto = this.autoMix;
+    const wantsDrop = auto && (t.style || settings.transitionStyle) !== 'blend';
+    // Drop confirmation needs a region around the hint, before the outgoing build starts.
+    if (this.prepared && !this.prepared.wrap && this.prepared.track && this.queue[this.index + 1] !== this.prepared.track) {
+      this.dropPreroll(this.prepared);
+      this.prepared = null;
+    }
+    if (wantsDrop && !this.prepared) this.prepareNext();
+    if (wantsDrop && this.prepared?.stream && !this.prepared.preroll) this.preroll(this.prepared);
     const plan = auto && !t.custom ? this.planMix(audio, dur) : null;
     if (plan && !plan.span) return; // still listening
     const span = plan ? plan.span : t.fade * (audio.playbackRate || 1); // media seconds the fade covers
@@ -432,16 +482,28 @@ class Player extends Emitter {
         mixAt = dur - span;
       }
     }
+    const prep = this.prepared;
+    if (auto && prep?.stream && !prep.preroll && mixAt - audio.currentTime <= AUTO_LEAD * (audio.playbackRate || 1)) this.preroll(prep);
+    if (auto && prep?.stream && prep.preroll?.done) {
+      const selected = this.selectMixStyle(prep, t, plan?.grid || this.outgoingGrid(audio, dur));
+      if (selected.style === 'dropcut' && prep.selected?.style === 'blend') {
+        this.logMix('plan', `Re-planned as a drop cut: ${selected.reason}`);
+      }
+      prep.selected = selected;
+      if (selected.style === 'dropcut') mixAt = selected.window.build;
+      if (plan) Object.assign(plan, { style: selected.style, reason: selected.reason });
+    }
+    this.mixAt = { loadId: this.loadId, at: mixAt };
     const until = mixAt - audio.currentTime;
     if (auto && t.custom && until < AUTO_LISTEN) this.beats.watch(audio); // custom mixes get beat-matched too
-    if (until > (auto ? AUTO_LEAD : PREPARE_LEAD)) return;
+    if (until > (auto ? (wantsDrop ? AUTO_LISTEN : AUTO_LEAD) * (audio.playbackRate || 1) : PREPARE_LEAD)) return;
     // Auto mix was switched on or off after the look-ahead: look again the new way
     if (this.prepared && this.prepared.loadId === this.loadId && this.prepared.auto !== auto) {
       this.dropPreroll(this.prepared);
       this.prepared = null;
     }
     if (!this.prepared || this.prepared.loadId !== this.loadId) { this.prepareNext(); return; }
-    if (until > 0 || !this.prepared.stream) return;
+    if (until > (prep?.selected?.style === 'dropcut' ? prep.selected.window.lead : 0) || !this.prepared.stream) return;
     this.startCrossfade();
   }
 
@@ -460,12 +522,13 @@ class Player extends Emitter {
     if (!this.current) return status;
     const audio = this.audio;
     const rate = audio.playbackRate || 1;
-    status.memory = mixmemory.get(this.current.id);
+    status.memory = mixmemory.get(this.current.id, tempoOptions(this.current));
     status.structure = this.structureOf(this.current.id);
     status.listening = this.listening.has(audio);
     if (this.beats.isWatching(audio)) {
       status.heard = this.beats.heard(audio);
-      status.live = this.beats.grid(audio, 20, status.structure.grid && status.structure.grid.bpm);
+      status.live = orientGrid(this.beats.grid(audio, 20, status.structure.grid?.bpm),
+        tempoOptions(this.current, status.structure.grid?.bpm));
     }
     if (this.mixPlan && this.mixPlan.loadId === this.loadId) status.plan = this.mixPlan;
     if (this.mixAt && this.mixAt.loadId === this.loadId && !this.fading) status.mixIn = (this.mixAt.at - audio.currentTime) / rate;
@@ -473,8 +536,9 @@ class Player extends Emitter {
     if (pre) status.preroll = { track: pre.track, done: pre.done, grid: pre.grid, startAt: pre.startAt, heard: pre.done ? null : this.beats.heard(pre.deck.audio) };
     const f = this.fading;
     if (f) {
-      const progress = f.startedAt === null || !this.normalizer.ctx ? f.progress : Math.min(1, f.progress + (this.normalizer.ctx.currentTime - f.startedAt) / f.seconds);
-      status.mix = { from: f.from, to: f.to, seconds: f.seconds, progress, bass: f.bass, dj: f.shapeIn ? f.shapeIn.dj : 0 };
+      const progress = f.startedAt === null || !this.normalizer.ctx ? f.progress : Math.max(0, Math.min(1, f.progress + (this.normalizer.ctx.currentTime - f.startedAt) / f.seconds));
+      status.mix = { from: f.from, to: f.to, seconds: f.seconds, progress, bass: f.bass, dj: f.shapeIn ? f.shapeIn.dj : 0,
+        style: f.style || 'blend', reason: f.reason, phase: f.schedule ? dropPhase(f.schedule, this.normalizer.ctx.currentTime) : null };
     }
     const L = this.lock;
     if (L) {
@@ -503,7 +567,8 @@ class Player extends Emitter {
     // a 30 s preview isn't the song: its times don't match the full track
     if (!this.autoMix || !track || !deck || deck.snipped) return;
     this.beats.watch(audio);
-    this.listening.set(audio, { trackId: track.id, track, listener: mixmemory.createListener(), after: -Infinity, duration: (track.duration || 0) / 1000 });
+    const opts = tempoOptions(track, mixmemory.get(track.id, tempoOptions(track))?.bpm);
+    this.listening.set(audio, { trackId: track.id, track, listener: mixmemory.createListener(opts), after: -Infinity, duration: (track.duration || 0) / 1000 });
     this.guessFromWaveform(track);
   }
 
@@ -518,7 +583,7 @@ class Player extends Emitter {
       const summary = l.listener.summary(duration);
       if (summary) {
         this.mixFeatureCache.delete(l.trackId);
-        const entry = mixmemory.learn(l.trackId, summary) || mixmemory.get(l.trackId);
+        const entry = mixmemory.learn(l.trackId, summary, tempoOptions(l.track)) || mixmemory.get(l.trackId);
         if (entry && (summary.grid || summary.drumsIn != null || summary.outroStart != null)) {
           const parts = [entry.bpm ? entry.bpm.toFixed(1) + ' BPM' : 'no clear beat'];
           if (entry.drumsIn != null) parts.push(entry.drumsIn > 1 ? 'drums come in at ' + mmss(entry.drumsIn) : 'drums from the start');
@@ -545,11 +610,11 @@ class Player extends Emitter {
 
   /** First plays: a rough intro / outro from SoundCloud's waveform until the song has been heard */
   guessFromWaveform(track) {
-    if (!track || this.waves.has(track.id)) return;
+    if (!track || this.waves.get(track.id)) return Promise.resolve();
     this.waves.set(track.id, null);
     if (this.waves.size > 200) this.waves.delete(this.waves.keys().next().value);
-    this.waveformOf(track).then((samples) => {
-      if (samples) this.waves.set(track.id, mixmemory.fromWaveform({ samples, width: samples.length, height: 1 }, (track.duration || 0) / 1000));
+    return this.waveformOf(track).then((samples) => {
+      if (samples) this.waves.set(track.id, mixmemory.fromWaveform({ samples, width: samples.length, height: 1 }, (track.full_duration || track.duration || 0) / 1000));
     });
   }
 
@@ -610,7 +675,7 @@ class Player extends Emitter {
     if (!track) return null;
     const cached = this.mixFeatureCache.get(track.id);
     if (cached) return cached;
-    const mem = mixmemory.get(track.id);
+    const mem = mixmemory.get(track.id, tempoOptions(track));
     const wave = this.waveSamples.get(track.id);
     const f = mixorder.features(track, {
       memory: mem && mem.bpm ? { bpm: mem.bpm, confidence: mem.confidence } : null,
@@ -717,7 +782,9 @@ class Player extends Emitter {
 
   /** What Auto mix knows about a song's structure: its memory, else the waveform guess */
   structureOf(trackId) {
-    const mem = mixmemory.get(trackId);
+    const track = this.queue.find(t => t.id === trackId);
+    const remembered = mixmemory.get(trackId);
+    const mem = remembered && orientGrid(remembered, tempoOptions(track, remembered.bpm));
     const wave = this.waves.get(trackId);
     return {
       grid: memoryGrid(mem),
@@ -753,10 +820,16 @@ class Player extends Emitter {
     this.mixOutcome = null;
     clearTimeout(o.timer);
     if (!this.current || this.current.id !== o.trackId) return;
+    if (this.fading?.style === 'dropcut' && (!this.fading.dropScheduled || this.normalizer.ctx.currentTime < this.fading.schedule.start)) return;
     if (this.fading || (o.mixEnd && performance.now() - o.mixEnd < 20000)) {
       mixlearn.record(o.choice, 'bad');
-      this.logMix('bad', `You skipped ${this.fading ? 'during' : 'right after'} the mix into ${quote(this.current)}: nudging mixes for ${TEMPO_RANGES[o.choice.bucket]} away from ${Math.round(o.choice.params.length * 100)}% length`);
+      this.logMix('bad', `You skipped ${this.fading ? 'during' : 'right after'} the ${o.choice.style === 'dropcut' ? 'drop cut' : 'smooth blend'} into ${quote(this.current)}: learning for ${TEMPO_RANGES[o.choice.bucket]}`);
     }
+  }
+
+  clearMixOutcome() {
+    if (this.mixOutcome) clearTimeout(this.mixOutcome.timer);
+    this.mixOutcome = null;
   }
 
   /**
@@ -764,17 +837,20 @@ class Player extends Emitter {
    * then settles on a length (16 or 32 beats) once the mix is near. { span: 0 } while still listening.
    */
   planMix(audio, dur) {
-    if (this.mixPlan && this.mixPlan.loadId === this.loadId) return this.mixPlan;
+    const previous = this.mixPlan?.loadId === this.loadId ? this.mixPlan : null;
+    if (previous?.grid) {
+      const oriented = orientGrid(previous.grid, tempoOptions(this.current, this.structureOf(this.current.id).grid?.bpm));
+      if (oriented.period === previous.grid.period) return previous;
+    } else if (previous && audio.currentTime - previous.checkedAt < 2) return previous;
     const rate = audio.playbackRate || 1;
     const left = dur - audio.currentTime;
     if (left < AUTO_LISTEN * rate) this.beats.watch(audio);
     // decide just before the longest mix's look-ahead would have to begin
     if (left > (MAX_MIX_SECONDS + AUTO_LEAD + 1) * rate) return { span: 0 };
     const known = this.structureOf(this.current.id);
-    const heard = this.beats.heard(audio) >= 12 ? this.beats.grid(audio, 20, known.grid && known.grid.bpm) : null;
-    const grid = heard || known.grid;
+    const grid = this.outgoingGrid(audio, dur);
     // learned taste for this tempo: a small variation is tried each time (mixlearn.js)
-    const choice = mixlearn.choose(mixlearn.bucketFor(grid ? grid.bpm : null));
+    const choice = previous && !grid ? previous.choice : mixlearn.choose(mixlearn.bucketFor(grid?.bpm));
     let span = mixSeconds(grid, rate, choice.params.length);
     // a song whose outro is known: mix over the whole outro, in whole bars
     const outro = known.outroStart != null ? dur - known.outroStart : 0;
@@ -782,11 +858,78 @@ class Player extends Emitter {
       const bar = grid ? 4 * grid.period : 0;
       span = bar && Math.floor(outro / bar) * bar >= 6 * rate ? Math.floor(outro / bar) * bar : outro;
     }
-    this.mixPlan = { loadId: this.loadId, grid, span, choice };
-    const tempo = grid ? `${grid.bpm.toFixed(1)} BPM ${heard ? 'heard just now' : 'from memory'}` : 'no clear beat';
+    this.mixPlan = { loadId: this.loadId, grid, span, choice, checkedAt: audio.currentTime };
+    const tempo = grid ? `${grid.bpm.toFixed(1)} BPM ${grid.to != null ? 'heard just now' : 'from memory or this play'}` : 'no clear beat';
     const beatsLong = grid ? Math.round(span / grid.period) : 0;
-    this.logMix('plan', `Planned the mix out of ${quote(this.current)}: ${tempo}, ${(span / rate).toFixed(1)} s${beatsLong ? ` (${beatsLong} beats)` : ''}${outro >= 6 * rate && outro <= MAX_MIX_SECONDS * rate ? ' over its outro' : ''}, trying ${Math.round(choice.params.length * 100)}% length`);
+    if (!previous || grid) this.logMix('plan', `Planned the mix out of ${quote(this.current)}: ${tempo}, ${(span / rate).toFixed(1)} s${beatsLong ? ` (${beatsLong} beats)` : ''}${outro >= 6 * rate && outro <= MAX_MIX_SECONDS * rate ? ' over its outro' : ''}, trying ${Math.round(choice.params.length * 100)}% length`);
     return this.mixPlan;
+  }
+
+  /** Use a recent drum region, then the grid already learned in this play or memory. */
+  outgoingGrid(audio, dur) {
+    const known = this.structureOf(this.current.id).grid;
+    const l = this.listening.get(audio);
+    if (l) this.feedOne(audio, l);
+    const learned = l?.listener.summary(dur)?.grid;
+    const steady = known || memoryGrid(learned);
+    const heard = this.beats.grid(audio, 20, steady?.bpm);
+    const grid = orientGrid(heard || steady, tempoOptions(this.current, steady?.bpm));
+    if (!grid) return null;
+    const anchor = known?.downbeat ?? learned?.downbeat ?? grid.offset;
+    return { ...grid, downbeat: grid.offset + Math.round((anchor - grid.offset) / grid.period) * grid.period };
+  }
+
+  /** Fit the roll before any confirmed drop, including a short first drop. */
+  dropWindow(grid, drop, match, transition, variant = 'roll', audio = this.audio, track = this.current, margin = 0.3) {
+    return futureWindow(grid, audio.duration, { now: audio.currentTime, rate: audio.playbackRate || 1,
+      dropTime: drop.time, ratio: match.ratio, out: transition.out,
+      outroStart: this.structureOf(track.id).outroStart, variant, margin });
+  }
+
+  selectMixStyle(prep, transition, gridOut) {
+    if ((transition.style || settings.transitionStyle) === 'blend') return planStyle({ style: 'blend' });
+    const entry = mixmemory.get(prep.track.id, tempoOptions(prep.track));
+    const pre = prep.preroll;
+    const gridIn = pre?.dropGrid || pre?.grid || memoryGrid(entry);
+    const drop = pre?.drop || (!pre?.candidate ? entry?.drop : null);
+    if (!drop) return planStyle({ drop: null });
+    const selected = planStyle({ style: settings.transitionStyle, pair: transition, drop, gridOut,
+      features: [this.current, prep.track].map(track => ({ ...this.mixFeatures(track), title: track.title })),
+      rejected: mixlearn.avoidsDropCut(mixlearn.bucketFor(gridOut?.bpm)),
+      ready: !prep.dropFailed && !!pre?.done && !prep.stream.snipped && pre.deck !== this.deck && pre.deck.track === prep.track });
+    if (selected.style !== 'dropcut') return selected;
+    // There is no audible overlap to tempo-match. Pre-roll at the outgoing rate
+    // and position the incoming phrase downbeat at the outgoing cut instead.
+    const timingGrid = selected.variant === 'roll' ? gridOut :
+      { bpm: 120 / (this.audio.playbackRate || 1), period: 0.5 * (this.audio.playbackRate || 1), offset: 0, confidence: 0 };
+    const match = { gridOut: timingGrid, gridIn: gridIn || timingGrid, ratio: 1 };
+    const window = this.dropWindow(timingGrid, drop, match, transition, selected.variant);
+    const rate = this.audio.playbackRate || 1, inRate = rate * match.ratio;
+    const launch = window && Math.max(this.audio.currentTime, window.build - window.lead);
+    const seconds = window && (window.cut - launch) / rate;
+    // The audible drop respects mix-in markers; silent pre-roll may precede them.
+    if (!window || window.build < this.audio.currentTime - 0.1 ||
+        drop.time - seconds * inRate < 0 || drop.time < transition.in || window.cut <= this.audio.currentTime + 2 * rate) {
+      return { style: 'blend', reason: 'Not enough room for the drop build: smooth blend' };
+    }
+    if (!this.dropBuffered(pre.deck.audio, drop.time - seconds * inRate, drop.time + match.gridIn.period * 2)) {
+      const staged = drop.time - (window.cut - window.build + window.lead) * match.ratio;
+      if (staged >= 0 && (pre.staged == null || Math.abs(pre.staged - staged) > 0.1)) {
+        pre.staged = staged;
+        pre.deck.audio.currentTime = staged;
+      }
+      // Buffering and seek completion are checked again before the graph is armed.
+    }
+    return { ...selected, window, match, transition };
+  }
+
+  /** readyState describes the current position only, not a distant seek target. */
+  dropBuffered(audio, from, to) {
+    const ranges = audio.buffered;
+    for (let i = 0; i < (ranges?.length || 0); i++) {
+      if (ranges.start(i) <= from + 0.02 && ranges.end(i) >= to) return true;
+    }
+    return false;
   }
 
   /** Auto mix: play the next song silently on the idle deck for a few seconds to learn its beat */
@@ -794,25 +937,72 @@ class Player extends Emitter {
     const norm = this.normalizer;
     const deck = this.decks[1 - this.active];
     if (this.fading || this.audio.paused || !norm.addDeck(deck.audio)) return;
-    const startAt = this.autoStartAt(prep.track, cues.transitionFor(this.current.id, prep.track.id).in || 0);
-    const knownBpm = (memoryGrid(mixmemory.get(prep.track.id)) || {}).bpm || null;
-    const started = Date.now();
+    const transition = cues.transitionFor(this.current.id, prep.track.id);
+    const remembered = mixmemory.get(prep.track.id, tempoOptions(prep.track));
+    const wantsDrop = !prep.dropFailed && !prep.stream.snipped && (transition.style || settings.transitionStyle) !== 'blend';
+    const candidate = wantsDrop ? (remembered?.drop?.confidence >= 0.65 ? null :
+      this.waves.get(prep.track.id)?.dropCandidates?.find(c => c.time >= transition.in && !(prep.rejectedDrops || []).includes(c.time))) : null;
+    const drop = wantsDrop && remembered?.drop?.confidence >= 0.65 ? remembered.drop : null;
+    // Early preparation is for drop candidates only. Ordinary intro analysis still waits for
+    // the blend plan, so its drums-in start point and normalization stay unchanged.
+    if (!candidate && !drop && !transition.custom && !this.mixPlan) return;
+    const blendStart = this.autoStartAt(prep.track, transition.in || 0);
+    const startAt = candidate ? Math.max(0, candidate.time - 12) : blendStart;
+    const opts = tempoOptions(prep.track, remembered?.bpm);
+    const knownBpm = opts.bpm || null;
+    let lastProgress = Date.now(), lastPosition = startAt;
     this.releaseDeck(deck);
     norm.setFade(deck.audio, 0);
     norm.holdBass(deck.audio, true, 0);
-    const pre = prep.preroll = { deck, track: prep.track, startAt, grid: null, done: false, timer: null };
+    const pre = prep.preroll = { deck, track: prep.track, startAt: blendStart, candidate, drop, grid: null, done: false, timer: null };
+    if (candidate) this.logMix('listen', `Checking drop at ${mmss(candidate.time)} in ${quote(prep.track)} ahead of the transition`);
     this.attach(prep.stream, true, startAt, deck, prep.track);
     this.beats.unwatch(deck.audio);
     this.beats.watch(deck.audio);
     pre.timer = setInterval(() => {
       // gone, or stuck (stalled stream, a song shorter than the listening time): give up on the beat
-      if (prep.preroll !== pre || deck.track !== pre.track || Date.now() - started > (ANALYZE_MAX_SECONDS + 10) * 1000 || deck.audio.ended) {
-        this.endPreroll(pre);
+      if (this.audio.paused || deck.audio.currentTime > lastPosition + 0.05) {
+        lastProgress = Date.now(); lastPosition = deck.audio.currentTime;
+      }
+      const stalled = !this.audio.paused && Date.now() - lastProgress > 20000;
+      if (prep.preroll !== pre || deck.track !== pre.track) { this.endPreroll(pre); return; }
+      if (stalled || deck.audio.ended) {
+        if (candidate && prep.preroll === pre && deck.track === pre.track) {
+          this.logMix('listen', `Drop at ${mmss(candidate.time)} not confirmed (0.00): analysis stream stalled or ended`);
+          prep.dropFailed = true;
+          this.dropPreroll(prep);
+          this.preroll(prep);
+        } else this.endPreroll(pre);
         return;
       }
       const heard = this.beats.heard(deck.audio);
+      if (candidate) {
+        if (deck.audio.currentTime < candidate.time + 12) return;
+        const samples = this.beats.since(deck.audio, -Infinity).filter(s => s.t >= startAt && s.t <= candidate.time + 12);
+        const confirmed = inspectDrop(samples, candidate, { ...remembered, ...opts, downbeat: remembered?.drop ? remembered.downbeat : null });
+        if (confirmed.drop && confirmed.confidence >= 0.65) {
+          pre.drop = confirmed.drop; pre.dropGrid = confirmed.grid;
+          mixmemory.rememberDrop(pre.track.id, confirmed);
+          this.mixFeatureCache.delete(pre.track.id);
+          this.logMix('listen', `Drop at ${mmss(pre.drop.time)} confirmed (${confirmed.confidence.toFixed(2)}): ${confirmed.reason}`);
+        } else {
+          const reason = confirmed.drop ? 'bass contrast / beat confidence below 0.65' : confirmed.reason;
+          this.logMix('listen', `Drop at ${mmss(candidate.time)} not confirmed (${confirmed.confidence.toFixed(2)}): ${reason}`);
+          prep.rejectedDrops = [...(prep.rejectedDrops || []), candidate.time];
+          // A rejected hint must use the ordinary intro analysis and start point for its blend.
+          this.dropPreroll(prep);
+          prep.dropFailed = !this.waves.get(prep.track.id)?.dropCandidates?.some(c =>
+            c.time >= transition.in && !prep.rejectedDrops.includes(c.time));
+          this.preroll(prep);
+          return;
+        }
+        // The confirmed drop's local grid defines its beat spacing and octave.
+        pre.grid = pre.dropGrid;
+        this.endPreroll(pre);
+        return;
+      }
       if (heard < ANALYZE_SECONDS) return;
-      pre.grid = this.beats.grid(deck.audio, 20, knownBpm);
+      pre.grid = orientGrid(this.beats.grid(deck.audio, 20, knownBpm), opts);
       // a drumless intro: keep listening a little longer for the beat to come in
       if (pre.grid || heard >= ANALYZE_MAX_SECONDS) this.endPreroll(pre);
     }, 250);
@@ -828,7 +1018,17 @@ class Player extends Emitter {
     if (pre.deck.track !== pre.track) return;
     this.logMix('listen', `Listened silently to the start of ${quote(pre.track)}: ${pre.grid ? pre.grid.bpm.toFixed(1) + ' BPM' : 'no beat yet'}${pre.startAt > 0 ? ', will start it at ' + mmss(pre.startAt) : ''}`);
     pre.deck.audio.pause();
-    pre.deck.audio.currentTime = this.clampStart(pre.deck.audio, pre.startAt);
+    // Stage the seek early enough for HLS to fetch its pre-roll and drop. The final launch
+    // position is recomputed on the outgoing clock, and must be inside one buffered range.
+    const gridOut = this.mixPlan?.grid || this.structureOf(this.current.id).grid;
+    const match = pre.drop && { ratio: 1 };
+    const transition = cues.transitionFor(this.current.id, pre.track.id);
+    const window = match && this.dropWindow(gridOut, pre.drop, match, transition);
+    // Even without an outgoing grid yet, keep the distant drop in the HLS buffer.
+    const staged = pre.drop ? Math.max(0, pre.drop.time - (window ?
+      (window.cut - window.build + window.lead) * match.ratio : MAX_MIX_SECONDS * this.rate + 2)) : pre.startAt;
+    pre.staged = staged;
+    pre.deck.audio.currentTime = this.clampStart(pre.deck.audio, staged);
   }
 
   /** A start point inside the song (a saved mix-in point can be past the end of a 30 s preview) */
@@ -870,11 +1070,22 @@ class Player extends Emitter {
         prep.track = added ? this.queue[this.index + 1] : null;
       }
       if (!prep.track) { prep.failed = true; return; }
-      if (prep.auto) this.guessFromWaveform(prep.track);
+      const wave = prep.auto ? this.guessFromWaveform(prep.track) : null;
       const stream = await this.streamOf(prep.track);
+      if (wave) {
+        let timer;
+        await Promise.race([wave, new Promise(resolve => { timer = setTimeout(resolve, 1500); })]);
+        clearTimeout(timer);
+      }
       if (this.prepared !== prep) return;
       prep.stream = stream;
-      if (prep.auto) this.preroll(prep);
+      if (prep.auto) {
+        this.preroll(prep);
+        // A slow waveform must still start analysis when it arrives after stream resolution.
+        wave?.then(() => {
+          if (this.prepared === prep && !prep.preroll) this.preroll(prep);
+        });
+      }
     } catch (e) {
       prep.failed = true; // the normal end-of-song path will deal with it
     }
@@ -883,6 +1094,7 @@ class Player extends Emitter {
   /** Bring the next song in on the idle deck while the current one fades out */
   startCrossfade() {
     const prep = this.prepared;
+    if (this.fading || !prep?.stream) return;
     this.prepared = null;
     // the queue may have been edited since we looked ahead; if so, look again
     const valid = prep.wrap
@@ -900,12 +1112,31 @@ class Player extends Emitter {
     // where the next song comes in and how long the overlap lasts (0 = a clean cut)
     const transition = cues.transitionFor(this.current.id, prep.track.id, this.crossfadeSeconds());
     const plan = prep.auto && !transition.custom && this.mixPlan && this.mixPlan.loadId === this.loadId ? this.mixPlan : null;
+    const wantsDrop = prep.auto && (transition.style || settings.transitionStyle) !== 'blend';
+    const plannedGrid = wantsDrop ? this.mixPlan?.grid || this.outgoingGrid(audio, audio.duration) : null;
+    const liveGrid = prep.auto && plannedGrid ? this.beats.grid(audio, 20, plannedGrid.bpm) : null;
+    const dropGrid = liveGrid?.confidence >= 0.25 && Math.abs(liveGrid.period / plannedGrid.period - 1) < 0.02 ?
+      { ...liveGrid, downbeat: liveGrid.offset + Math.round(((plannedGrid.downbeat ?? plannedGrid.offset) - liveGrid.offset) / liveGrid.period) * liveGrid.period } : plannedGrid;
+    const selected = prep.auto ? this.selectMixStyle(prep, transition, dropGrid) : { style: 'blend' };
+    const dropcut = selected.style === 'dropcut';
     const fade = plan ? plan.span / rate : transition.fade;
-    const seconds = fade ? Math.max(0.5, Math.min(fade, left)) : 0.1;
+    if (!dropcut && prep.selected?.style === 'dropcut') {
+      const blendAt = transition.out != null && transition.out < audio.duration - 0.25 && audio.currentTime <= transition.out + 3 ?
+        transition.out : audio.duration - (fade ? fade * rate : 0.2);
+      if (blendAt > audio.currentTime) {
+        // Readiness can change between planning and launch. Keep the original blend timing.
+        prep.selected = selected;
+        this.prepared = prep;
+        return;
+      }
+    }
+    const seconds = dropcut ? (selected.window.cut - audio.currentTime) / rate : fade ? Math.max(0.5, Math.min(fade, left)) : 0.1;
     // Auto mix: the next song is already loaded on the idle deck; line its beats up with this one's
     const pre = prep.preroll && prep.preroll.deck === incoming && incoming.track === prep.track ? prep.preroll : null;
-    const startAt = pre ? pre.startAt : plan ? this.autoStartAt(prep.track, transition.in || 0) : Math.max(0, transition.in || 0);
-    let choice = plan ? plan.choice : null;
+    if (!dropcut && pre && (pre.candidate || pre.drop)) pre.startAt = plan ? this.autoStartAt(prep.track, transition.in || 0) : Math.max(0, transition.in || 0);
+    const startAt = dropcut ? selected.drop.time - seconds * rate * selected.match.ratio :
+      pre ? pre.startAt : plan ? this.autoStartAt(prep.track, transition.in || 0) : Math.max(0, transition.in || 0);
+    let choice = plan ? plan.choice : dropcut ? mixlearn.choose(mixlearn.bucketFor(selected.match.gridOut.bpm)) : null;
     let match = null;
     if (pre) {
       this.endPreroll(pre);
@@ -923,8 +1154,10 @@ class Player extends Emitter {
       // the tempo only became clear now: file what this mix teaches under its real tempo range
       if (choice && choice.bucket === 'nobeat' && match) choice = Object.assign({}, choice, { bucket: mixlearn.bucketFor(match.gridOut.bpm) });
     }
+    if (dropcut) match = selected.match;
+    if (choice) choice = { ...choice, style: selected.style };
 
-    const from = this.current;
+    const from = this.current, fromIndex = this.index, fromQueue = this.queue;
     // move to the next song exactly like next() would
     if (prep.wrap) {
       if (prep.order) this.queue = prep.order;
@@ -936,12 +1169,13 @@ class Player extends Emitter {
     this.loadId++;
     if (!pre) this.releaseDeck(incoming);
     // Auto mix blends like a DJ and swaps the two songs' bass halfway through, over one bar (not for quick cuts)
-    const bass = prep.auto && seconds >= 2;
+    const bass = prep.auto && !dropcut && seconds >= 2;
     const grid = match ? match.gridOut : plan && plan.grid;
     const bar = grid ? 4 * grid.period / rate : 0;
     const bassWidth = bar ? Math.min(0.25, Math.max(0.06, bar / seconds)) : 0.2;
     const fading = this.fading = { from, to: track, outgoing, incoming, seconds, bass, bassWidth, shapeIn: null, shapeOut: null,
-      progress: 0, startedAt: null, timer: null, fallback: null };
+      progress: 0, startedAt: null, timer: null, fallback: null, style: selected.style, reason: selected.reason,
+      dropcut: dropcut ? selected : null, prep, fromIndex, fromQueue };
 
     if (bass) fading.shapeIn = fading.shapeOut = { dj: choice ? choice.params.dj : 1 };
     // learning: was this transition kept? (decided after the mix, see finishFade / noteSkip)
@@ -960,20 +1194,29 @@ class Player extends Emitter {
     Object.assign(track, prep.stream.track);
     if (prep.stream.snipped) toast('Only a 30 second preview is available for this track');
     this.active = 1 - this.active;
+    fading.onPlaying = () => { if (this.fading === fading) this.beginFade(); };
+    incoming.audio.addEventListener('playing', fading.onPlaying, { once: true });
+    // Keep the outgoing rate fixed through the build, including a previous mix's tempo glide.
     this.stopLock();
+    if (dropcut) audio.playbackRate = rate;
     if (pre) {
       // start on the beat; BeatLock then keeps it there and matches the tempo
-      incoming.audio.currentTime = this.clampStart(incoming.audio, match ? alignedStart(match, audio.currentTime, startAt) : startAt);
-      if (match) this.lock = new BeatLock(audio, incoming.audio, match, this.rate);
+      incoming.audio.currentTime = this.clampStart(incoming.audio, !dropcut && match ? alignedStart(match, audio.currentTime, startAt) : startAt);
+      if (match && !dropcut) this.lock = new BeatLock(audio, incoming.audio, match, this.rate);
+      if (dropcut) incoming.audio.playbackRate = rate * match.ratio;
       incoming.audio.play().catch(() => {});
     } else {
       this.attach(prep.stream, true, startAt, incoming, track);
     }
     this.startListening(incoming.audio, track);
-    this.logMix('mix', `Mixing into ${quote(track)}: ${match ? `beats locked${Math.abs(match.ratio - 1) > 0.001 ? `, playing it ${Math.abs((match.ratio - 1) * 100).toFixed(1)}% ${match.ratio > 1 ? 'faster' : 'slower'} to match` : ''}` : bass ? 'no beat match, DJ-style blend' : 'plain crossfade'}${startAt > 0 ? ', from ' + mmss(startAt) : ''}`);
+    this.logMix(dropcut ? 'plan' : 'mix', `${dropcut ? 'Planning a drop cut…' : 'Smooth blend into'} ${quote(track)}${selected.reason ? ': ' + selected.reason : ''}${match && !dropcut ? ', beats matched' : ''}${startAt > 0 ? ', from ' + mmss(startAt) : ''}`);
     // the fade starts once the new song is really playing, so no silence in the middle of it
-    incoming.audio.addEventListener('playing', () => this.beginFade(), { once: true });
-    fading.fallback = setTimeout(() => this.beginFade(), 3000);
+    fading.fallback = setTimeout(() => {
+      if (this.fading !== fading) return;
+      if (fading.style === 'dropcut') this.beginDropCut(fading);
+      else this.beginFade();
+    }, dropcut ? 1000 : 3000);
+    if (dropcut) this.waitForDropCut(fading);
 
     this.emit('queue');
     this.emit('track', track);
@@ -986,6 +1229,7 @@ class Player extends Emitter {
   beginFade() {
     const f = this.fading;
     if (!f || f.startedAt !== null || this.audio.paused) return;
+    if (f.style === 'dropcut') { this.beginDropCut(f); return; }
     clearTimeout(f.fallback);
     const norm = this.normalizer;
     const left = f.seconds * (1 - f.progress);
@@ -1001,9 +1245,170 @@ class Player extends Emitter {
     f.timer = setTimeout(() => this.finishFade(f), left * 1000 + 100);
   }
 
+  /** Retry seeks/buffering until the last possible two-bar build must start. */
+  waitForDropCut(f) {
+    if (f.armTimer || f.dropScheduled) return;
+    const a = f.outgoing.audio, beat = f.dropcut.match.gridOut.period;
+    const rate = a.playbackRate || 1;
+    f.armDeadline = performance.now() + Math.max(0, (a.duration - a.currentTime - 8 * beat - Math.max(beat, 0.5 * rate)) / rate - 0.3) * 1000;
+    f.armTimer = setInterval(() => this.beginDropCut(f), 50);
+  }
+
+  /** Media elements pre-roll silently; only the graph's clock opens the incoming drop. */
+  beginDropCut(f) {
+    if (this.fading !== f || f.dropScheduled || f.style !== 'dropcut') return;
+    const norm = this.normalizer, ctx = norm.ctx, plan = f.dropcut;
+    const a = f.outgoing.audio, b = f.incoming.audio;
+    const rate = a.playbackRate || 1, beat = plan.match.gridOut.period / rate;
+    this.waitForDropCut(f);
+    if (performance.now() > f.armDeadline) {
+      this.fallbackDropCut(f, 'Drop audio missed the readiness deadline');
+      return;
+    }
+    if (plan.window.build < a.currentTime + 0.3 * rate) {
+      const window = this.dropWindow(plan.match.gridOut, plan.drop, plan.match, plan.transition || {},
+        plan.variant, a, f.from, 1.8) || this.dropWindow(plan.match.gridOut, plan.drop, plan.match, plan.transition || {},
+        plan.variant, a, f.from, 0.3);
+      if (!window) {
+        this.fallbackDropCut(f, 'No future drop build fits');
+        return;
+      }
+      plan.window = window;
+    }
+    const start = ctx.currentTime + (plan.window.build - a.currentTime) / rate;
+    const length = (plan.window.cut - plan.window.build) / plan.match.gridOut.period;
+    const schedule = rollSchedule(start, beat, length, plan.variant);
+    const ready = !a.paused && !b.paused && !a.seeking && !b.seeking && a.readyState >= 3 && b.readyState >= 3;
+    if (!schedule) {
+      this.fallbackDropCut(f, 'No future drop build fits');
+      return;
+    }
+    if (!ready) return;
+    const baseRate = rate * plan.match.ratio;
+    const error = (plan.drop.time - b.currentTime) / baseRate - (schedule.drop - ctx.currentTime);
+    if (Math.abs(error) > (schedule.drop - ctx.currentTime) * 0.025) {
+      // Re-plan/seek only the explicitly captured incoming deck, never this.audio.
+      b.currentTime = plan.drop.time - (plan.window.cut - a.currentTime) * plan.match.ratio;
+      return;
+    }
+    if (!this.dropBuffered(b, b.currentTime, plan.drop.time + plan.match.gridIn.period * 2)) return;
+    // Both decks have finished seeking; commit only with an audio-clock margin.
+    if (start < ctx.currentTime + 0.3) return;
+    clearTimeout(f.fallback);
+    clearInterval(f.armTimer);
+    f.armTimer = null;
+    f.schedule = schedule;
+    f.seconds = schedule.end - start;
+    f.startedAt = start;
+    if (!norm.startDropCut(a, b, schedule)) {
+      this.fallbackDropCut(f, 'Drop effects unavailable');
+      return;
+    }
+    f.dropScheduled = true;
+    f.announced = true;
+    this.logMix('mix', `Drop cut into ${quote(f.to)}: ${plan.reason || f.reason || 'drop armed'}`);
+    this.emit('transition', { phase: 'start', from: f.from, to: f.to, style: 'dropcut' });
+    const tick = () => {
+      if (this.fading !== f) return;
+      const now = ctx.currentTime;
+      const remaining = schedule.drop - now;
+      if (remaining > 0) {
+        const drift = (plan.drop.time - b.currentTime) / baseRate - remaining;
+        const outDrift = (plan.window.cut - a.currentTime) / rate - remaining;
+        if (a.paused || b.paused || a.seeking || b.seeking || a.readyState < 3 || b.readyState < 3 ||
+            Math.abs(a.playbackRate - rate) > 0.0001 ||
+            Math.abs(outDrift) > 0.04 || (remaining < beat * 2 && Math.abs(drift) > 0.025)) {
+          this.fallbackDropCut(f, 'Stream or beat timing changed');
+          return;
+        }
+        b.playbackRate = baseRate * (1 + Math.max(-0.025, Math.min(0.025, drift / Math.max(beat, remaining))));
+      } else if (!f.landed) {
+        const drift = (b.currentTime - plan.drop.time) / baseRate - (now - schedule.drop);
+        if (b.paused || b.seeking || b.readyState < 3 || Math.abs(drift) > 0.04) {
+          this.fallbackDropCut(f, 'Incoming stream missed the drop');
+          return;
+        }
+        f.landed = true;
+        b.playbackRate = baseRate;
+        // Release from the actual matched rate without starting phase correction or resetting it.
+        this.lock = new BeatLock(a, b, plan.match, this.rate, false);
+        this.releaseLock();
+      }
+      const phase = dropPhase(schedule, now);
+      if (phase !== f.phase) {
+        f.phase = phase;
+        this.logMix('mix', `Drop cut: ${phase}${phase === 'cut' ? ' · echo tail only' : ''}`);
+      }
+      if (now >= schedule.end) this.finishFade(f);
+    };
+    f.monitor = setInterval(tick, 20);
+    tick();
+  }
+
+  fallbackDropCut(f, reason) {
+    if (this.fading !== f) return;
+    clearInterval(f.monitor);
+    clearInterval(f.armTimer);
+    f.armTimer = null;
+    clearTimeout(f.fallback);
+    if (f.onPlaying) f.incoming.audio.removeEventListener('playing', f.onPlaying);
+    // This emergency blend didn't use the sampled blend parameters or complete a drop cut.
+    this.clearMixOutcome();
+    this.stopLock();
+    this.applySpeed(f.incoming.audio);
+    this.normalizer.clearDropCut(f.outgoing.audio);
+    this.normalizer.setFade(f.incoming.audio, 0);
+    this.normalizer.setFade(f.outgoing.audio, 1);
+    if (f.incoming.audio.paused || f.incoming.audio.readyState < 3) {
+      // Keep the playing deck when the silent pre-roll stalls. Retry this pair as a blend.
+      this.fading = null;
+      this.stopLock();
+      this.stopListening(f.incoming.audio);
+      this.releaseDeck(f.incoming);
+      this.beats.unwatch(f.incoming.audio);
+      this.queue = f.fromQueue;
+      this.index = f.fromIndex;
+      this.active = this.decks.indexOf(f.outgoing);
+      this.loadId++;
+      this.mixPlan = null;
+      this.normalizer.setActive(f.outgoing.audio);
+      this.normalizer.startTrack(f.from.id);
+      if (this.mixOutcome) clearTimeout(this.mixOutcome.timer);
+      this.mixOutcome = null;
+      this.prepared = { ...f.prep, loadId: this.loadId, from: this.index, preroll: null, dropFailed: true };
+      if (f.announced) this.emit('transition', { phase: 'end', from: f.from, to: f.to });
+      this.logMix('mix', `${reason}: keeping the outgoing song, retrying a smooth blend`);
+      this.emit('queue');
+      this.emit('track', this.current);
+      this.emit('time', this.audio.currentTime, this.duration);
+      this.updateMediaSession();
+      return;
+    }
+    f.style = 'blend';
+    f.reason = `${reason}: smooth blend`;
+    f.dropScheduled = false;
+    f.schedule = null;
+    f.startedAt = null;
+    f.progress = 0;
+    f.seconds = Math.max(0.25, Math.min(6, (f.outgoing.audio.duration - f.outgoing.audio.currentTime) / (f.outgoing.audio.playbackRate || 1)));
+    this.logMix('mix', f.reason);
+    this.beginFade();
+  }
+
   /** Pausing mid-crossfade freezes the blend where it is */
   holdFade() {
     const f = this.fading;
+    if (f?.style === 'dropcut') {
+      // Delay feedback and scheduled gates cannot be rewound independently of the
+      // shared AudioContext. Restore the outgoing song with a flat graph, then pause
+      // it. Play resumes that song; the pair is retried as an ordinary blend.
+      f.aborting = true;
+      f.outgoing.audio.pause();
+      f.incoming.audio.pause();
+      this.fallbackDropCut(f, 'Drop cut paused; effects reset');
+      this.audio.pause();
+      return;
+    }
     if (!f || f.startedAt === null) return;
     const norm = this.normalizer;
     f.progress = Math.min(1, f.progress + (norm.ctx.currentTime - f.startedAt) / f.seconds);
@@ -1024,9 +1429,17 @@ class Player extends Emitter {
     if (f.announced) this.emit('transition', { phase: 'end', from: f.from, to: f.to });
     clearTimeout(f.timer);
     clearTimeout(f.fallback);
+    clearInterval(f.monitor);
+    clearInterval(f.armTimer);
+    f.armTimer = null;
+    if (f.onPlaying) f.incoming.audio.removeEventListener('playing', f.onPlaying);
+    // Restoring the bypass must not expose dry outgoing audio while song memory is finalized.
+    if (f.style === 'dropcut') this.normalizer.setFade(f.outgoing.audio, 0);
+    this.normalizer.clearDropCut(f.outgoing.audio);
     this.stopListening(f.outgoing.audio);
     this.releaseDeck(f.outgoing);
     this.beats.unwatch(f.outgoing.audio);
+    if (f.style === 'dropcut' && !f.landed) this.clearMixOutcome();
     const o = this.mixOutcome;
     if (o && o.trackId === f.to.id && !o.mixEnd) {
       o.mixEnd = performance.now();
@@ -1040,7 +1453,7 @@ class Player extends Emitter {
         if (this.audio.currentTime - o.position >= 20) {
           this.mixOutcome = null;
           mixlearn.record(o.choice, 'good');
-          this.logMix('good', `You kept ${quote(this.current)}: nudging mixes for ${TEMPO_RANGES[o.choice.bucket]} toward ${Math.round(o.choice.params.length * 100)}% length`);
+          this.logMix('good', `You kept ${quote(this.current)} after a ${o.choice.style === 'dropcut' ? 'drop cut' : 'smooth blend'}: learning for ${TEMPO_RANGES[o.choice.bucket]}`);
           return;
         }
         if (++checks > 30) { this.mixOutcome = null; return; }
@@ -1053,19 +1466,34 @@ class Player extends Emitter {
     this.normalizer.holdBass(f.outgoing.audio, false, null);
     this.normalizer.holdBass(f.incoming.audio, true, null);
     // the incoming song eases back to its own tempo
-    if (this.lock && this.lock.incoming === f.incoming.audio) this.lock.release();
+    if (this.lock?.incoming === f.incoming.audio) this.releaseLock();
+  }
+
+  /** Phase locking ends with the blend; its independent tempo glide can finish later. */
+  releaseLock() {
+    const lock = this.lock;
+    if (!lock) return;
+    this.lock = null;
+    this.tempoRelease?.stop(this.rate);
+    this.tempoRelease = lock;
+    lock.release(() => { if (this.tempoRelease === lock) this.tempoRelease = null; });
   }
 
   /** Drop Auto mix's beat lock straight away (a skip or a new song) */
   stopLock() {
-    if (!this.lock) return;
-    this.lock.stop(this.rate);
+    this.lock?.stop(this.rate);
+    this.tempoRelease?.stop(this.rate);
     this.lock = null;
+    this.tempoRelease = null;
   }
 
   /** Manual skips cut cleanly: drop the fading deck now and bring the active one to full level */
   cutFade() {
-    if (this.fading) this.finishFade(this.fading);
+    const f = this.fading;
+    if (f) {
+      this.finishFade(f);
+      if (f.style === 'dropcut') { this.stopLock(); this.applySpeed(f.incoming.audio); }
+    }
   }
 
   // ---- remember the session across restarts ----------------------------------
@@ -1127,14 +1555,27 @@ class Player extends Emitter {
   }
 
   pause() {
-    this.audio.pause();
     this.holdFade();
+    this.audio.pause();
     if (this.fading) this.fading.outgoing.audio.pause();
     const pre = this.prepared && this.prepared.preroll;
     if (pre && !pre.done) pre.deck.audio.pause();
   }
 
   async next(auto = false) {
+    const f = this.fading;
+    if (!auto && f?.style === 'dropcut' && !f.landed) {
+      // The target is already current during silent pre-roll. Next means land
+      // this drop now, before queue navigation or related-track fetching.
+      this.clearMixOutcome();
+      f.aborting = true;
+      this.cutFade();
+      f.incoming.audio.currentTime = this.clampStart(f.incoming.audio, f.dropcut.drop.time);
+      f.incoming.audio.play().catch(() => {});
+      this.logMix('mix', 'Next during drop build: cut straight to the incoming drop');
+      this.emit('time', this.audio.currentTime, this.duration);
+      return;
+    }
     if (!this.queue.length) return;
     if (!auto) this.noteSkip();
     if (this.index < this.queue.length - 1) {
@@ -1188,7 +1629,7 @@ class Player extends Emitter {
 
   prev() {
     if (this.audio.currentTime > 3 || this.index <= 0) {
-      this.audio.currentTime = 0;
+      this.seek(0);
       return;
     }
     this.noteSkip();
@@ -1209,6 +1650,8 @@ class Player extends Emitter {
 
   seek(seconds) {
     if (!this.current) return;
+    this.clearMixOutcome();
+    if (this.fading?.style === 'dropcut') { this.cutFade(); this.stopLock(); }
     this.audio.currentTime = Math.max(0, Math.min(seconds, this.duration - 0.25));
   }
 

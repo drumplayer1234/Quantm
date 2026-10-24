@@ -32,6 +32,8 @@ export function startAutoMixCss(player) {
     mark('lock', 'none');
     mark('tempo', 'unknown');
     delete html.dataset.swap;
+    delete html.dataset.mixStyle;
+    delete html.dataset.mixPhase;
     if (motion() || !html.dataset.beat) mark('beat', 'a');
     for (const key of ['--mix', '--beat', '--bpm']) setVar(key, '0');
   }
@@ -59,8 +61,11 @@ export function startAutoMixCss(player) {
     }
     progress = mixing ? clamp(progress) : 0;
     mark('automix', mixing ? 'mixing' : 'on');
+    mark('mixStyle', status.mix?.style || status.plan?.style || 'blend');
+    if (mixing && status.mix?.phase) mark('mixPhase', status.mix.phase);
+    else delete html.dataset.mixPhase;
     setVar('--mix', String(Math.round(progress * 1000) / 1000));
-    if (mixing) mark('swap', progress < 0.5 ? 'before' : 'after');
+    if (mixing && status.mix?.style !== 'dropcut') mark('swap', progress < 0.5 ? 'before' : 'after');
     else delete html.dataset.swap;
     // Match Settings' green threshold; an active controller alone does not mean in phase.
     mark('lock', mixing && status.lock?.active && Number.isFinite(status.lock.errorMs) &&

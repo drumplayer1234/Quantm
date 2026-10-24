@@ -41,6 +41,12 @@ function sanitize(raw) {
   }
   entry.good = count(raw.good);
   entry.bad = count(raw.bad);
+  if (raw.styles && typeof raw.styles === 'object') {
+    entry.styles = {};
+    for (const style of ['blend', 'dropcut']) entry.styles[style] = {
+      good: count(raw.styles[style]?.good), bad: count(raw.styles[style]?.bad)
+    };
+  }
   return entry;
 }
 
@@ -97,14 +103,24 @@ export function record(choice, outcome) {
   }
   const buckets = load();
   const entry = buckets[choice.bucket] || (buckets[choice.bucket] = fresh());
+  if (['blend', 'dropcut'].includes(choice.style)) {
+    entry.styles ||= { blend: { good: 0, bad: 0 }, dropcut: { good: 0, bad: 0 } };
+    entry.styles[choice.style][outcome]++;
+  }
   const sign = outcome === 'good' ? 1 : -1;
   for (const field of FIELDS) {
     // Step by the variation that was tried, applied to what is learned now.
-    const step = sign * RATE * (params[field] - base[field]);
+    const step = choice.style === 'dropcut' ? 0 : sign * RATE * (params[field] - base[field]);
     entry[field] = round(clamp(field, entry[field] + step));
   }
   entry[outcome] += 1;
   save();
+}
+
+/** A skipped drop cut makes Auto prefer blends in this tempo bucket. Explicit choices still work. */
+export function avoidsDropCut(bucket) {
+  const outcomes = load()[bucket]?.styles?.dropcut;
+  return !!outcomes && outcomes.bad > outcomes.good;
 }
 
 /** What has been learned, for the settings screen: { transitions (total recorded), buckets: { [bucket]: { length, dj, stretch, good, bad } } } (only buckets with data). */

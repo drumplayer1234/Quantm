@@ -747,8 +747,10 @@ async function autoMixTab(cleanups) {
       if (s.structure.drumsIn != null) parts.push(s.structure.drumsIn > 1 ? 'drums at ' + clock(s.structure.drumsIn) : 'drums from the start');
       if (s.structure.outroStart != null) parts.push('outro from ' + clock(s.structure.outroStart));
       if (m && m.beatToEnd) parts.push('beat runs to the end');
+      if (m?.drop) parts.push(`drop at ${clock(m.drop.time)}, confidence ${pct(m.drop.confidence)}`);
       rows.push(row('Memory', parts.length ? parts.join('  ·  ') + (m ? '' : '  (guessed from the waveform)') : 'first time hearing this song'));
       if (s.plan && !s.mix) {
+        if (s.plan.reason) rows.push(row('Transition style', `${s.plan.style === 'dropcut' ? 'Drop cut' : 'Smooth blend'} · ${s.plan.reason}`));
         const p = s.plan.choice ? s.plan.choice.params : null;
         const when = s.mixIn != null ? (s.mixIn > 0 ? 'in ' + clock(s.mixIn) : 'starting now') : 'near the end';
         rows.push(row('Next mix', `${when}  ·  ${(s.plan.span / (player.audio.playbackRate || 1)).toFixed(1)} s` +
@@ -767,6 +769,7 @@ async function autoMixTab(cleanups) {
           (p.startAt > 0 ? `, starts at ${clock(p.startAt)}` : '')));
       }
       if (s.mix) {
+        rows.push(row('Transition style', `${s.mix.style === 'dropcut' ? 'Drop cut' : 'Smooth blend'}${s.mix.phase ? ' · ' + s.mix.phase : ''}${s.mix.reason ? ' · ' + s.mix.reason : ''}`));
         const bar = h('span.automix-bar', h('span', { style: { width: pct(s.mix.progress) } }));
         rows.push(row('Mixing', h('span', `${s.mix.from.title} → ${s.mix.to.title}  ·  ${pct(s.mix.progress)} of ${s.mix.seconds.toFixed(1)} s` +
           (s.mix.bass ? (s.mix.progress < 0.5 ? '  ·  bass swaps at 50%' : '  ·  bass swapped') : ''), bar)));
@@ -791,10 +794,11 @@ async function autoMixTab(cleanups) {
     const head = h('p.settings-row-desc', `Remembers ${songs} song${songs === 1 ? '' : 's'}  ·  learned from ${stats.transitions} mix${stats.transitions === 1 ? '' : 'es'}`);
     const ranges = AUTOMIX_RANGES.filter(([id]) => stats.buckets[id]);
     const table = ranges.length ? h('table.automix-table',
-      h('thead', h('tr', ['Tempo', 'Mix length', 'DJ blend', 'Tempo stretch', 'Kept', 'Skipped'].map(t => h('th', t)))),
+      h('thead', h('tr', ['Tempo', 'Mix length', 'DJ blend', 'Tempo stretch', 'Kept', 'Skipped', 'Drop cuts kept / skipped'].map(t => h('th', t)))),
       h('tbody', ranges.map(([id, label]) => {
         const b = stats.buckets[id];
-        return h('tr', h('td', label), h('td', pct(b.length)), h('td', pct(b.dj)), h('td', 'up to ' + pct(b.stretch, 1)), h('td', String(b.good)), h('td', String(b.bad)));
+        return h('tr', h('td', label), h('td', pct(b.length)), h('td', pct(b.dj)), h('td', 'up to ' + pct(b.stretch, 1)), h('td', String(b.good)), h('td', String(b.bad)),
+          h('td', `${b.styles?.dropcut?.good || 0} / ${b.styles?.dropcut?.bad || 0}`));
       }))
     ) : h('p.muted.small', 'Nothing yet. Every mix you keep or skip shows up here. It starts at 100% length, full DJ blend and up to 8% stretch, and moves slowly.');
     learned.replaceChildren(head, table);
@@ -817,6 +821,9 @@ async function autoMixTab(cleanups) {
   return h('div',
     card('Auto mix', 'DJ-style transitions that learn from every song and every skip. Updates live while you listen.',
       toggleRow('Auto mix', 'Beat-matched mixes between songs. Also in Playback → Crossfade.', settings.autoMix === true, (on) => saveSettings({ autoMix: on })),
+      selectRow('Transition style', 'Auto uses confident drops for energetic electronic pairs. Other transitions use a smooth blend.',
+        [{ id: 'auto', label: 'Auto (default)' }, { id: 'blend', label: 'Smooth blend' }, { id: 'dropcut', label: 'Drop cut' }],
+        settings.transitionStyle || 'auto', value => saveSettings({ transitionStyle: value })),
       now),
     card('What it has learned', 'Slowly, per tempo range: what it tries next starts from these.', learned, autoMixLearning()),
     card('Activity', null, feed)

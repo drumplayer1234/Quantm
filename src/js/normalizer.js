@@ -12,6 +12,7 @@
 
 import { safeParse } from './store.js';
 import { EQ_BANDS, normalizeEqualizer } from './equalizer.js';
+import { DropCutEffect } from './dropcut.js';
 
 const TARGET = -14;          // dB, roughly the -14 LUFS streaming services use
 const MAX_BOOST = 9;         // never boost quiet tracks by more than this
@@ -228,6 +229,35 @@ export class Normalizer {
     const param = deck.bass.gain;
     param.cancelScheduledValues(this.ctx.currentTime);
     param.setValueAtTime(progress == null ? 0 : bassLevel(fadeIn, Math.min(1, Math.max(0, progress)), width), this.ctx.currentTime);
+  }
+
+  /** Insert only for a drop cut; otherwise fade feeds bass directly, with no filter coloration. */
+  startDropCut(outgoing, incoming, schedule) {
+    const a = this.decks.get(outgoing), b = this.decks.get(incoming);
+    if (this.dropcut || !a || !b || a === b || !this.ctx.createDelay ||
+        ![schedule?.start, schedule?.drop, schedule?.end].every(Number.isFinite) ||
+        schedule.start <= this.ctx.currentTime || schedule.drop <= schedule.start || schedule.end <= schedule.drop) return false;
+    try { a.dropcut = new DropCutEffect(this.ctx, a.fade, a.bass, schedule); }
+    catch { return false; }
+    this.dropcut = { outgoing, incoming };
+    this.holdBass(outgoing, false, null);
+    this.holdBass(incoming, true, null);
+    this.setFade(incoming, 0);
+    b.fade.gain.setValueAtTime(1, schedule.drop);
+    return true;
+  }
+
+  clearDropCut(audio) {
+    const cut = this.dropcut;
+    if (!cut || (cut.outgoing !== audio && cut.incoming !== audio)) return;
+    const deck = this.decks.get(cut.outgoing), incoming = this.decks.get(cut.incoming);
+    deck.dropcut.stop();
+    deck.dropcut = null;
+    this.dropcut = null;
+    // Cancel the future drop opening too, even when the incoming deck is the one released.
+    this.setFade(cut.incoming, incoming.fade.gain.value);
+    this.holdBass(cut.outgoing, false, null);
+    this.holdBass(cut.incoming, true, null);
   }
 
   /** What the deck is playing right now for Auto mix: { low, high, full } energy, or null */
