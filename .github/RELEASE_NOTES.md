@@ -1,5 +1,12 @@
 **🚫 No ads**: no audio ads, banners or promoted tracks. Free and open source.
 
+## What's new in 1.2.2
+
+- **Side player.** A new player position puts the whole player in a panel on the right: big artwork, the song and artist, the waveform, all the controls, likes, reposts, tags and the description. Turn it on in Settings → Appearance → Player position → Side. It works in every theme, and in windows narrower than 980 pixels the normal bar comes back.
+- **Drop cut transitions for Auto mix.** A club-style transition next to the smooth blend: the old song's bass gets filtered out over its last few bars, a loop roll speeds up on the beat with an echo tail, then the next song slams in right on its drop. Quantm finds each song's drop from its waveform, checks it on the real audio before the mix, and remembers it. Pick it in Settings → Auto mix → Transition style: Smooth blend (the default), Auto (drop cuts for energetic electronic songs with a clear drop) or Drop cut. Pressing Next during the build cuts straight to the drop. Drop cuts skip the next song's intro, which is why Smooth blend stays the default.
+- **More reliable smooth blends.** Beat detection at the end of a song now looks for the part with drums instead of one fixed stretch, so fewer mixes fall back to "no clear beat". Fewer songs are read at half or double their tempo.
+- **Support Quantm.** Settings → About has a link to Quantm's Ko-fi, if you'd like to chip in. Quantm stays free.
+
 ## What's new in 1.2.1
 
 - **Smoother on high refresh rate screens.** With Auto mix on, Quantm could drop frames and stutter, especially with the queue open on Liquid Glass and other glass themes. Fixed: it now does far less work per frame, and the visualizer draws at up to 60 frames a second.
