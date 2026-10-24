@@ -821,9 +821,9 @@ async function autoMixTab(cleanups) {
   return h('div',
     card('Auto mix', 'DJ-style transitions that learn from every song and every skip. Updates live while you listen.',
       toggleRow('Auto mix', 'Beat-matched mixes between songs. Also in Playback → Crossfade.', settings.autoMix === true, (on) => saveSettings({ autoMix: on })),
-      selectRow('Transition style', 'Auto uses confident drops for energetic electronic pairs. Other transitions use a smooth blend.',
-        [{ id: 'auto', label: 'Auto (default)' }, { id: 'blend', label: 'Smooth blend' }, { id: 'dropcut', label: 'Drop cut' }],
-        settings.transitionStyle || 'auto', value => saveSettings({ transitionStyle: value })),
+      selectRow('Transition style', 'Smooth blend mixes over the end of each song. Drop cut skips to the next song’s drop; Auto uses it for energetic electronic pairs with a clear drop.',
+        [{ id: 'blend', label: 'Smooth blend (default)' }, { id: 'auto', label: 'Auto' }, { id: 'dropcut', label: 'Drop cut' }],
+        settings.transitionStyle || 'blend', value => saveSettings({ transitionStyle: value, transitionStyleChosen: true })),
       now),
     card('What it has learned', 'Slowly, per tempo range: what it tries next starts from these.', learned, autoMixLearning()),
     card('Activity', null, feed)
